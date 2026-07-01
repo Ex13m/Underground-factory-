@@ -18,6 +18,12 @@
   --g-composite: #d9e2e8;
   --g-carbon: #e01b22;
 
+  /* stitch design_tokens_v1 */
+  --surface-dim: #131312;
+  --surface-bright: #3a3938;
+  --glow-red: rgba(224, 27, 34, 0.6);
+  --success: #4caf50;
+
   --font-display: 'Unbounded', 'Arial Black', sans-serif;
   --font-mono: 'JetBrains Mono', 'Courier New', monospace;
   --font-body: 'Manrope', 'Segoe UI', sans-serif;
@@ -237,6 +243,13 @@ section.red-poster { background: var(--blood); color: var(--void); }
   animation: scan 4s linear infinite;
 }
 @keyframes scan { from { background-position-y: -220px; } to { background-position-y: 100vh; } }
+
+/* ---------- carbon weave texture (stitch tokens: textures.carbon-fibre) ---------- */
+.carbon-tex {
+  background-image:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.035) 0 2px, transparent 2px 5px),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.035) 0 2px, transparent 2px 5px);
+}
 
 /* ---------- reveal on scroll (used by pages) ---------- */
 .reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.7s ease, transform 0.7s ease; }

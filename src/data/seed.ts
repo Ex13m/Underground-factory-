@@ -238,6 +238,8 @@ export const SEED_PRODUCTS: Product[] = [
 
 /** Hero/background video candidates — first reachable one wins, otherwise animated fallback. */
 export const HERO_VIDEOS = [
+  // из stitch final_project_report v1.1 (если бакет недоступен — каскад идёт дальше)
+  'https://storage.googleapis.com/stitch-assets/video-backgrounds/drift-night-city.mp4',
   'https://assets.mixkit.co/videos/preview/mixkit-driver-drifting-in-a-car-race-42542-large.mp4',
   'https://assets.mixkit.co/videos/preview/mixkit-sports-car-driving-on-a-highway-41576-large.mp4',
   'https://videos.pexels.com/video-files/4568563/4568563-hd_1920_1080_30fps.mp4',

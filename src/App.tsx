@@ -16,6 +16,7 @@ import { Admin } from './pages/Admin';
 
 import { AuthModal } from './components/AuthModal';
 import { CursorFX } from './fx/CursorFX';
+import { BootIntro } from './fx/BootIntro';
 import { Bot } from './bot/Bot';
 import { Coachmarks } from './bot/Coachmarks';
 
@@ -63,6 +64,7 @@ function Shell() {
       </main>
       <Footer />
       <AuthModal />
+      <BootIntro />
       <CursorFX />
       <Bot />
       <Coachmarks />
