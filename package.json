@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "UNDERGROUND FACTORY — the lightest body kits on the planet. Cardboard tuning e-shop prototype.",
+  "description": "UNDERGROUND FACTORY — the lightest body kits on the planet. Carbon, composite and ABS tuning e-shop prototype.",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

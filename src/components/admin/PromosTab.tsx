@@ -74,7 +74,7 @@ export function PromosTab() {
                 className={`field${errors.code ? ' invalid' : ''}`}
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
-                placeholder="WETCARDBOARD10"
+                placeholder="TRACKDAY10"
               />
               {errors.code && <span className="adm-err">{t(errors.code)}</span>}
             </div>

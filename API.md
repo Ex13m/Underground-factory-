@@ -7,11 +7,11 @@
  ██║   ██║██╔══╝       ██╔══██║██╔═══╝ ██║
  ╚██████╔╝██║          ██║  ██║██║     ██║
   ╚═════╝ ╚═╝          ╚═╝  ╚═╝╚═╝     ╚═╝
- UNDERGROUND FACTORY — CARDBOARD DIVISION
+ UNDERGROUND FACTORY — CARBON DIVISION
  STAFF ONLY // 関係者以外立入禁止
 ```
 
-> Интеграционный контракт магазина картонных обвесов.
+> Интеграционный контракт магазина тюнинг-обвесов из карбона, композита и АБС.
 > Читается за пять минут. Ломается дольше, чем наши сплиттеры.
 
 ---
@@ -73,12 +73,12 @@ window.UF_API.addProduct({
   id: 'kit-rear-diffuser-' + Date.now().toString(36),
   sku: 'UF-CST/99',
   name: { ru: 'Диффузор «ТЕРКА»', en: 'Diffuser "GRATER"' },
-  desc: { ru: 'Из коробки от телевизора.', en: 'Cut from a TV box.' },
-  price: 199,
-  weightGrams: 500,
-  rainMinutes: 8,            // -1 = ∞ (заламинировано)
-  rarity: 'cardboard',
-  material: { ru: 'Картон', en: 'Cardboard' },
+  desc: { ru: 'Карбон, пять клыков, злой.', en: 'Carbon, five strakes, angry.' },
+  price: 890,
+  weightGrams: 2400,
+  heatC: 190,                // термостойкость, °C
+  rarity: 'carbon',
+  material: { ru: 'Карбон 2×2 твил, автоклав', en: '2×2 twill carbon, autoclave-cured' },
   fits: ['nissan-silvia-s15'],
   media: [{ type: 'image', url: 'https://…', seed: 'grater-0' }],
   hit: false,
@@ -146,14 +146,14 @@ window.UF_API.createOrder({
 `'bot'`, `'admin'`, `'partner-widget'` — потом сами скажете спасибо.
 
 ```js
-window.UF_API.registerPromo({ code: 'WETCARDBOARD10', pct: 10, source: 'bot' });
+window.UF_API.registerPromo({ code: 'TRACKDAY10', pct: 10, source: 'bot' });
 ```
 
 #### `validatePromo(code: string): Promo | undefined`
 Регистронезависимая проверка. Именно её дёргает корзина.
 
 ```js
-window.UF_API.validatePromo('wetcardboard10'); // → { code, pct, source }
+window.UF_API.validatePromo('trackday10'); // → { code, pct, source }
 ```
 
 ### 2.5 Массовый обмен
@@ -212,10 +212,10 @@ window.UF_API.rest('POST', '/promos', { code: 'BOXDAY', pct: 15, source: 'admin'
   "sku": "UF-KIT/01",                // string; custom из админки: "UF-CST/NN"
   "name":     { "ru": "…", "en": "…" },  // LocalText — оба языка обязательны
   "desc":     { "ru": "…", "en": "…" },
-  "price": 449,                      // number, USD
-  "weightGrams": 820,                // number — главная метрика перформанса
-  "rainMinutes": 12,                 // number; -1 = ∞ (заламинировано навсегда)
-  "rarity": "corrugated",            // enum, см. ниже
+  "price": 3200,                     // number, USD
+  "weightGrams": 6400,               // number — главная метрика перформанса
+  "heatC": 200,                      // number — термостойкость, °C
+  "rarity": "carbon",                // enum материала, см. ниже
   "material": { "ru": "…", "en": "…" },
   "fits": ["nissan-silvia-s15"],     // string[] — id из CarModel
   "media": [
@@ -228,15 +228,13 @@ window.UF_API.rest('POST', '/promos', { code: 'BOXDAY', pct: 15, source: 'admin'
 }
 ```
 
-`rarity` — строго один из:
+`rarity` (материал) — строго один из:
 
 | Значение | Смысл |
 | --- | --- |
-| `cardboard` | Картон — база |
-| `corrugated` | Гофра — уже серьёзно |
-| `plywood` | Фанера — почти металл |
-| `chrome-tape` | Скотч-хром — светится |
-| `wet-cardboard` | Мокрый картон — легендарка, не спрашивайте |
+| `abs` | АБС-пластик — бюджетно и ремонтопригодно |
+| `composite` | Стеклокомпозит — золотая середина |
+| `carbon` | Карбон — вершина пищевой цепи |
 
 ### 4.2 `CarModel`
 
@@ -345,4 +343,4 @@ bus.on('checkout:success', ({ orderId, total }) => {
 
 ---
 
-*UNDERGROUND FACTORY © CARDBOARD DIV. Прототип: обвесы не существуют. API — существует.*
+*UNDERGROUND FACTORY © CARBON DIV. Прототип: обвесы не существуют. API — существует.*

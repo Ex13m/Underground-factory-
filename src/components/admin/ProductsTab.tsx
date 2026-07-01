@@ -4,7 +4,7 @@ import { useRef, useState } from 'react';
 import { api } from '../../lib/api';
 import { useI18n } from '../../lib/i18n';
 import { Img } from '../../lib/media';
-import { RARITY_META } from '../../lib/types';
+import { GRADE_META } from '../../lib/types';
 import type { Product } from '../../lib/types';
 import { useCatalog } from '../../store/catalog';
 import { ProductForm } from './ProductForm';
@@ -50,7 +50,7 @@ export function ProductsTab() {
             </thead>
             <tbody>
               {products.map((p) => {
-                const meta = RARITY_META[p.rarity];
+                const meta = GRADE_META[p.rarity];
                 const first = p.media[0];
                 return (
                   <tr key={p.id}>

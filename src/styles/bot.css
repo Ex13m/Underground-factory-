@@ -1,5 +1,5 @@
 /* ============================================================
-   UNCLE_CARDBOARD — рация-чат + стикеры-подсказки (coachmarks)
+   PIT_BOSS — рация-чат + стикеры-подсказки (coachmarks)
    Стиль: полевой связной завода, HUD-панель, моно-шрифт.
    ============================================================ */
 
@@ -71,7 +71,7 @@ body.calm .uf-bot-fab.bounce {
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.6);
 }
 
-/* шапка: UNIT: UNCLE_CARDBOARD // ONLINE + лампа + ✕ */
+/* шапка: UNIT: PIT_BOSS // ONLINE + лампа + ✕ */
 .uf-bot-head {
   display: flex;
   align-items: center;
@@ -309,7 +309,7 @@ body.calm .uf-hint {
   border-bottom: 8px solid var(--paper);
 }
 
-/* «скотч» сверху — красная полоска */
+/* красная сигнальная полоска сверху */
 .uf-hint-tape {
   position: absolute;
   top: -7px;

@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { Product } from '../../lib/types';
-import { RARITY_META } from '../../lib/types';
+import { GRADE_META } from '../../lib/types';
 import { useI18n } from '../../lib/i18n';
 import { useCart } from '../../store/cart';
 import { useAuth } from '../../store/auth';
@@ -16,13 +16,9 @@ export function ProductCard({ product }: { product: Product }) {
   const [flying, setFlying] = useState(false);
   const flyTimer = useRef<number>();
 
-  const meta = RARITY_META[product.rarity];
+  const meta = GRADE_META[product.rarity];
   const fav = favorites.includes(product.id);
   const media = product.media[0];
-  const rain =
-    product.rainMinutes === -1
-      ? '∞'
-      : `${product.rainMinutes} ${t('catalog.card.min')}`;
 
   const onAdd = () => {
     add(product.id);
@@ -60,7 +56,7 @@ export function ProductCard({ product }: { product: Product }) {
             {product.weightGrams}
             <small>{t('common.grams')}</small>
           </div>
-          <div className="pcard-rain">☔ {rain}</div>
+          <div className="pcard-heat">{t('common.heat', { n: product.heatC })}</div>
         </div>
         <div className="pcard-actions">
           <div className="pcard-price">

@@ -64,7 +64,7 @@ export function ProductPage() {
     );
   }
 
-  const meta = RARITY_META[product.rarity];
+  const meta = GRADE_META[product.rarity];
   const media = product.media[mediaIdx] ?? product.media[0];
   const fav = favorites.includes(product.id);
 
@@ -172,12 +172,8 @@ export function ProductPage() {
               </span>
             </div>
             <div className="pp-spec-row">
-              <span className="tech-label">{t('product.spec.rain')}</span>
-              <span className="mono">
-                {product.rainMinutes === -1
-                  ? t('product.spec.rain.inf')
-                  : t('product.spec.rain.min', { n: product.rainMinutes })}
-              </span>
+              <span className="tech-label">{t('product.spec.heat')}</span>
+              <span className="mono">{t('product.spec.heat.val', { n: product.heatC })}</span>
             </div>
             <div className="pp-spec-row">
               <span className="tech-label">{t('product.spec.material')}</span>
@@ -227,7 +223,7 @@ export function ProductPage() {
           {/* bot teaser (декор, бот живёт отдельно) */}
           <div className="pp-bot-teaser">
             <span className="bot-face jp" aria-hidden>
-              紙
+              速
             </span>
             <span>{t('product.bot.teaser')}</span>
           </div>

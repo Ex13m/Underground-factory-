@@ -32,7 +32,7 @@ const SILHOUETTES = [
   'M18,152 L40,146 Q55,118 92,108 L128,90 Q168,78 218,82 L262,94 Q318,100 348,120 L372,140 L372,110 L384,108 L384,146 Q386,152 380,155 L358,158 A20,20 0 0 0 318,158 L142,158 A20,20 0 0 0 102,158 L22,158 Z',
 ];
 
-const GLYPHS = ['未来', '段ボール', '走れ', '軽い', '速い', '紙'];
+const GLYPHS = ['未来', '軽量', '走れ', '軽い', '速い', '速い'];
 const LABELS = ['PROTOTYPE', 'TYPE-A', 'PHASE—02', 'QC ▸ PASSED', 'FATAL ERROR', 'SPEC/UF', '404 KIT'];
 
 export function genArt(seed: string, w = 800, h = 500): string {
@@ -76,7 +76,7 @@ export function genArt(seed: string, w = 800, h = 500): string {
   <g transform="translate(0,0) scale(0.5)">${bars}</g>
   <g font-family="monospace" font-size="10" fill="${fg}">
     <text x="14" y="22">UF—${code} // ${label}</text>
-    <text x="14" y="188" opacity="0.6">UNDERGROUND FACTORY © CARDBOARD DIV.</text>
+    <text x="14" y="188" opacity="0.6">UNDERGROUND FACTORY © CARBON DIV.</text>
   </g>
   <rect x="14" y="30" width="46" height="12" fill="${red}"/>
   <text x="17" y="40" font-family="monospace" font-size="9" fill="#fff">UF/KIT</text>

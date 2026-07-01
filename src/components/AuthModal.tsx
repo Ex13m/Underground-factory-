@@ -19,7 +19,7 @@ const HOSTS: Record<AuthProvider, string> = {
 const PROFILES: Record<AuthProvider, Omit<User, 'avatar'>> = {
   google: { id: 'g-1', name: 'Валера Дрифтов', email: 'valera.drift@gmail.com', provider: 'google' },
   apple: { id: 'a-1', name: 'Аноним Купертино', email: 'private@icloud.com', provider: 'apple' },
-  github: { id: 'gh-1', name: 'cardboard_dev', email: 'dev@underground.factory', provider: 'github' },
+  github: { id: 'gh-1', name: 'carbon_dev', email: 'dev@underground.factory', provider: 'github' },
 };
 
 /** SVG-аватар с инициалами на красном, инлайн data-URI */

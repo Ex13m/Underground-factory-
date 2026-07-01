@@ -53,7 +53,7 @@ export default {
     'home.reviews.4.name': 'Внук Андрюха',
 
     'home.counters.weight': 'грамм — самый лёгкий кит',
-    'home.counters.rain': '°C термостойкость топ-кита',
+    'home.counters.heat': '°C термостойкость топ-кита',
     'home.counters.racers': 'довольных гонщиков',
   },
   en: {
@@ -109,7 +109,7 @@ export default {
     'home.reviews.4.name': 'Grandson Andrey',
 
     'home.counters.weight': 'grams — the lightest kit',
-    'home.counters.rain': '°C heat resistance of the top kit',
+    'home.counters.heat': '°C heat resistance of the top kit',
     'home.counters.racers': 'happy racers',
   },
 } as { ru: Record<string, string>; en: Record<string, string> };

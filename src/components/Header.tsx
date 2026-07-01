@@ -19,7 +19,7 @@ export function Header() {
           <div className="uf-logo-mark" />
           <div className="uf-logo-text">
             UNDERGROUND<br />FACTORY
-            <small>CARDBOARD DIV. // 段ボール</small>
+            <small>CARBON DIV. // 軽量</small>
           </div>
         </Link>
 

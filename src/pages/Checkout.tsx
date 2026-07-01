@@ -44,10 +44,10 @@ function BrandBadge({ brand }: { brand: Brand }) {
   );
 }
 
-/** конфетти из картонных прямоугольников */
-function CardboardConfetti() {
+/** конфетти из карбоновых чешуек */
+function CarbonConfetti() {
   const pieces = useMemo(() => {
-    const colors = ['#b9a084', '#d07a3f', '#8a6a4f', '#e01b22', '#eceae5'];
+    const colors = ['#2a2a2e', '#3c3c42', '#8e979e', '#e01b22', '#eceae5'];
     return Array.from({ length: 26 }, (_, i) => ({
       left: `${(i * 137.5) % 100}%`,
       background: colors[i % colors.length],
@@ -148,7 +148,7 @@ export function Checkout() {
     return (
       <div className="page container">
         <div className="panel rivets uf-co-success" style={{ marginTop: 42 }}>
-          <CardboardConfetti />
+          <CarbonConfetti />
           <span className="tape">{t('cart.checkout.success.tape')}</span>
           <h1 className="stencil glitch" data-text={t('cart.checkout.success.title')}>
             {t('cart.checkout.success.title')}

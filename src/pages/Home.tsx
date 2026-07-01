@@ -249,7 +249,7 @@ export function Home() {
           <div className="hazard-stripe" aria-hidden />
           <div className="counters">
             <Counter value={lightest} suffix={t('common.grams')} label={t('home.counters.weight')} />
-            <Counter value={maxHeat} suffix="°C" label={t('home.counters.rain')} />
+            <Counter value={maxHeat} suffix="°C" label={t('home.counters.heat')} />
             <Counter value={1387} suffix="+" label={t('home.counters.racers')} />
           </div>
           <div className="hazard-stripe" aria-hidden />

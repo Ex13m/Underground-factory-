@@ -4,8 +4,8 @@ import { useMemo, useState } from 'react';
 import { api } from '../../lib/api';
 import { useI18n } from '../../lib/i18n';
 import { Img } from '../../lib/media';
-import { RARITY_META, RARITY_ORDER } from '../../lib/types';
-import type { CarModel, MediaItem, Product, Rarity } from '../../lib/types';
+import { GRADE_META, GRADE_ORDER } from '../../lib/types';
+import type { CarModel, MaterialGrade, MediaItem, Product } from '../../lib/types';
 import { makeId, posNum } from './util';
 
 interface MediaRow {
@@ -35,11 +35,8 @@ export function ProductForm({ cars, initial, onDone }: Props) {
   const [descEn, setDescEn] = useState(initial?.desc.en ?? '');
   const [price, setPrice] = useState(initial ? String(initial.price) : '');
   const [weight, setWeight] = useState(initial ? String(initial.weightGrams) : '');
-  const [rainInf, setRainInf] = useState(initial ? initial.rainMinutes === -1 : false);
-  const [rain, setRain] = useState(
-    initial && initial.rainMinutes !== -1 ? String(initial.rainMinutes) : ''
-  );
-  const [rarity, setRarity] = useState<Rarity>(initial?.rarity ?? 'cardboard');
+  const [heat, setHeat] = useState(initial ? String(initial.heatC) : '');
+  const [rarity, setRarity] = useState<MaterialGrade>(initial?.rarity ?? 'abs');
   const [materialRu, setMaterialRu] = useState(initial?.material.ru ?? '');
   const [materialEn, setMaterialEn] = useState(initial?.material.en ?? '');
   const [fits, setFits] = useState<string[]>(initial?.fits ?? []);
@@ -62,8 +59,8 @@ export function ProductForm({ cars, initial, onDone }: Props) {
 
   const reset = () => {
     setNameRu(''); setNameEn(''); setDescRu(''); setDescEn('');
-    setPrice(''); setWeight(''); setRain(''); setRainInf(false);
-    setRarity('cardboard'); setMaterialRu(''); setMaterialEn('');
+    setPrice(''); setWeight(''); setHeat('');
+    setRarity('abs'); setMaterialRu(''); setMaterialEn('');
     setFits([]); setMedia([{ type: 'image', url: '' }]); setHit(false);
     setErrors({});
   };
@@ -77,7 +74,7 @@ export function ProductForm({ cars, initial, onDone }: Props) {
     if (!descEn.trim()) errs.descEn = 'admin.err.required';
     if (Number.isNaN(posNum(price))) errs.price = 'admin.err.number';
     if (Number.isNaN(posNum(weight))) errs.weight = 'admin.err.number';
-    if (!rainInf && Number.isNaN(posNum(rain))) errs.rain = 'admin.err.number';
+    if (Number.isNaN(posNum(heat))) errs.heat = 'admin.err.number';
     setErrors(errs);
     if (Object.keys(errs).length) return;
 
@@ -93,7 +90,7 @@ export function ProductForm({ cars, initial, onDone }: Props) {
       desc: { ru: descRu.trim(), en: descEn.trim() },
       price: posNum(price),
       weightGrams: posNum(weight),
-      rainMinutes: rainInf ? -1 : posNum(rain),
+      heatC: posNum(heat),
       rarity,
       material: { ru: materialRu.trim(), en: materialEn.trim() },
       fits,
@@ -161,30 +158,23 @@ export function ProductForm({ cars, initial, onDone }: Props) {
           </div>
 
           <div className="adm-fld">
-            <label htmlFor="pf-rain">{t('admin.f.rain')}</label>
-            <div className="adm-inline">
-              <input
-                id="pf-rain"
-                className={cls('rain')}
-                style={{ maxWidth: 140 }}
-                inputMode="numeric"
-                value={rainInf ? '∞' : rain}
-                disabled={rainInf}
-                onChange={(e) => setRain(e.target.value)}
-              />
-              <label className="adm-check">
-                <input type="checkbox" checked={rainInf} onChange={(e) => setRainInf(e.target.checked)} />
-                {t('admin.f.rainInf')}
-              </label>
-            </div>
-            {!rainInf && err('rain')}
+            <label htmlFor="pf-heat">{t('admin.f.heat')}</label>
+            <input
+              id="pf-heat"
+              className={cls('heat')}
+              style={{ maxWidth: 140 }}
+              inputMode="numeric"
+              value={heat}
+              onChange={(e) => setHeat(e.target.value)}
+            />
+            {err('heat')}
           </div>
           <div className="adm-fld">
             <label htmlFor="pf-rarity">{t('admin.f.rarity')}</label>
-            <select id="pf-rarity" className="field" value={rarity} onChange={(e) => setRarity(e.target.value as Rarity)}>
-              {RARITY_ORDER.map((r) => (
+            <select id="pf-rarity" className="field" value={rarity} onChange={(e) => setRarity(e.target.value as MaterialGrade)}>
+              {GRADE_ORDER.map((r) => (
                 <option key={r} value={r}>
-                  {lt(RARITY_META[r].label)}
+                  {lt(GRADE_META[r].label)}
                 </option>
               ))}
             </select>

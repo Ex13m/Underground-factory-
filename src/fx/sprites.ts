@@ -82,7 +82,7 @@ export function drawCarSprite(ctx: CanvasRenderingContext2D, car: Car): void {
   ctx.fillStyle = BLOOD;
   ctx.fillRect(21.5, -8.5, 2.5, 17);
 
-  // картонная фишка: скотч-крест на капоте
+  // фирменная фишка: скотч-крест на капоте
   ctx.strokeStyle = 'rgba(244, 240, 226, 0.85)';
   ctx.lineWidth = 2;
   ctx.beginPath();

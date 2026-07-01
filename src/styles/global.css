@@ -1,5 +1,5 @@
 /* ============================================================
-   UNDERGROUND FACTORY — CYBER-CARDBOARD INDUSTRIAL design system
+   UNDERGROUND FACTORY — CYBER-CARBON INDUSTRIAL design system
    Палитра и графический язык — по референсам (red/black/white
    techwear decals, HUD-панели, трафарет, гранж).
    ============================================================ */
@@ -14,11 +14,9 @@
   --steel: #8a8d90;
   --hazard: #ffb400;
 
-  --r-cardboard: #b9a084;
-  --r-corrugated: #d07a3f;
-  --r-plywood: #e0c26a;
-  --r-chrome-tape: #d9e2e8;
-  --r-wet-cardboard: #e01b22;
+  --g-abs: #b9a084;
+  --g-composite: #d9e2e8;
+  --g-carbon: #e01b22;
 
   --font-display: 'Unbounded', 'Arial Black', sans-serif;
   --font-mono: 'JetBrains Mono', 'Courier New', monospace;

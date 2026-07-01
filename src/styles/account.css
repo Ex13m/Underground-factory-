@@ -136,7 +136,7 @@
 .uf-co-cursor { display: inline-block; width: 9px; height: 16px; background: var(--blood); animation: uf-blink 0.8s steps(1) infinite; vertical-align: text-bottom; }
 @keyframes uf-blink { 50% { opacity: 0; } }
 
-/* success + cardboard confetti */
+/* success + carbon confetti */
 .uf-co-success { position: relative; overflow: hidden; text-align: center; padding: 70px 20px 60px; }
 .uf-co-success h1 { font-size: clamp(30px, 6vw, 70px); margin: 14px 0 8px; }
 .uf-co-orderid {
