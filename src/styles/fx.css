@@ -1,0 +1,27 @@
+/* ============================================================
+   UNDERGROUND FACTORY — FX layer (cursor flag + drift car)
+   Слои: .noise = 9000; машинка ПОД шумом (8900), флажок НАД (9600)
+   ============================================================ */
+
+.fx-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+}
+
+.fx-canvas--car {
+  z-index: 8900;
+}
+
+.fx-canvas--flag {
+  z-index: 9600;
+}
+
+/* Пока FX активен — системный курсор скрыт везде */
+html.fx-no-cursor,
+html.fx-no-cursor body,
+html.fx-no-cursor * {
+  cursor: none !important;
+}

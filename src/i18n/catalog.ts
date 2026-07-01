@@ -1,5 +1,83 @@
-/** Namespace: catalog.* — заполняется владельцем куска (саб-агентом). */
+/** Namespace: catalog.* — каталог + общая карточка товара + CarPicker. */
 export default {
-  ru: {},
-  en: {},
+  ru: {
+    'catalog.tape': 'FULL INVENTORY',
+    'catalog.title': 'КАТАЛОГ ОБВЕСОВ',
+    'catalog.sub': 'Весь картон в наличии. Отсортировано по весу — потому что вес решает.',
+
+    'catalog.picker.make': 'Марка',
+    'catalog.picker.model': 'Модель',
+    'catalog.picker.makePh': '— выбери марку —',
+    'catalog.picker.modelPh': '— выбери модель —',
+    'catalog.picker.cta': 'Подобрать обвес',
+
+    'catalog.car.badge': 'TARGET LOCKED',
+    'catalog.car.smart': 'умный подбор: показываем то, что реально встанет',
+    'catalog.car.none.title': 'ТАЧКА НЕ ВЫБРАНА',
+    'catalog.car.none.sub': 'Показываем весь склад. Выбери тачку — отфильтруем картон под неё.',
+    'catalog.car.reset': '✕ сбросить тачку',
+    'catalog.garage.chip': 'Из гаража: {car}',
+
+    'catalog.filters.title': 'ФИЛЬТРЫ',
+    'catalog.filters.rarity': 'Материал / редкость',
+    'catalog.filters.price': 'Цена, {cur}',
+    'catalog.filters.onlyCar': 'Только под мою тачку',
+    'catalog.filters.sort': 'Сортировка',
+    'catalog.sort.weight': 'Вес ↑ (главное!)',
+    'catalog.sort.priceAsc': 'Цена ↑',
+    'catalog.sort.priceDesc': 'Цена ↓',
+    'catalog.sort.rain': 'Дождевой рейтинг ↓',
+    'catalog.filters.reset': 'Сбросить всё',
+
+    'catalog.found': 'НАЙДЕНО: {n} // UNITS',
+
+    'catalog.empty.title': '404 KIT NOT FOUND',
+    'catalog.empty.text': 'Под такие фильтры картона ещё не нарезали. Ослабь хватку или займи очередь на кастом — нож уже точится.',
+    'catalog.empty.reset': 'Сбросить фильтры',
+
+    'catalog.card.add': 'В корзину',
+    'catalog.card.min': 'мин',
+    'catalog.card.fav': 'В избранное',
+    'catalog.card.unfav': 'Убрать из избранного',
+  },
+  en: {
+    'catalog.tape': 'FULL INVENTORY',
+    'catalog.title': 'KIT CATALOG',
+    'catalog.sub': 'All the cardboard in stock. Sorted by weight — because weight is everything.',
+
+    'catalog.picker.make': 'Make',
+    'catalog.picker.model': 'Model',
+    'catalog.picker.makePh': '— pick a make —',
+    'catalog.picker.modelPh': '— pick a model —',
+    'catalog.picker.cta': 'Find my kit',
+
+    'catalog.car.badge': 'TARGET LOCKED',
+    'catalog.car.smart': 'smart match: showing only what actually fits',
+    'catalog.car.none.title': 'NO CAR SELECTED',
+    'catalog.car.none.sub': 'Showing the whole warehouse. Pick a car and we will filter the cardboard for it.',
+    'catalog.car.reset': '✕ reset car',
+    'catalog.garage.chip': 'From your garage: {car}',
+
+    'catalog.filters.title': 'FILTERS',
+    'catalog.filters.rarity': 'Material / rarity',
+    'catalog.filters.price': 'Price, {cur}',
+    'catalog.filters.onlyCar': 'Only fits my car',
+    'catalog.filters.sort': 'Sort by',
+    'catalog.sort.weight': 'Weight ↑ (the point!)',
+    'catalog.sort.priceAsc': 'Price ↑',
+    'catalog.sort.priceDesc': 'Price ↓',
+    'catalog.sort.rain': 'Rain rating ↓',
+    'catalog.filters.reset': 'Reset all',
+
+    'catalog.found': 'FOUND: {n} // UNITS',
+
+    'catalog.empty.title': '404 KIT NOT FOUND',
+    'catalog.empty.text': 'No cardboard has been cut for these filters yet. Loosen your grip or queue up for a custom job — the knife is being sharpened.',
+    'catalog.empty.reset': 'Reset filters',
+
+    'catalog.card.add': 'Add to cart',
+    'catalog.card.min': 'min',
+    'catalog.card.fav': 'Add to favorites',
+    'catalog.card.unfav': 'Remove from favorites',
+  },
 } as { ru: Record<string, string>; en: Record<string, string> };
