@@ -3,15 +3,15 @@ import { useSearchParams } from 'react-router-dom';
 import { useI18n } from '../lib/i18n';
 import { useCatalog } from '../store/catalog';
 import { useAuth } from '../store/auth';
-import type { Rarity } from '../lib/types';
-import { RARITY_ORDER, RARITY_META } from '../lib/types';
+import type { MaterialGrade } from '../lib/types';
+import { GRADE_ORDER, GRADE_META } from '../lib/types';
 import { Img } from '../lib/media';
 import { ProductCard } from '../components/shop/ProductCard';
 import { CarPicker } from '../components/shop/CarPicker';
 import { useReveal } from '../components/shop/useReveal';
 import '../styles/shop.css';
 
-type SortMode = 'weight' | 'priceAsc' | 'priceDesc' | 'rain';
+type SortMode = 'weight' | 'priceAsc' | 'priceDesc' | 'heat';
 
 export function Catalog() {
   const { t, lt } = useI18n();
@@ -30,7 +30,7 @@ export function Catalog() {
     return { min: Math.min(...prices), max: Math.max(...prices) };
   }, [products]);
 
-  const [rarities, setRarities] = useState<Rarity[]>([]);
+  const [rarities, setRarities] = useState<MaterialGrade[]>([]);
   const [priceMin, setPriceMin] = useState(() => bounds.min);
   const [priceMax, setPriceMax] = useState(() => bounds.max);
   const [onlyCar, setOnlyCar] = useState(true);
@@ -42,7 +42,7 @@ export function Catalog() {
     return active?.modelId && active.modelId !== carId ? active : null;
   }, [garage, activeCarId, carId]);
 
-  const toggleRarity = (r: Rarity) =>
+  const toggleRarity = (r: MaterialGrade) =>
     setRarities((prev) => (prev.includes(r) ? prev.filter((x) => x !== r) : [...prev, r]));
 
   const resetFilters = () => {
@@ -62,15 +62,14 @@ export function Catalog() {
       if (car && onlyCar && !p.fits.includes(car.id)) return false;
       return true;
     });
-    const rain = (n: number) => (n === -1 ? Number.POSITIVE_INFINITY : n);
     return [...list].sort((a, b) => {
       switch (sort) {
         case 'priceAsc':
           return a.price - b.price;
         case 'priceDesc':
           return b.price - a.price;
-        case 'rain':
-          return rain(b.rainMinutes) - rain(a.rainMinutes);
+        case 'heat':
+          return b.heatC - a.heatC;
         default:
           return a.weightGrams - b.weightGrams;
       }
@@ -160,8 +159,8 @@ export function Catalog() {
           <div className="cat-filter-group">
             <span className="tech-label">{t('catalog.filters.rarity')}</span>
             <div className="rarity-chips">
-              {RARITY_ORDER.map((r) => {
-                const meta = RARITY_META[r];
+              {GRADE_ORDER.map((r) => {
+                const meta = GRADE_META[r];
                 const active = rarities.includes(r);
                 return (
                   <button
@@ -221,7 +220,7 @@ export function Catalog() {
               <option value="weight">{t('catalog.sort.weight')}</option>
               <option value="priceAsc">{t('catalog.sort.priceAsc')}</option>
               <option value="priceDesc">{t('catalog.sort.priceDesc')}</option>
-              <option value="rain">{t('catalog.sort.rain')}</option>
+              <option value="heat">{t('catalog.sort.heat')}</option>
             </select>
           </div>
 

@@ -1,5 +1,5 @@
 /**
- * Мозг «Дяди Картона» — rule-based state machine.
+ * Мозг «Пит-босса» — rule-based state machine.
  * Здесь живут: торг (эскалация скидки, persist в localStorage),
  * анти-спам-троттлинг проактивных вылазок и распознавание намерений
  * по ключевым словам (ru/en).
@@ -16,9 +16,9 @@ export const PING_INTERVAL_MS = 45_000;
 
 /** Лестница торга: шаг → код, процент, реплика. */
 export const HAGGLE_LADDER = [
-  { code: 'KARTON5', pct: 5, key: 'bot.haggle.step1' },
-  { code: 'KARTON10', pct: 10, key: 'bot.haggle.step2' },
-  { code: 'SUHOY15', pct: 15, key: 'bot.haggle.step3' },
+  { code: 'CARBON5', pct: 5, key: 'bot.haggle.step1' },
+  { code: 'CARBON10', pct: 10, key: 'bot.haggle.step2' },
+  { code: 'PITSTOP15', pct: 15, key: 'bot.haggle.step3' },
 ] as const;
 
 export interface HaggleResult {
@@ -90,13 +90,13 @@ export function markPing() {
 
 // ---- распознавание намерений ----
 
-export type Intent = 'discount' | 'cardboard' | 'rain' | 'hello' | 'hits' | 'fallback';
+export type Intent = 'discount' | 'material' | 'heat' | 'hello' | 'hits' | 'fallback';
 
-/** порядок важен: скидка перекрывает всё, вода — раньше картона */
+/** порядок важен: скидка перекрывает всё, температура — раньше материала */
 const INTENTS: Array<[Intent, RegExp]> = [
   ['discount', /скидк|скидо|дорог|дешевл|дешёв|промокод|промик|торг|discount|expensive|cheaper|cheap|promo|coupon|deal/i],
-  ['rain', /дожд|мокр|промок|ливен|ливн|лужа|луж|вода|воды|воде|воду|водо|rain|water|wet|soak|moist/i],
-  ['cardboard', /картон|карбон|бумаг|гофр|материал|коробк|cardboard|carbon|paper|material|box/i],
+  ['heat', /термо|жар|градус|температур|плав|нагрев|выхлоп|heat|temperature|melt|degrees|exhaust|thermal/i],
+  ['material', /карбон|композит|абс|пластик|стекло|материал|завод|легенд|carbon|composite|abs|plastic|fibre|fiber|material|factory|legend/i],
   ['hits', /хит|каталог|покаж|ассортимент|топ\b|товар|hits?\b|catalog|catalogue|show|best|top\b/i],
   ['hello', /привет|здоров|здравств|дратути|салют|добрый (день|вечер|утро)|hello|\bhi\b|\bhey\b|\byo\b|sup\b/i],
 ];

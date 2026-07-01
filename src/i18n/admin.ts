@@ -3,7 +3,7 @@ export default {
   ru: {
     'admin.tape': 'STAFF ONLY // 関係者以外立入禁止',
     'admin.title': 'СЛУЖЕБНОЕ ПОМЕЩЕНИЕ',
-    'admin.sub': 'Цех управления каталогом. Не влезай — заклеит.',
+    'admin.sub': 'Цех управления каталогом. Не влезай — запечёт.',
 
     'admin.tab.products': 'Обвесы',
     'admin.tab.cars': 'Тачки',
@@ -16,7 +16,7 @@ export default {
     'admin.col.name': 'Название',
     'admin.col.price': 'Цена',
     'admin.col.weight': 'Вес',
-    'admin.col.rarity': 'Редкость',
+    'admin.col.rarity': 'Материал',
     'admin.col.hit': 'Хит',
     'admin.col.actions': 'Действия',
     'admin.col.make': 'Марка',
@@ -42,7 +42,7 @@ export default {
     'admin.form.addTitle': 'НОВЫЙ ОБВЕС',
     'admin.form.editTitle': 'ПРАВКА: {sku}',
     'admin.form.add': 'Добавить в цех',
-    'admin.form.saved': 'Записано. Клей сохнет.',
+    'admin.form.saved': 'Записано. Автоклав греется.',
 
     'admin.f.nameRu': 'Название (RU)',
     'admin.f.nameEn': 'Название (EN)',
@@ -50,11 +50,10 @@ export default {
     'admin.f.descEn': 'Описание (EN)',
     'admin.f.price': 'Цена, $',
     'admin.f.weight': 'Вес, г',
-    'admin.f.rain': 'Минут под дождём',
-    'admin.f.rainInf': '∞ — заламинировано навсегда',
-    'admin.f.rarity': 'Редкость',
-    'admin.f.materialRu': 'Материал (RU)',
-    'admin.f.materialEn': 'Материал (EN)',
+    'admin.f.heat': 'Термостойкость, °C',
+    'admin.f.rarity': 'МАТЕРИАЛ',
+    'admin.f.materialRu': 'Спецификация материала (RU)',
+    'admin.f.materialEn': 'Спецификация материала (EN)',
     'admin.f.fits': 'Подходит на',
     'admin.f.media': 'Медиа',
     'admin.f.hit': 'Хит продаж — клеим штамп HIT',
@@ -65,7 +64,7 @@ export default {
     'admin.media.video': 'Видео',
     'admin.media.urlPh': 'https://… (если ссылка сдохнет — нарисуем декаль сами)',
 
-    'admin.err.required': 'Обязательное поле. Картон сам себя не назовёт.',
+    'admin.err.required': 'Обязательное поле. Деталь сама себя не назовёт.',
     'admin.err.number': 'Нужно число больше нуля.',
     'admin.err.pct': 'Процент от 1 до 100. Больше — уже благотворительность.',
 
@@ -77,7 +76,7 @@ export default {
     'admin.f.img': 'URL картинки',
 
     'admin.orders.title': 'Журнал заказов',
-    'admin.orders.empty': 'Заказов нет. Пока картон сухой — время есть.',
+    'admin.orders.empty': 'Заказов нет. Пока автоклав холодный — время есть.',
 
     'admin.promos.title': 'Промокоды',
     'admin.promos.addTitle': 'ВЫДАТЬ ПРОМО',
@@ -95,7 +94,7 @@ export default {
     'admin.exch.importPh': 'Вставь JSON формата exportCatalog(): {"products":[…],"cars":[…]}',
     'admin.exch.importBtn': 'Импортировать',
     'admin.exch.importOk': 'Импортировано: {p} обвесов, {c} тачек.',
-    'admin.exch.importErr': 'JSON битый. Это не картон — скотчем не склеишь.',
+    'admin.exch.importErr': 'JSON битый. Это не композит — смолой не зальёшь.',
     'admin.exch.intTitle': 'ИНТЕГРАЦИИ ДЛЯ ВНЕШНИХ СИСТЕМ',
     'admin.exch.intText': 'window.UF_API торчит наружу: консоль, боты, виджеты — кто угодно. Полный контракт и REST-маршруты — в API.md.',
     'admin.exch.copy': 'Копировать',
@@ -105,7 +104,7 @@ export default {
   en: {
     'admin.tape': 'STAFF ONLY // 関係者以外立入禁止',
     'admin.title': 'STAFF ROOM',
-    'admin.sub': 'Catalog control shop. Keep out — or get taped.',
+    'admin.sub': 'Catalog control shop. Keep out — or get cured.',
 
     'admin.tab.products': 'Kits',
     'admin.tab.cars': 'Cars',
@@ -118,7 +117,7 @@ export default {
     'admin.col.name': 'Name',
     'admin.col.price': 'Price',
     'admin.col.weight': 'Weight',
-    'admin.col.rarity': 'Rarity',
+    'admin.col.rarity': 'Material',
     'admin.col.hit': 'Hit',
     'admin.col.actions': 'Actions',
     'admin.col.make': 'Make',
@@ -144,7 +143,7 @@ export default {
     'admin.form.addTitle': 'NEW KIT',
     'admin.form.editTitle': 'EDITING: {sku}',
     'admin.form.add': 'Add to the shop',
-    'admin.form.saved': 'Saved. The glue is drying.',
+    'admin.form.saved': 'Saved. The autoclave is heating up.',
 
     'admin.f.nameRu': 'Name (RU)',
     'admin.f.nameEn': 'Name (EN)',
@@ -152,11 +151,10 @@ export default {
     'admin.f.descEn': 'Description (EN)',
     'admin.f.price': 'Price, $',
     'admin.f.weight': 'Weight, g',
-    'admin.f.rain': 'Minutes in the rain',
-    'admin.f.rainInf': '∞ — laminated forever',
-    'admin.f.rarity': 'Rarity',
-    'admin.f.materialRu': 'Material (RU)',
-    'admin.f.materialEn': 'Material (EN)',
+    'admin.f.heat': 'Heat resistance, °C',
+    'admin.f.rarity': 'MATERIAL',
+    'admin.f.materialRu': 'Material spec (RU)',
+    'admin.f.materialEn': 'Material spec (EN)',
     'admin.f.fits': 'Fits',
     'admin.f.media': 'Media',
     'admin.f.hit': 'Best seller — slap the HIT stamp',
@@ -167,7 +165,7 @@ export default {
     'admin.media.video': 'Video',
     'admin.media.urlPh': 'https://… (if the link dies, we draw a decal ourselves)',
 
-    'admin.err.required': 'Required. The cardboard will not name itself.',
+    'admin.err.required': 'Required. The part will not name itself.',
     'admin.err.number': 'Needs a number above zero.',
     'admin.err.pct': 'Percent between 1 and 100. Anything more is charity.',
 
@@ -179,7 +177,7 @@ export default {
     'admin.f.img': 'Image URL',
 
     'admin.orders.title': 'Order log',
-    'admin.orders.empty': 'No orders. While the cardboard is dry, there is time.',
+    'admin.orders.empty': 'No orders. While the autoclave is cold, there is time.',
 
     'admin.promos.title': 'Promo codes',
     'admin.promos.addTitle': 'ISSUE PROMO',
@@ -197,7 +195,7 @@ export default {
     'admin.exch.importPh': 'Paste JSON in exportCatalog() format: {"products":[…],"cars":[…]}',
     'admin.exch.importBtn': 'Import',
     'admin.exch.importOk': 'Imported: {p} kits, {c} cars.',
-    'admin.exch.importErr': 'Broken JSON. This is not cardboard — tape will not fix it.',
+    'admin.exch.importErr': 'Broken JSON. This is not composite — resin will not fix it.',
     'admin.exch.intTitle': 'INTEGRATIONS FOR EXTERNAL SYSTEMS',
     'admin.exch.intText': 'window.UF_API is exposed to the outside: console, bots, widgets — anyone. Full contract and REST routes live in API.md.',
     'admin.exch.copy': 'Copy',

@@ -1,6 +1,6 @@
 /**
- * «ДЯДЯ КАРТОН» — чат-виджет-рация, полевой связной завода.
- * Свёрнут: круглая кнопка-рация с картонной коробкой и бейджем непрочитанных.
+ * «ПИТ-БОСС» — чат-виджет-рация, полевой связной завода.
+ * Свёрнут: круглая кнопка-рация с фирменным ящиком запчастей и бейджем непрочитанных.
  * Развёрнут: панель .panel.rivets с лентой сообщений, быстрыми ответами и вводом.
  * Реплики — только через i18n ('bot.*'), логика торга — в brain.ts.
  */
@@ -39,18 +39,18 @@ interface Msg {
 
 let msgSeq = 0;
 
-/** Логотип-рация: картонная коробка с красной полосой скотча. */
+/** Логотип-рация: фирменный ящик запчастей с красной сигнальной полосой. */
 function BoxLogo() {
   return (
     <svg width="34" height="34" viewBox="0 0 40 40" aria-hidden focusable="false">
-      {/* корпус коробки */}
+      {/* корпус ящика */}
       <path d="M7 15 L20 9 L33 15 L33 31 L20 37 L7 31 Z" fill="#b9a084" stroke="#0a0a09" strokeWidth="1.4" strokeLinejoin="round" />
       {/* левая грань — темнее */}
       <path d="M7 15 L20 21 L20 37 L7 31 Z" fill="#9c825f" stroke="#0a0a09" strokeWidth="1.4" strokeLinejoin="round" />
       {/* открытые клапаны */}
       <path d="M7 15 L12 8 L20 9 Z" fill="#cbb391" stroke="#0a0a09" strokeWidth="1.2" strokeLinejoin="round" />
       <path d="M33 15 L28 8 L20 9 Z" fill="#c0a27c" stroke="#0a0a09" strokeWidth="1.2" strokeLinejoin="round" />
-      {/* красная полоса-скотч */}
+      {/* красная сигнальная полоса */}
       <path d="M19 9.4 L21.6 9.4 L21.6 21.8 L20.3 21.2 L19 21.8 Z" fill="#e01b22" />
       <path d="M19 21.8 L20.3 21.2 L21.6 21.8 L21.6 36.4 L20.3 37 L19 36.4 Z" fill="#e01b22" opacity="0.85" />
       {/* трафаретные метки */}
@@ -292,11 +292,11 @@ export function Bot() {
       case 'discount':
         doEscalate();
         break;
-      case 'cardboard':
+      case 'material':
         pushBot({ key: 'bot.reply.what' });
         break;
-      case 'rain':
-        pushBot({ key: 'bot.reply.rain' });
+      case 'heat':
+        pushBot({ key: 'bot.reply.heat' });
         break;
       case 'hello':
         pushBot({ key: 'bot.reply.hello', actions: defaultActions() });

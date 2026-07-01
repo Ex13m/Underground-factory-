@@ -6,7 +6,7 @@ import { useCart } from '../store/cart';
 import { useAuth } from '../store/auth';
 import { bus } from '../lib/bus';
 import { Img } from '../lib/media';
-import { RARITY_META } from '../lib/types';
+import { GRADE_META } from '../lib/types';
 import { ProductCard } from '../components/shop/ProductCard';
 import { useReveal } from '../components/shop/useReveal';
 import '../styles/shop.css';

@@ -5,7 +5,7 @@ import { useCatalog } from '../store/catalog';
 import { useUI } from '../store/ui';
 import { VideoBg } from '../lib/media';
 import { HERO_VIDEOS } from '../data/seed';
-import { RARITY_ORDER, RARITY_META } from '../lib/types';
+import { GRADE_ORDER, GRADE_META } from '../lib/types';
 import { ProductCard } from '../components/shop/ProductCard';
 import { CarPicker } from '../components/shop/CarPicker';
 import { useReveal } from '../components/shop/useReveal';
@@ -59,7 +59,7 @@ function Counter({ value, label, suffix }: { value: number; label: string; suffi
   );
 }
 
-const STEP_GLYPHS = ['紙', '刃', '粘', '走'];
+const STEP_GLYPHS = ['型', '積', '窯', '走'];
 
 export function Home() {
   const { t, lt } = useI18n();
@@ -72,8 +72,8 @@ export function Home() {
     () => (products.length ? Math.min(...products.map((p) => p.weightGrams)) : 0),
     [products],
   );
-  const maxRain = useMemo(
-    () => products.reduce((m, p) => (p.rainMinutes > m ? p.rainMinutes : m), 0),
+  const maxHeat = useMemo(
+    () => products.reduce((m, p) => (p.heatC > m ? p.heatC : m), 0),
     [products],
   );
 
@@ -85,8 +85,8 @@ export function Home() {
         <div className="uf-hero-overlay" aria-hidden />
 
         <div className="uf-side-decal" aria-hidden>
-          <span className="v-jp jp">段ボール</span>
-          <span className="v-tech">UF—042 // CARDBOARD DIV.</span>
+          <span className="v-jp jp">軽量</span>
+          <span className="v-tech">UF—042 // CARBON DIV.</span>
           <span className="v-jp jp">走れ</span>
         </div>
 
@@ -142,8 +142,8 @@ export function Home() {
             <p className="shop-section-sub">{t('home.rarity.sub')}</p>
           </div>
           <div className="tier-grid">
-            {RARITY_ORDER.map((r, i) => {
-              const meta = RARITY_META[r];
+            {GRADE_ORDER.map((r, i) => {
+              const meta = GRADE_META[r];
               return (
                 <div key={r} className={`tier-card reveal d${Math.min(i, 3)}`}>
                   <div className="tier-bar" style={{ background: meta.color }} aria-hidden />
@@ -152,7 +152,7 @@ export function Home() {
                   </span>
                   <span
                     className={`rarity${meta.glow ? ' glow' : ''}`}
-                    style={{ color: r === 'chrome-tape' ? '#5a6a75' : meta.color }}
+                    style={{ color: meta.color }}
                   >
                     {lt(meta.label)}
                   </span>
@@ -198,7 +198,7 @@ export function Home() {
       <section className="red-poster">
         <div className="container red-poster-inner">
           <div className="jp red-poster-glyph reveal" aria-hidden>
-            段ボール
+            軽量
           </div>
           <div className="stencil red-poster-slogan reveal d1">{t('home.poster.slogan')}</div>
           <div className="red-poster-note">{t('home.poster.note')}</div>
@@ -249,7 +249,7 @@ export function Home() {
           <div className="hazard-stripe" aria-hidden />
           <div className="counters">
             <Counter value={lightest} suffix={t('common.grams')} label={t('home.counters.weight')} />
-            <Counter value={maxRain} suffix="☔" label={t('home.counters.rain')} />
+            <Counter value={maxHeat} suffix="°C" label={t('home.counters.rain')} />
             <Counter value={1387} suffix="+" label={t('home.counters.racers')} />
           </div>
           <div className="hazard-stripe" aria-hidden />

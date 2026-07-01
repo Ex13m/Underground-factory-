@@ -2,9 +2,15 @@
 
 export type Lang = 'ru' | 'en';
 
-export type Rarity = 'cardboard' | 'corrugated' | 'plywood' | 'chrome-tape' | 'wet-cardboard';
+export type MaterialGrade = 'abs' | 'composite' | 'carbon';
 
-export const RARITY_ORDER: Rarity[] = ['cardboard', 'corrugated', 'plywood', 'chrome-tape', 'wet-cardboard'];
+/** @deprecated alias for backwards compatibility — use MaterialGrade */
+export type Rarity = MaterialGrade;
+
+export const GRADE_ORDER: MaterialGrade[] = ['abs', 'composite', 'carbon'];
+
+/** @deprecated alias for backwards compatibility — use GRADE_ORDER */
+export const RARITY_ORDER = GRADE_ORDER;
 
 export interface LocalText {
   ru: string;
@@ -34,8 +40,8 @@ export interface Product {
   desc: LocalText;
   price: number; // USD
   weightGrams: number; // headline performance metric
-  rainMinutes: number; // -1 = ∞ (laminated)
-  rarity: Rarity;
+  heatC: number; // термостойкость, °C
+  rarity: MaterialGrade; // material grade (field name kept for compatibility)
   material: LocalText;
   fits: string[]; // CarModel ids
   media: MediaItem[];
@@ -86,17 +92,18 @@ export interface Promo {
   source: string; // 'bot' | 'admin' | ...
 }
 
-export const RARITY_META: Record<Rarity, { color: string; label: LocalText; glow?: boolean }> = {
-  cardboard: { color: '#b9a084', label: { ru: 'Картон', en: 'Cardboard' } },
-  corrugated: { color: '#d07a3f', label: { ru: 'Гофра', en: 'Corrugated' } },
-  plywood: { color: '#e0c26a', label: { ru: 'Фанера', en: 'Plywood' } },
-  'chrome-tape': { color: '#d9e2e8', label: { ru: 'Скотч-хром', en: 'Chrome Tape' }, glow: true },
-  'wet-cardboard': { color: '#e01b22', label: { ru: 'Мокрый картон', en: 'Wet Cardboard' }, glow: true },
+export const GRADE_META: Record<MaterialGrade, { color: string; label: LocalText; glow?: boolean }> = {
+  abs: { color: '#b9a084', label: { ru: 'АБС-пластик', en: 'ABS plastic' } },
+  composite: { color: '#d9e2e8', label: { ru: 'Композит', en: 'Composite' } },
+  carbon: { color: '#e01b22', label: { ru: 'Карбон', en: 'Carbon' }, glow: true },
 };
 
+/** @deprecated alias for backwards compatibility — use GRADE_META */
+export const RARITY_META = GRADE_META;
+
 export const ORDER_STATUS_META: Record<OrderStatus, LocalText> = {
-  cutting: { ru: 'Режем картон', en: 'Cutting cardboard' },
-  gluing: { ru: 'Сохнет клей', en: 'Glue is drying' },
-  shipping: { ru: 'В пути (не мочить!)', en: 'Shipping (keep dry!)' },
+  cutting: { ru: 'Формуем деталь', en: 'Molding the part' },
+  gluing: { ru: 'Запекаем в автоклаве', en: 'Curing in autoclave' },
+  shipping: { ru: 'В пути', en: 'Shipping' },
   done: { ru: 'Доставлен', en: 'Delivered' },
 };
