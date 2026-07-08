@@ -171,19 +171,35 @@ export function ArtEditor() {
     setError('');
     setApplied(false);
 
-    // простейший путь: без ключей — картинка прямо по URL, браузер грузит её
-    // сам через <img>, кодом ничего не качаем (CORS/сеть не при чём)
+    // путь без ключей: (1) серверная функция сайта (Replicate, ключ на Netlify),
+    // (2) если сервера нет — бесплатная картинка прямо по URL (Pollinations)
     const keys = readGenKeys();
     const keyless =
       provider === 'pollinations' ||
       (provider === 'openai' && !keys.openai) ||
       (provider === 'gemini' && !keys.gemini);
     if (keyless) {
+      const fp = finalPrompt(prompt.trim(), useStyle);
+      setBusy(true);
+      try {
+        const r = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: fp, width: target.width, height: target.height }),
+        });
+        if (r.ok && (r.headers.get('content-type') ?? '').startsWith('image/')) {
+          const blob = await r.blob();
+          clearPreview();
+          setPreview({ blob, url: URL.createObjectURL(blob) });
+          setBusy(false);
+          return;
+        }
+      } catch {
+        // функции нет (локальный dev) — падаем на бесплатный генератор
+      }
+      setBusy(false);
       clearPreview();
-      setPreview({
-        blob: null,
-        url: pollinationsUrl(finalPrompt(prompt.trim(), useStyle), target.width, target.height),
-      });
+      setPreview({ blob: null, url: pollinationsUrl(fp, target.width, target.height) });
       return;
     }
 
