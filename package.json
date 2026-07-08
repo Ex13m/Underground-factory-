@@ -1,7 +1,7 @@
 {
   "name": "underground-factory",
   "private": true,
-  "version": "0.12.0",
+  "version": "0.13.0",
   "type": "module",
   "description": "UNDERGROUND FACTORY — the lightest body kits on the planet. Carbon, composite and ABS tuning e-shop prototype.",
   "scripts": {
@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@netlify/blobs": "^10.7.9",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.2",

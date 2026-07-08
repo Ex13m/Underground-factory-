@@ -294,14 +294,23 @@ export function ArtEditor() {
     if (!target) return;
     const effPrompt = prompt.trim() || autoPrompt(target.key);
     if (!effPrompt) return;
-    api.queueGen({
+    const ticket = {
       key: target.key,
-      kind: target.kind === 'video' ? 'video' : 'image',
+      kind: (target.kind === 'video' ? 'video' : 'image') as 'image' | 'video',
       prompt: effPrompt,
       width: Math.round(target.width),
       height: Math.round(target.height),
       createdAt: Date.now(),
-    });
+    };
+    // локальная очередь (видна в Админке → АРТ) …
+    api.queueGen(ticket);
+    // …и сразу на сервер сайта: скачивать ничего не нужно,
+    // Claude забирает заявки сам (GET /api/queue)
+    fetch('/api/queue', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(ticket),
+    }).catch(() => { /* локальный dev без функций — очередь останется в браузере */ });
     setQueued(true);
     window.setTimeout(() => setQueued(false), 2500);
   }

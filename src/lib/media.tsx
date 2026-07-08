@@ -130,16 +130,26 @@ export function Img({
  * выбывает из ротации. Если живых не осталось — арт-фолбэк.
  */
 export function VideoBg({ sources, seed, className }: { sources: string[]; seed: string; className?: string }) {
-  // монтаж стартует со случайного эпизода — каждая загрузка страницы разная
-  const [idx, setIdx] = useState(() => Math.floor(Math.random() * Math.max(1, sources.length)));
+  // монтаж каждый раз в НОВОМ случайном порядке (перетасовка Фишера—Йетса):
+  // и первый ролик, и вся последовательность отличаются от загрузки к загрузке
+  const order = useMemo(() => {
+    const a = [...sources];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sources.join('|')]);
+  const [idx, setIdx] = useState(0);
   const [dead, setDead] = useState<ReadonlySet<number>>(new Set());
   const fallback = useMemo(() => genArt(seed, 1600, 900), [seed]);
   const override = useMediaOverride(seed);
 
-  const alive = sources.map((_, i) => i).filter((i) => !dead.has(i));
+  const alive = order.map((_, i) => i).filter((i) => !dead.has(i));
   const nextAlive = (from: number) => {
-    for (let step = 1; step <= sources.length; step++) {
-      const i = (from + step) % sources.length;
+    for (let step = 1; step <= order.length; step++) {
+      const i = (from + step) % order.length;
       if (!dead.has(i)) return i;
     }
     return -1;
@@ -179,9 +189,9 @@ export function VideoBg({ sources, seed, className }: { sources: string[]; seed:
   const cur = dead.has(idx) ? nextAlive(idx) : idx;
   return (
     <video
-      key={sources[cur]}
+      key={order[cur]}
       className={className}
-      src={sources[cur]}
+      src={order[cur]}
       autoPlay
       muted
       // один живой ролик — обычный loop; несколько — монтаж по кругу
