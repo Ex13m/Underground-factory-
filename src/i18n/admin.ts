@@ -30,6 +30,10 @@ export default {
     'admin.art.listEmpty': 'Замен пока нет. Включите режим и кликните картинку на сайте.',
     'admin.art.resetOne': 'Сбросить',
     'admin.art.resetAll': 'Сбросить все замены',
+    'admin.art.queueTitle': 'ЗАЯВКИ HIGGSFIELD ▸ {n}',
+    'admin.art.queueText': 'Заявки из арт-редактора («Заказать ▸ Higgsfield»). Скачайте JSON и отдайте Claude в терминале — он сгенерирует файлы, которые применяются кнопкой «Картинка файлом».',
+    'admin.art.queueExport': 'Скачать gen-queue.json',
+    'admin.art.queueClear': 'Очистить очередь',
     'admin.media.gen': 'Ген ▸ AI',
 
     'admin.col.sku': 'SKU',
@@ -177,6 +181,10 @@ export default {
     'admin.art.listEmpty': 'No overrides yet. Enable the mode and click an image on the site.',
     'admin.art.resetOne': 'Reset',
     'admin.art.resetAll': 'Reset all overrides',
+    'admin.art.queueTitle': 'HIGGSFIELD TICKETS ▸ {n}',
+    'admin.art.queueText': 'Tickets from the art editor ("Order ▸ Higgsfield"). Download the JSON and hand it to Claude in the terminal — it generates the files, which you apply via "Image from file".',
+    'admin.art.queueExport': 'Download gen-queue.json',
+    'admin.art.queueClear': 'Clear the queue',
     'admin.media.gen': 'Gen ▸ AI',
 
     'admin.col.sku': 'SKU',

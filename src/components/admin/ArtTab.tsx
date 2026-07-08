@@ -4,6 +4,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { api, onDataChanged } from '../../lib/api';
 import { useI18n } from '../../lib/i18n';
 import { useUI } from '../../store/ui';
 import { readGenKeys, writeGenKeys, type GenProvider } from '../../lib/imagegen';
@@ -15,8 +16,22 @@ export function ArtTab() {
   const toggleArtEdit = useUI((s) => s.toggleArtEdit);
   const [keys, setKeys] = useState(readGenKeys());
   const [overrides, setOverrides] = useState(listOverrides());
+  const [queue, setQueue] = useState(api.listGenQueue());
 
   useEffect(() => onMediaChanged(() => setOverrides(listOverrides())), []);
+  useEffect(() => onDataChanged(() => setQueue(api.listGenQueue())), []);
+
+  const downloadQueue = () => {
+    const blob = new Blob([JSON.stringify(queue, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'gen-queue.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
 
   const saveKey = (patch: Partial<ReturnType<typeof readGenKeys>>) => {
     writeGenKeys(patch);
@@ -79,6 +94,32 @@ export function ArtTab() {
             NANO BANANA 2
           </button>
         </div>
+      </div>
+
+      <div className="panel rivets">
+        <div className="adm-block-title">
+          <span className="tape">{t('admin.art.queueTitle', { n: queue.length })}</span>
+        </div>
+        <p className="adm-note">{t('admin.art.queueText')}</p>
+        {queue.length > 0 && (
+          <>
+            <table className="adm-table">
+              <tbody>
+                {queue.map((q) => (
+                  <tr key={q.key}>
+                    <td><code>{q.key}</code></td>
+                    <td className="adm-note">{q.prompt}</td>
+                    <td className="adm-num">{q.width}×{q.height}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="adm-form-actions">
+              <button className="btn dark" onClick={downloadQueue}>{t('admin.art.queueExport')}</button>
+              <button className="btn ghost" onClick={() => api.clearGenQueue()}>{t('admin.art.queueClear')}</button>
+            </div>
+          </>
+        )}
       </div>
 
       <div className="panel">

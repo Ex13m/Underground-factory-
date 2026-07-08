@@ -10,6 +10,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../lib/api';
+// queueGen: заявки на Higgsfield-генерацию исполняет Claude в терминале (см. CLAUDE.md)
 import { bus } from '../lib/bus';
 import { useI18n } from '../lib/i18n';
 import { useUI } from '../store/ui';
@@ -202,6 +203,29 @@ export function ArtEditor() {
     setApplied(true);
   }
 
+  // применить готовую картинку файлом (например, сгенерированную Higgsfield в терминале)
+  async function uploadImage(file: File) {
+    if (!target) return;
+    await setOverride(target.key, 'image', file, { prompt: file.name });
+    setApplied(true);
+  }
+
+  // заявка на генерацию через Higgsfield — исполняется Claude в терминале
+  const [queued, setQueued] = useState(false);
+  function orderHiggsfield() {
+    if (!target || !prompt.trim()) return;
+    api.queueGen({
+      key: target.key,
+      kind: target.kind === 'video' ? 'video' : 'image',
+      prompt: prompt.trim(),
+      width: Math.round(target.width),
+      height: Math.round(target.height),
+      createdAt: Date.now(),
+    });
+    setQueued(true);
+    window.setTimeout(() => setQueued(false), 2500);
+  }
+
   const hasOverride = target ? !!getOverride(target.key) : false;
 
   return (
@@ -328,8 +352,30 @@ export function ArtEditor() {
             )}
           </div>
 
+          <div className="artedit-row">
+            <button
+              className="btn sm dark"
+              onClick={orderHiggsfield}
+              disabled={!prompt.trim()}
+              title={t('art.order.hint')}
+              data-testid="artedit-order"
+            >
+              {t('art.order')}
+            </button>
+            <label className="btn sm ghost" style={{ cursor: 'pointer' }}>
+              {t('art.upload.image')}
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={(e) => e.target.files?.[0] && uploadImage(e.target.files[0])}
+              />
+            </label>
+          </div>
+
           {error && <div className="artedit-error">{error}</div>}
           {applied && <div className="artedit-ok">{t('art.applied')}</div>}
+          {queued && <div className="artedit-ok">{t('art.order.done')}</div>}
           {preview && (
             <div className="artedit-preview">
               <img src={preview.url} alt="" />

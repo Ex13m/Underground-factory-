@@ -43,6 +43,11 @@ export function CarShowcase({
 
   const trackRef = useRef<HTMLDivElement>(null);
   const hoverRef = useRef(false);
+  // актуальное значение выбранной тачки для rAF-цикла (без несвежих замыканий)
+  const activeRef = useRef(activeCarId);
+  useEffect(() => {
+    activeRef.current = activeCarId;
+  }, [activeCarId]);
 
   /** перескок через «шов» дубликата — лента кажется бесконечной */
   const wrapAround = (el: HTMLDivElement) => {
@@ -84,14 +89,18 @@ export function CarShowcase({
       raf = requestAnimationFrame(tick);
       const dt = Math.min((now - last) / 1000, 0.05);
       last = now;
-      if (hoverRef.current || activeCarId) return;
+      // стоп: курсор над лентой или выбрана тачка (фильтр активен)
+      if (hoverRef.current || activeRef.current) {
+        last = now;
+        return;
+      }
       el.scrollLeft += 26 * dt; // ~26 px/с — прогулочный темп
       wrapAround(el);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loop, calm, activeCarId, shown.length]);
+  }, [loop, calm, shown.length]);
 
   // разведение одиночного и двойного клика: одиночный (фильтр) уходит
   // с задержкой ~250 мс и отменяется, если прилетел dblclick (модалка)
@@ -107,7 +116,8 @@ export function CarShowcase({
     cancelPending();
     clickTimer.current = window.setTimeout(() => {
       clickTimer.current = null;
-      onFilter(carId);
+      // повторный клик по выбранной тачке = сброс фильтра
+      onFilter(activeRef.current === carId ? '' : carId);
     }, 250);
   };
   const handleDoubleClick = (carId: string) => {

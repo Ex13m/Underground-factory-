@@ -24,6 +24,10 @@ export default {
     'art.err.nokey': 'Нет ключа API. Введите ключ в Админке → АРТ или выберите БЕСПЛАТНЫЙ генератор.',
     'art.free': 'БЕСПЛАТНО',
     'art.free.hint': 'Pollinations — без ключа; референсы не поддерживает',
+    'art.order': 'Заказать ▸ Higgsfield',
+    'art.order.hint': 'Заявка уходит в очередь (Админка → АРТ); исполняет Claude в терминале — качество выше бесплатного',
+    'art.order.done': 'ЗАЯВКА В ОЧЕРЕДИ ▸ Админка → АРТ',
+    'art.upload.image': 'Картинка файлом',
   },
   en: {
     'art.badge': 'ART EDITOR ▸ ACTIVE',
@@ -49,5 +53,9 @@ export default {
     'art.err.nokey': 'No API key. Enter it in Admin → ART tab or pick the FREE generator.',
     'art.free': 'FREE',
     'art.free.hint': 'Pollinations — keyless; no reference support',
+    'art.order': 'Order ▸ Higgsfield',
+    'art.order.hint': 'Ticket goes to the queue (Admin → ART); Claude executes it in the terminal — higher quality than the free tier',
+    'art.order.done': 'TICKET QUEUED ▸ Admin → ART',
+    'art.upload.image': 'Image from file',
   },
 } as { ru: Record<string, string>; en: Record<string, string> };

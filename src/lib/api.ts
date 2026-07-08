@@ -17,7 +17,19 @@ const LS = {
   orders: 'uf:orders',
   promos: 'uf:promos',
   materials: 'uf:materials',
+  genQueue: 'uf:genqueue',
 };
+
+/** Заявка админа на генерацию медиа через Higgsfield (исполняет Claude в терминале). */
+export interface GenRequestTicket {
+  /** ключ медиа-объекта (= seed) — куда применить результат */
+  key: string;
+  kind: 'image' | 'video';
+  prompt: string;
+  width: number;
+  height: number;
+  createdAt: number;
+}
 
 function read<T>(key: string, fallback: T): T {
   try {
@@ -128,6 +140,22 @@ export const api = {
     overrides[grade] = { ...api.getMaterial(grade), ...patch, grade };
     write(LS.materials, overrides);
     return overrides[grade]!;
+  },
+
+  // ---- очередь заявок на генерацию (Higgsfield, исполняется в терминале) ----
+  listGenQueue(): GenRequestTicket[] {
+    return read<GenRequestTicket[]>(LS.genQueue, []);
+  },
+
+  queueGen(ticket: GenRequestTicket): GenRequestTicket {
+    const q = read<GenRequestTicket[]>(LS.genQueue, []).filter((x) => x.key !== ticket.key);
+    q.push(ticket);
+    write(LS.genQueue, q);
+    return ticket;
+  },
+
+  clearGenQueue() {
+    write(LS.genQueue, []);
   },
 
   // ---- orders ----

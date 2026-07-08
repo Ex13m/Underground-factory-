@@ -103,10 +103,10 @@ export function Catalog() {
         </p>
 
         {/* ============ CAR SHOWCASE (бренды + карусель тачек) ============ */}
-        {/* 1 клик = фильтр каталога по тачке, 2 клика = большая модалка */}
+        {/* 1 клик = фильтр по тачке (повторный — сброс), 2 клика = большая модалка */}
         <CarShowcase
           onOpen={setShowcaseCarId}
-          onFilter={(id) => setParams({ car: id })}
+          onFilter={(id) => setParams(id ? { car: id } : {})}
           activeCarId={carId}
         />
 
