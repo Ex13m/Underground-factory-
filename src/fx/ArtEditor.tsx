@@ -113,6 +113,8 @@ export function ArtEditor() {
 
   useEffect(() => {
     document.body.classList.toggle('art-edit', artEdit);
+    // выключили режим — плавающее окно закрывается
+    if (!artEdit) setTarget(null);
     return () => document.body.classList.remove('art-edit');
   }, [artEdit]);
 
