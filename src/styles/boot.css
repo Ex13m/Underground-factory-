@@ -1,30 +1,87 @@
-/* SYSTEM BOOT intro — stitch «Входная группа» */
+/* SYSTEM BOOT intro — тачка в темноте включает фары в зрителя,
+   всё вспыхивает и рассыпается глитчем, открывая сайт */
 
 .boot {
   position: fixed; inset: 0; z-index: 9800;
   background: var(--void);
-  display: flex; align-items: center; justify-content: center;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px;
   cursor: pointer;
-  opacity: 1; transition: opacity 0.45s ease;
+  overflow: hidden;
 }
-.boot-out { opacity: 0; pointer-events: none; }
+
+/* -------- логотип: тусклый в темноте, вспыхивает с фарами -------- */
+.boot-logo {
+  display: flex; align-items: center; gap: 12px;
+  opacity: 0.3;
+  transition: opacity 0.3s;
+}
+.boot-logo .uf-logo-mark { width: 40px; height: 40px; }
+.boot-logo-text { font-size: 18px; line-height: 1.05; letter-spacing: 0.04em; }
+.boot-logo-text small { display: block; font-size: 9px; color: var(--steel); letter-spacing: 0.3em; font-weight: 400; }
 
 .boot-inner { width: min(560px, 88vw); position: relative; }
 
-.boot-car { width: 100%; filter: drop-shadow(0 0 24px rgba(224, 27, 34, 0.25)); }
+/* -------- тачка: кузов в цвет экрана, только едва заметный контур -------- */
+.boot-car { width: 100%; }
+.boot-shape {
+  fill: #0e0e0d; /* чуть светлее фона — силуэт угадывается в темноте */
+  stroke: rgba(236, 234, 229, 0.1);
+  stroke-width: 1.5;
+}
+.boot-glass { fill: #090908; stroke: rgba(236, 234, 229, 0.06); }
+.boot-vent { fill: #090908; stroke: rgba(236, 234, 229, 0.07); }
+.boot-splitter { fill: #121211; }
+.boot-tyre { fill: #0b0b0a; stroke: rgba(236, 234, 229, 0.08); }
+.boot-head {
+  fill: #16211f; /* потухшие фары чуть отблёскивают */
+  stroke: rgba(236, 234, 229, 0.12);
+  transition: fill 0.1s;
+}
 
-.boot-part { opacity: 0; }
-.boot-body { animation: boot-slide-x 0.55s cubic-bezier(0.2, 0.9, 0.3, 1) 0.15s forwards; }
-.boot-wing { animation: boot-slide-y 0.4s cubic-bezier(0.2, 0.9, 0.3, 1) 0.75s forwards; }
-.boot-wheels { animation: boot-slide-up 0.4s cubic-bezier(0.2, 0.9, 0.3, 1) 1.05s forwards; }
+/* -------- вспышка фар в зрителя -------- */
+.boot-beam {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    radial-gradient(ellipse 34% 22% at 39% 58%, rgba(255, 255, 255, 0.95), transparent 70%),
+    radial-gradient(ellipse 34% 22% at 61% 58%, rgba(255, 255, 255, 0.95), transparent 70%),
+    radial-gradient(ellipse 80% 60% at 50% 60%, rgba(255, 255, 255, 0.85), rgba(224, 27, 34, 0.12) 60%, transparent 80%);
+}
+.boot--flash .boot-beam { animation: boot-beam-on 0.75s cubic-bezier(0.2, 0.9, 0.2, 1) forwards; }
+@keyframes boot-beam-on {
+  0% { opacity: 0; transform: scale(0.6); }
+  18% { opacity: 0.35; transform: scale(0.8); }
+  26% { opacity: 0.1; transform: scale(0.82); } /* фары «моргнули» */
+  100% { opacity: 1; transform: scale(1.06); }
+}
+.boot--flash .boot-head { fill: #ffffff; filter: drop-shadow(0 0 18px #fff) drop-shadow(0 0 46px rgba(255,255,255,0.9)); animation: boot-head-flicker 0.3s steps(2); }
+@keyframes boot-head-flicker { 0% { fill: #16211f; } 50% { fill: #fff; } 70% { fill: #16211f; } 100% { fill: #fff; } }
+.boot--flash .boot-logo {
+  opacity: 1;
+  text-shadow: 0 0 18px rgba(255, 255, 255, 0.8);
+}
+.boot--flash .boot-log, .boot--flash .boot-bars, .boot--flash .boot-skip { opacity: 0; transition: opacity 0.25s; }
 
-@keyframes boot-slide-x { from { opacity: 0; transform: translateX(-70px); } to { opacity: 1; transform: none; } }
-@keyframes boot-slide-y { from { opacity: 0; transform: translateY(-46px); } to { opacity: 1; transform: none; } }
-@keyframes boot-slide-up { from { opacity: 0; transform: translateY(36px); } to { opacity: 1; transform: none; } }
+/* -------- глитч-распад: экран рвётся полосами и исчезает -------- */
+.boot--out { pointer-events: none; }
+.boot--out .boot-beam { opacity: 1; }
+.boot--out .boot-logo { opacity: 1; }
+.boot--out { animation: boot-glitch-out 0.62s steps(1) forwards; }
+@keyframes boot-glitch-out {
+  0%   { clip-path: none; transform: none; opacity: 1; }
+  15%  { clip-path: polygon(0 0, 100% 0, 100% 34%, 0 34%, 0 46%, 100% 46%, 100% 100%, 0 100%); transform: translateX(6px); }
+  30%  { clip-path: polygon(0 8%, 100% 8%, 100% 58%, 0 58%, 0 72%, 100% 72%, 100% 94%, 0 94%); transform: translateX(-9px) skewX(-1deg); }
+  45%  { clip-path: inset(12% 0 40% 0); transform: translateX(12px); opacity: 0.9; }
+  60%  { clip-path: inset(35% 0 22% 0); transform: translateX(-14px) skewX(1.5deg); opacity: 0.7; }
+  75%  { clip-path: inset(55% 0 8% 0); transform: translateX(9px); opacity: 0.45; }
+  90%  { clip-path: inset(20% 0 62% 0); transform: translateX(-6px); opacity: 0.25; }
+  100% { clip-path: inset(50% 0 50% 0); transform: none; opacity: 0; }
+}
 
-.boot-svg-label { font-family: var(--font-mono); font-size: 11px; fill: var(--steel); letter-spacing: 0.14em; }
-
-.boot-log { min-height: 118px; margin-top: 18px; font-size: 13px; color: var(--paper); }
+/* -------- лог и прогресс -------- */
+.boot-log { min-height: 108px; margin-top: 14px; font-size: 13px; color: var(--paper); }
 .boot-line { animation: boot-line-in 0.18s ease forwards; }
 .boot-line:last-child { color: var(--blood); }
 @keyframes boot-line-in { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
