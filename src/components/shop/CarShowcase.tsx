@@ -49,33 +49,6 @@ export function CarShowcase({
     activeRef.current = activeCarId;
   }, [activeCarId]);
 
-  // выбор тачки в любом фильтре отражается на ленте: если бренд-чип её
-  // прячет — переключаемся на её марку, затем плавно подкатываем к карточке
-  useEffect(() => {
-    if (!activeCarId) return;
-    const car = cars.find((c) => c.id === activeCarId);
-    if (!car) return;
-    if (make !== null && car.make !== make) {
-      setMake(car.make); // эффект прогонится снова уже с видимой карточкой
-      return;
-    }
-    const el = trackRef.current;
-    if (!el) return;
-    const copies = el.querySelectorAll<HTMLElement>(`[data-car-id="${activeCarId}"]`);
-    if (!copies.length) return;
-    // из дубликатов кольца берём ближайший к текущей позиции
-    let best = copies[0];
-    let bestDist = Infinity;
-    copies.forEach((node) => {
-      const d = Math.abs(node.offsetLeft - el.scrollLeft);
-      if (d < bestDist) { bestDist = d; best = node; }
-    });
-    el.scrollTo({
-      left: Math.max(0, best.offsetLeft - (el.clientWidth - best.clientWidth) / 2),
-      behavior: 'smooth',
-    });
-  }, [activeCarId, make, cars]);
-
   /** перескок через «шов» дубликата — лента кажется бесконечной */
   const wrapAround = (el: HTMLDivElement) => {
     if (!loop) return;
@@ -190,7 +163,6 @@ export function CarShowcase({
           <button
             key={`${c.id}-${i}`}
             type="button"
-            data-car-id={c.id}
             className={`carshow-card panel${activeCarId === c.id ? ' active' : ''}`}
             title={t('catalog.cars.hint')}
             onClick={() => handleClick(c.id)}
