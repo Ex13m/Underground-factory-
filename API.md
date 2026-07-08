@@ -29,6 +29,20 @@
 | custom-тачки | `uf:cars:custom` | добавленные модели |
 | заказы | `uf:orders` | журнал заказов |
 | промокоды | `uf:promos` | коды от бота и админа |
+| паспорта материалов | `uf:materials` | правки историй/спек/видео (Админка → МАТЕРИАЛЫ) |
+| очередь генерации | `uf:genqueue` | заявки «Заказать ▸ Higgsfield» из арт-редактора |
+| URL-замены медиа | `uf:media-urls` | ссылки-оверрайды картинок (бесплатная генерация) |
+| блоб-замены медиа | IndexedDB `uf-media` | картинки/видео/STL из арт-редактора |
+
+**Дополнительные методы `UF_API`** (кроме REST-фасада):
+`listMaterials()`, `getMaterial(grade)`, `updateMaterial(grade, patch)` —
+паспорта материалов; `listGenQueue()`, `queueGen(ticket)`, `clearGenQueue()` —
+очередь заявок на генерацию (исполняет Claude в терминале через Higgsfield).
+
+**Серверная генерация** — Netlify Function `POST /api/generate`
+(`netlify/functions/uf-generate.mts`): принимает `{prompt, width, height}`,
+зовёт Replicate (env `REPLICATE_API_TOKEN`) и возвращает байты картинки.
+Без ключа отвечает 501 — клиент падает на бесплатный генератор.
 
 Итоговый каталог = `seed − hidden + overrides + custom`.
 
