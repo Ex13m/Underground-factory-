@@ -15,6 +15,16 @@ export function Footer() {
           {t('common.footer.integrations')}
           <br />
           {t('common.footer.disclaimer')} © {new Date().getFullYear()}
+          <br />
+          <a
+            href="https://github.com/Ex13m/Underground-factory-/blob/claude/car-tuning-shop-z39a5s/CHANGELOG.md"
+            target="_blank"
+            rel="noreferrer"
+            style={{ color: 'var(--blood)' }}
+            data-testid="site-version"
+          >
+            v{__APP_VERSION__} ▸ BUILD {__BUILD_DATE__} ▸ CHANGELOG
+          </a>
         </div>
       </div>
     </footer>

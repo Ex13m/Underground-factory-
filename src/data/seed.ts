@@ -35,8 +35,8 @@ export const SEED_PRODUCTS: Product[] = [
     material: { ru: 'Карбон 2×2 твил, автоклав', en: '2×2 twill carbon, autoclave-cured' },
     fits: ['nissan-silvia-s15', 'nissan-gtr-r34'],
     media: [
-      { type: 'image', url: u('1511919884226-fd3cad34687c'), seed: 'kit-widebody-s15-a' },
-      { type: 'image', url: u('1493238792000-8113da705763'), seed: 'kit-widebody-s15-b' },
+      { type: 'image', url: '/img/widebody-a.jpg', seed: 'kit-widebody-s15-a' },
+      { type: 'image', url: '/img/widebody-b.jpg', seed: 'kit-widebody-s15-b' },
     ],
     hit: true,
   },
@@ -55,7 +55,7 @@ export const SEED_PRODUCTS: Product[] = [
     material: { ru: 'Карбон 2×2 твил, автоклав', en: '2×2 twill carbon, autoclave-cured' },
     fits: ['toyota-supra-a80', 'bmw-e36', 'nissan-gtr-r34'],
     media: [
-      { type: 'image', url: u('1525609004556-c46c7d6cf023'), seed: 'wing-gt-supra-a' },
+      { type: 'image', url: '/img/wing-a.jpg', seed: 'wing-gt-supra-a' },
       { type: 'image', url: u('1542282088-fe8426682b8f'), seed: 'wing-gt-supra-b' },
     ],
     hit: true,
@@ -75,7 +75,7 @@ export const SEED_PRODUCTS: Product[] = [
     material: { ru: 'Стеклокомпозит ручной укладки', en: 'Hand-laid fibreglass composite' },
     fits: ['mazda-rx7-fd', 'nissan-silvia-s15', 'honda-civic-ek9'],
     media: [
-      { type: 'image', url: u('1502877338535-766e1452684a'), seed: 'splitter-rx7-a' },
+      { type: 'image', url: '/img/splitter-a.jpg', seed: 'splitter-rx7-a' },
     ],
   },
   {
@@ -93,8 +93,8 @@ export const SEED_PRODUCTS: Product[] = [
     material: { ru: 'Карбон, глянцевый лак UV-cut', en: 'Carbon fibre, UV-cut gloss clearcoat' },
     fits: ['bmw-e36', 'nissan-gtr-r34', 'toyota-supra-a80'],
     media: [
-      { type: 'image', url: u('1542282088-fe8426682b8f'), seed: 'diffuser-chrome-a' },
-      { type: 'image', url: u('1552519507-da3b142c6e3d'), seed: 'diffuser-chrome-b' },
+      { type: 'image', url: '/img/diffuser-a.jpg', seed: 'diffuser-chrome-a' },
+      { type: 'image', url: '/img/diffuser-b.jpg', seed: 'diffuser-chrome-b' },
     ],
     hit: true,
   },
@@ -113,8 +113,8 @@ export const SEED_PRODUCTS: Product[] = [
     material: { ru: 'Сухой карбон (препрег), автоклав', en: 'Dry carbon (prepreg), autoclave-cured' },
     fits: ['toyota-ae86', 'nissan-silvia-s15', 'mazda-rx7-fd'],
     media: [
-      { type: 'image', url: u('1471444928139-48c5bf5173f8'), seed: 'kit-wet-legend-a' },
-      { type: 'image', url: u('1511919884226-fd3cad34687c'), seed: 'kit-wet-legend-b' },
+      { type: 'image', url: '/img/oneofone-a.jpg', seed: 'kit-wet-legend-a' },
+      { type: 'image', url: '/img/oneofone-b.jpg', seed: 'kit-wet-legend-b' },
     ],
     hit: true,
   },
@@ -132,7 +132,7 @@ export const SEED_PRODUCTS: Product[] = [
     rarity: 'abs',
     material: { ru: 'АБС + грунт под покраску', en: 'ABS + paint-ready primer' },
     fits: ['toyota-ae86'],
-    media: [{ type: 'image', url: u('1471444928139-48c5bf5173f8'), seed: 'lip-ae86-a' }],
+    media: [{ type: 'image', url: '/img/lip-a.jpg', seed: 'lip-ae86-a' }],
   },
   {
     id: 'canards-civic',
@@ -148,7 +148,7 @@ export const SEED_PRODUCTS: Product[] = [
     rarity: 'composite',
     material: { ru: 'Стеклокомпозит ручной укладки', en: 'Hand-laid fibreglass composite' },
     fits: ['honda-civic-ek9', 'nissan-silvia-s15', 'mazda-rx7-fd'],
-    media: [{ type: 'image', url: u('1605559424843-9e4c228bf1c2'), seed: 'canards-civic-a' }],
+    media: [{ type: 'image', url: '/img/canards-a.jpg', seed: 'canards-civic-a' }],
   },
   {
     id: 'hood-vents-e36',
@@ -164,7 +164,7 @@ export const SEED_PRODUCTS: Product[] = [
     rarity: 'composite',
     material: { ru: 'Стеклокомпозит, гелькоут чёрный', en: 'Fibreglass composite, black gelcoat' },
     fits: ['bmw-e36'],
-    media: [{ type: 'image', url: u('1493238792000-8113da705763'), seed: 'hood-vents-e36-a' }],
+    media: [{ type: 'image', url: '/img/hood-a.jpg', seed: 'hood-vents-e36-a' }],
   },
   {
     id: 'skirts-r34',
@@ -180,7 +180,7 @@ export const SEED_PRODUCTS: Product[] = [
     rarity: 'composite',
     material: { ru: 'Стеклокомпозит ручной укладки', en: 'Hand-laid fibreglass composite' },
     fits: ['nissan-gtr-r34', 'toyota-supra-a80'],
-    media: [{ type: 'image', url: u('1542282088-fe8426682b8f'), seed: 'skirts-r34-a' }],
+    media: [{ type: 'image', url: '/img/skirts-a.jpg', seed: 'skirts-r34-a' }],
   },
   {
     id: 'wing-lada',
@@ -196,7 +196,7 @@ export const SEED_PRODUCTS: Product[] = [
     rarity: 'abs',
     material: { ru: 'АБС + грунт под покраску', en: 'ABS + paint-ready primer' },
     fits: ['lada-2107'],
-    media: [{ type: 'image', url: u('1583121274602-3e2820c69888'), seed: 'wing-lada-a' }],
+    media: [{ type: 'image', url: '/img/spoiler-a.jpg', seed: 'wing-lada-a' }],
     hit: true,
   },
   {
@@ -230,7 +230,7 @@ export const SEED_PRODUCTS: Product[] = [
     material: { ru: 'Стеклокомпозит ручной укладки', en: 'Hand-laid fibreglass composite' },
     fits: ['toyota-supra-a80'],
     media: [
-      { type: 'image', url: u('1525609004556-c46c7d6cf023'), seed: 'kit-full-supra-a' },
+      { type: 'image', url: '/img/armor-a.jpg', seed: 'kit-full-supra-a' },
       { type: 'image', url: u('1552519507-da3b142c6e3d'), seed: 'kit-full-supra-b' },
     ],
   },
@@ -238,9 +238,8 @@ export const SEED_PRODUCTS: Product[] = [
 
 /** Hero/background video candidates — first reachable one wins, otherwise animated fallback. */
 export const HERO_VIDEOS = [
-  // из stitch final_project_report v1.1 (если бакет недоступен — каскад идёт дальше)
-  'https://storage.googleapis.com/stitch-assets/video-backgrounds/drift-night-city.mp4',
-  'https://assets.mixkit.co/videos/preview/mixkit-driver-drifting-in-a-car-race-42542-large.mp4',
-  'https://assets.mixkit.co/videos/preview/mixkit-sports-car-driving-on-a-highway-41576-large.mp4',
+  // сгенерировано нейросетью (Higgsfield kling3_0_turbo) под стиль сайта — лежит локально
+  '/video/hero-drift.mp4',
+  // внешние запасные (если локальный файл недоступен — каскад идёт дальше)
   'https://videos.pexels.com/video-files/4568563/4568563-hd_1920_1080_30fps.mp4',
 ];
