@@ -396,38 +396,6 @@ section.inverse .shop-section-sub { color: #55524b; }
 .carshow-brand:hover { border-color: var(--blood); color: #fff; }
 .carshow-brand.on { background: var(--blood); border-color: var(--blood); color: #fff; transform: rotate(0deg); }
 
-/* сцена: лента + приколотая по центру выбранная тачка.
-   Запас по высоте сверху/снизу — увеличенная карточка остаётся внутри
-   сцены и не наезжает на фильтр под ней. */
-.carshow-stage { position: relative; padding: 12px 0 22px; }
-.carshow-card.pinned {
-  position: absolute;
-  left: 50%;
-  top: 6px;
-  transform: translateX(-50%) scale(1.05);
-  transform-origin: top center;
-  z-index: 3;
-  border-color: var(--blood);
-  box-shadow: 0 0 0 2px var(--blood), 0 0 20px rgba(224, 27, 34, 0.4);
-}
-.carshow-card.pinned:hover { transform: translateX(-50%) scale(1.05); }
-.carshow-lock {
-  position: absolute; top: -10px; left: 50%;
-  transform: translateX(-50%) rotate(-1.5deg);
-  z-index: 2;
-  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
-  white-space: nowrap;
-}
-.carshow-unpin {
-  position: absolute; top: 6px; right: 8px; z-index: 2;
-  font-family: var(--font-mono); font-size: 13px; line-height: 1;
-  padding: 4px 7px;
-  background: rgba(10, 10, 9, 0.8); color: var(--paper);
-  cursor: pointer;
-  transition: color 0.15s, background 0.15s;
-}
-.carshow-unpin:hover { background: var(--blood); color: #fff; }
-
 /* самоходная бесконечная лента с тонким красным скроллбаром */
 .carshow-track {
   display: flex; gap: 14px;

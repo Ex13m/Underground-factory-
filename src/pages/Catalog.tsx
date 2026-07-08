@@ -111,11 +111,43 @@ export function Catalog() {
         />
 
         {/* ============ CAR-FIRST BAR ============ */}
-        {/* выбранная тачка уже «прибита» в карусели — панель-дубль не показываем */}
+        {/* рабочая панель выбранной тачки: фото, сброс, открытие карточки */}
         <div className="cat-carbar">
-          <div className="cat-carbar-grid" style={car ? { gridTemplateColumns: '1fr' } : undefined}>
-            {!car && (
-              <div className="panel rivets cat-car-panel">
+          <div className="cat-carbar-grid">
+            <div className="panel rivets cat-car-panel">
+              {car ? (
+                <>
+                  <Img src={car.img} seed={`car-${car.id}`} alt={`${car.make} ${car.model}`} />
+                  <div>
+                    <span className="tape">{t('catalog.car.badge')}</span>
+                    <div className="cat-car-name">
+                      <span className="glitch auto" data-text={`${car.make} ${car.model}`}>
+                        {car.make} {car.model}
+                      </span>
+                    </div>
+                    <div className="cat-car-years">
+                      {car.years} // {t('catalog.car.smart')}
+                    </div>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        className="cat-garage-chip"
+                        onClick={() => setShowcaseCarId(car.id)}
+                        data-testid="car-profile-open"
+                      >
+                        {t('catalog.car.open')}
+                      </button>
+                      <button
+                        type="button"
+                        className="cat-garage-chip"
+                        onClick={() => setParams({})}
+                      >
+                        {t('catalog.car.reset')}
+                      </button>
+                    </div>
+                  </div>
+                </>
+              ) : (
                 <div>
                   <span className="tape dark">{t('catalog.car.none.title')}</span>
                   <p className="shop-section-sub" style={{ margin: '10px 0 0' }}>
@@ -131,8 +163,8 @@ export function Catalog() {
                     </button>
                   )}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
             <div className="panel cat-car-panel" style={{ display: 'block' }}>
               <CarPicker
                 key={carId ?? 'none'}

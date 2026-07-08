@@ -33,11 +33,7 @@ export function CarShowcase({
 
   // уникальные марки — в порядке появления в каталоге
   const makes = useMemo(() => [...new Set(cars.map((c) => c.make))], [cars]);
-  // выбранная тачка вынимается из потока — она стоит в центре отдельной карточкой
-  const activeCar = activeCarId ? cars.find((c) => c.id === activeCarId) ?? null : null;
-  const shown = (make ? cars.filter((c) => c.make === make) : cars).filter(
-    (c) => c.id !== activeCarId,
-  );
+  const shown = make ? cars.filter((c) => c.make === make) : cars;
 
   // бесконечный круг: рендерим список дважды и закольцовываем scrollLeft
   const loop = shown.length > 2;
@@ -156,36 +152,6 @@ export function CarShowcase({
         ))}
       </div>
 
-      <div className="carshow-stage">
-        {/* выбранная тачка: плашка TARGET LOCKED в центре, неподвижна —
-            лента едет позади; ✕ возвращает её в поток, dblclick — модалка */}
-        {activeCar && (
-          <button
-            type="button"
-            className="carshow-card panel active pinned"
-            title={t('catalog.cars.hint')}
-            onDoubleClick={() => handleDoubleClick(activeCar.id)}
-            onMouseDown={(e) => e.preventDefault()}
-          >
-            <span className="tape carshow-lock">{t('catalog.car.badge')}</span>
-            <span
-              className="carshow-unpin"
-              role="button"
-              aria-label="reset"
-              onClick={(e) => { e.stopPropagation(); onFilter(''); }}
-            >
-              ✕
-            </span>
-            <span className="carshow-media">
-              <Img src={activeCar.img} seed={`car-${activeCar.id}`} alt={`${activeCar.make} ${activeCar.model}`} />
-            </span>
-            <span className="carshow-name">
-              {activeCar.make} {activeCar.model}
-            </span>
-            <span className="carshow-years tech-label">{activeCar.years}</span>
-            <span className="carshow-kits">{t('catalog.cars.kits', { n: kitCount(activeCar.id) })}</span>
-          </button>
-        )}
       <div
         className="carshow-track"
         ref={trackRef}
@@ -215,7 +181,6 @@ export function CarShowcase({
             <span className="carshow-kits">{t('catalog.cars.kits', { n: kitCount(c.id) })}</span>
           </button>
         ))}
-      </div>
       </div>
     </div>
   );
