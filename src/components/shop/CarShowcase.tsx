@@ -1,8 +1,9 @@
 /**
  * Витрина тачек над каталогом: ряд чипов-брендов + бесконечная карусель
  * карточек машин. Лента сама медленно едет по кругу (список задублирован,
- * scrollLeft закольцован); колёсико крутит её в обе стороны по кругу;
- * пауза — при наведении и когда тачка выбрана (фильтр активен).
+ * scrollLeft закольцован); колёсико крутит её в обе стороны; пауза — при
+ * наведении. Выбранная тачка ВЫНИМАЕТСЯ из потока и «прибивается» красной
+ * карточкой в центре — остальные объезжают её по ленте позади.
  * Одиночный клик — фильтр каталога, двойной — большая модалка (CarModal).
  */
 
@@ -32,7 +33,11 @@ export function CarShowcase({
 
   // уникальные марки — в порядке появления в каталоге
   const makes = useMemo(() => [...new Set(cars.map((c) => c.make))], [cars]);
-  const shown = make ? cars.filter((c) => c.make === make) : cars;
+  // выбранная тачка вынимается из потока — она стоит в центре отдельной карточкой
+  const activeCar = activeCarId ? cars.find((c) => c.id === activeCarId) ?? null : null;
+  const shown = (make ? cars.filter((c) => c.make === make) : cars).filter(
+    (c) => c.id !== activeCarId,
+  );
 
   // бесконечный круг: рендерим список дважды и закольцовываем scrollLeft
   const loop = shown.length > 2;
@@ -89,11 +94,9 @@ export function CarShowcase({
       raf = requestAnimationFrame(tick);
       const dt = Math.min((now - last) / 1000, 0.05);
       last = now;
-      // стоп: курсор над лентой или выбрана тачка (фильтр активен)
-      if (hoverRef.current || activeRef.current) {
-        last = now;
-        return;
-      }
+      // стоп только при наведении (лента едет всегда — даже с выбранной тачкой:
+      // та стоит отдельной карточкой в центре, остальные объезжают её)
+      if (hoverRef.current) return;
       el.scrollLeft += 26 * dt; // ~26 px/с — прогулочный темп
       wrapAround(el);
     };
@@ -153,6 +156,27 @@ export function CarShowcase({
         ))}
       </div>
 
+      <div className="carshow-stage">
+        {/* выбранная тачка: красная, в центре, неподвижна — лента едет позади */}
+        {activeCar && (
+          <button
+            type="button"
+            className="carshow-card panel active pinned"
+            title={t('catalog.cars.hint')}
+            onClick={() => handleClick(activeCar.id)}
+            onDoubleClick={() => handleDoubleClick(activeCar.id)}
+            onMouseDown={(e) => e.preventDefault()}
+          >
+            <span className="carshow-media">
+              <Img src={activeCar.img} seed={`car-${activeCar.id}`} alt={`${activeCar.make} ${activeCar.model}`} />
+            </span>
+            <span className="carshow-name">
+              {activeCar.make} {activeCar.model}
+            </span>
+            <span className="carshow-years tech-label">{activeCar.years}</span>
+            <span className="carshow-kits">{t('catalog.cars.kits', { n: kitCount(activeCar.id) })}</span>
+          </button>
+        )}
       <div
         className="carshow-track"
         ref={trackRef}
@@ -182,6 +206,7 @@ export function CarShowcase({
             <span className="carshow-kits">{t('catalog.cars.kits', { n: kitCount(c.id) })}</span>
           </button>
         ))}
+      </div>
       </div>
     </div>
   );

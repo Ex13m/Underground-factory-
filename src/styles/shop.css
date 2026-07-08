@@ -396,6 +396,19 @@ section.inverse .shop-section-sub { color: #55524b; }
 .carshow-brand:hover { border-color: var(--blood); color: #fff; }
 .carshow-brand.on { background: var(--blood); border-color: var(--blood); color: #fff; transform: rotate(0deg); }
 
+/* сцена: лента + приколотая по центру выбранная тачка */
+.carshow-stage { position: relative; }
+.carshow-card.pinned {
+  position: absolute;
+  left: 50%;
+  top: 4px;
+  transform: translateX(-50%);
+  z-index: 3;
+  border-color: var(--blood);
+  box-shadow: 0 0 0 2px var(--blood), 0 0 34px rgba(224, 27, 34, 0.5), 0 16px 40px rgba(0, 0, 0, 0.6);
+}
+.carshow-card.pinned:hover { transform: translateX(-50%); }
+
 /* самоходная бесконечная лента с тонким красным скроллбаром */
 .carshow-track {
   display: flex; gap: 14px;
