@@ -8,16 +8,20 @@
   overflow: hidden;
 }
 
+/* видео максимально сливается с фоном: приглушено и утемнено */
 .boot-video {
   position: absolute; inset: 0;
   width: 100%; height: 100%;
   object-fit: cover;
+  opacity: 0.55;
+  filter: brightness(0.7) contrast(1.08) saturate(0.85);
 }
 
 .boot-vignette {
   position: absolute; inset: 0;
   background:
-    linear-gradient(180deg, rgba(10,10,9,0.55) 0%, transparent 30%, transparent 72%, rgba(10,10,9,0.65) 100%);
+    radial-gradient(ellipse at 50% 50%, transparent 30%, rgba(10, 10, 9, 0.72) 100%),
+    linear-gradient(180deg, rgba(10,10,9,0.65) 0%, transparent 32%, transparent 66%, rgba(10,10,9,0.82) 100%);
   pointer-events: none;
 }
 
@@ -34,8 +38,29 @@
 .boot-logo-text { font-size: 18px; line-height: 1.05; letter-spacing: 0.04em; color: var(--paper); }
 .boot-logo-text small { display: block; font-size: 9px; color: var(--paper-dim); letter-spacing: 0.3em; font-weight: 400; }
 
+/* передняя графическая модалка загрузки */
+.boot-inner {
+  position: absolute;
+  left: 50%; bottom: 12vh;
+  transform: translateX(-50%);
+  width: min(560px, 88vw);
+}
+
+.boot-log { min-height: 108px; font-size: 13px; color: var(--paper); text-shadow: 0 1px 6px rgba(0,0,0,0.8); }
+.boot-line { animation: boot-line-in 0.18s ease forwards; }
+.boot-line:last-child { color: var(--blood); }
+@keyframes boot-line-in { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
+
+.boot-bars { display: flex; flex-direction: column; gap: 7px; margin-top: 14px; }
+.boot-bar { height: 5px; background: rgba(19, 19, 18, 0.85); overflow: hidden; }
+.boot-bar span { display: block; height: 100%; width: 0; background: var(--blood); box-shadow: 0 0 10px var(--glow-red); }
+.boot-bar:nth-child(1) span { animation: boot-fill 1.6s ease-out 0.2s forwards; }
+.boot-bar:nth-child(2) span { animation: boot-fill 2s ease-out 0.6s forwards; }
+.boot-bar:nth-child(3) span { animation: boot-fill 1.7s ease-out 1.1s forwards; }
+@keyframes boot-fill { to { width: 100%; } }
+
 .boot-skip {
-  position: absolute; top: 20px; right: 20px;
+  position: absolute; top: -36px; right: 0;
   font-size: 12px; letter-spacing: 0.14em;
   color: var(--paper-dim); border: 1px solid rgba(236, 234, 229, 0.3);
   padding: 5px 12px;

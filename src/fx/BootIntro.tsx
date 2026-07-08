@@ -1,12 +1,13 @@
 /**
- * SYSTEM BOOT — входной экран на НАСТОЯЩЕМ видео: тачка в темноте включает
- * фары в зрителя (сгенерированный ролик). К концу ролика экран накрывают
- * телевизионные помехи, и сквозь глитч плавно проступает сайт.
- * Логотип поверх видео. Показывается раз за сессию, скипается кликом,
- * отключён в calm/reduced-motion и для автотестов.
+ * SYSTEM BOOT — гибридное интро:
+ * задний план — НАСТОЯЩЕЕ видео: тачка в темноте, камера медленно наезжает,
+ * фары включаются (ролик затемнён и сливается с фоном);
+ * передний план — графическая модалка загрузки как раньше: бегущие строки
+ * лога и огоньки прогресса. В конце ролика — ТВ-помехи, глитч и сайт.
+ * Показывается раз за сессию, скипается кликом, отключён в calm/reduced-motion.
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useUI } from '../store/ui';
 import '../styles/boot.css';
 
@@ -16,6 +17,15 @@ const INTRO_VIDEO = '/media/cars/nissan-silvia-s15/live.mp4';
 /** за сколько секунд до конца ролика начинаем помехи */
 const OUT_BEFORE_END = 0.5;
 const OUT_MS = 1100;
+
+const LINES = [
+  'UF SYSTEM v1.1 // INITIALIZING',
+  'LOADING CHASSIS ............. OK',
+  'MOUNTING AERO PARTS ......... OK',
+  'CALIBRATING DOWNFORCE ....... OK',
+  'IGNITION ▸ HEADLIGHTS',
+];
+const LINE_MS = 520;
 
 type Phase = 'run' | 'out' | 'done';
 
@@ -30,13 +40,20 @@ export function BootIntro() {
   }, []);
 
   const [phase, setPhase] = useState<Phase>(skip || calm ? 'done' : 'run');
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const [lines, setLines] = useState(0);
 
   useEffect(() => {
-    if (phase === 'done') return;
+    if (phase !== 'run') return;
     sessionStorage.setItem('uf:booted', '1');
     document.body.style.overflow = 'hidden';
+    const t = setInterval(() => {
+      setLines((n) => {
+        if (n + 1 >= LINES.length) clearInterval(t);
+        return Math.min(n + 1, LINES.length);
+      });
+    }, LINE_MS);
     return () => {
+      clearInterval(t);
       document.body.style.overflow = '';
     };
   }, [phase]);
@@ -55,14 +72,14 @@ export function BootIntro() {
       onClick={() => setPhase('out')}
       role="presentation"
     >
+      {/* задний план: тачка в темноте, камера наезжает, свет включается */}
       <video
-        ref={videoRef}
         className="boot-video"
         src={INTRO_VIDEO}
         autoPlay
         muted
         playsInline
-        // ролик не найден/не сыграл — интро не должно держать пользователя
+        // ролик не сыграл — не держим пользователя
         onError={() => setPhase('done')}
         onEnded={() => setPhase('out')}
         onTimeUpdate={(e) => {
@@ -72,7 +89,6 @@ export function BootIntro() {
           }
         }}
       />
-      {/* лёгкое затемнение краёв, чтобы логотип читался */}
       <div className="boot-vignette" aria-hidden />
 
       {/* логотип поверх видео */}
@@ -84,11 +100,24 @@ export function BootIntro() {
         </div>
       </div>
 
-      <button className="boot-skip mono" onClick={(e) => { e.stopPropagation(); setPhase('out'); }}>
-        SKIP ▸
-      </button>
+      {/* передний план: графическая модалка загрузки (лог + огоньки) */}
+      <div className="boot-inner">
+        <div className="boot-log mono">
+          {LINES.slice(0, lines).map((l, i) => (
+            <div key={i} className="boot-line">{l}</div>
+          ))}
+        </div>
+        <div className="boot-bars">
+          <div className="boot-bar"><span /></div>
+          <div className="boot-bar"><span /></div>
+          <div className="boot-bar"><span /></div>
+        </div>
+        <button className="boot-skip mono" onClick={(e) => { e.stopPropagation(); setPhase('out'); }}>
+          SKIP ▸
+        </button>
+      </div>
 
-      {/* телевизионные помехи: проявляются в конце и уводят в сайт */}
+      {/* ТВ-помехи: проявляются в конце и уводят в сайт */}
       <div className="boot-noise" aria-hidden />
       <div className="hazard-stripe boot-stripe" />
     </div>
