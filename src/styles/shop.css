@@ -396,18 +396,21 @@ section.inverse .shop-section-sub { color: #55524b; }
 .carshow-brand:hover { border-color: var(--blood); color: #fff; }
 .carshow-brand.on { background: var(--blood); border-color: var(--blood); color: #fff; transform: rotate(0deg); }
 
-/* сцена: лента + приколотая по центру выбранная тачка */
-.carshow-stage { position: relative; }
+/* сцена: лента + приколотая по центру выбранная тачка.
+   Запас по высоте сверху/снизу — увеличенная карточка остаётся внутри
+   сцены и не наезжает на фильтр под ней. */
+.carshow-stage { position: relative; padding: 12px 0 22px; }
 .carshow-card.pinned {
   position: absolute;
   left: 50%;
-  top: 4px;
-  transform: translateX(-50%);
+  top: 6px;
+  transform: translateX(-50%) scale(1.05);
+  transform-origin: top center;
   z-index: 3;
   border-color: var(--blood);
-  box-shadow: 0 0 0 2px var(--blood), 0 0 34px rgba(224, 27, 34, 0.5), 0 16px 40px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 0 0 2px var(--blood), 0 0 20px rgba(224, 27, 34, 0.4);
 }
-.carshow-card.pinned:hover { transform: translateX(-50%); }
+.carshow-card.pinned:hover { transform: translateX(-50%) scale(1.05); }
 
 /* самоходная бесконечная лента с тонким красным скроллбаром */
 .carshow-track {
