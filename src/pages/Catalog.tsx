@@ -169,6 +169,7 @@ export function Catalog() {
               <CarPicker
                 key={carId ?? 'none'}
                 initialCarId={carId}
+                instant
                 onPick={(id) => setParams({ car: id })}
               />
               {car && garageCar && (

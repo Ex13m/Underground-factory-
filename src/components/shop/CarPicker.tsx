@@ -6,15 +6,18 @@ import '../../styles/shop.css';
 /**
  * CAR-FIRST выбор тачки: марка → модель → CTA.
  * Хозяин решает, что делать с выбранным carId (навигация / query-параметр).
+ * instant — выбор модели срабатывает сразу, без кнопки (каталог).
  */
 export function CarPicker({
   onPick,
   initialCarId,
   ctaLabel,
+  instant = false,
 }: {
   onPick: (carId: string) => void;
   initialCarId?: string | null;
   ctaLabel?: string;
+  instant?: boolean;
 }) {
   const { t } = useI18n();
   const cars = useCatalog((s) => s.cars);
@@ -51,7 +54,12 @@ export function CarPicker({
         <select
           className="field"
           value={modelId}
-          onChange={(e) => setModelId(e.target.value)}
+          onChange={(e) => {
+            const id = e.target.value;
+            setModelId(id);
+            // мгновенный режим: смена модели сразу применяет выбор
+            if (instant && id) onPick(id);
+          }}
           disabled={!make}
         >
           <option value="">{t('catalog.picker.modelPh')}</option>
@@ -62,9 +70,11 @@ export function CarPicker({
           ))}
         </select>
       </label>
-      <button type="button" className="btn" disabled={!modelId} onClick={() => onPick(modelId)}>
-        {ctaLabel ?? t('catalog.picker.cta')} ▸
-      </button>
+      {!instant && (
+        <button type="button" className="btn" disabled={!modelId} onClick={() => onPick(modelId)}>
+          {ctaLabel ?? t('catalog.picker.cta')} ▸
+        </button>
+      )}
     </div>
   );
 }
