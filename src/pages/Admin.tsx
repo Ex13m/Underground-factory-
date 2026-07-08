@@ -15,9 +15,10 @@ import { PromosTab } from '../components/admin/PromosTab';
 import { MaterialsTab } from '../components/admin/MaterialsTab';
 import { ExchangeTab } from '../components/admin/ExchangeTab';
 import { ArtTab } from '../components/admin/ArtTab';
+import { InfoTab } from '../components/admin/InfoTab';
 import '../styles/admin.css';
 
-type TabId = 'tree' | 'products' | 'cars' | 'orders' | 'promos' | 'materials' | 'exchange' | 'art';
+type TabId = 'tree' | 'products' | 'cars' | 'orders' | 'promos' | 'materials' | 'exchange' | 'art' | 'info';
 
 export function Admin() {
   const { t } = useI18n();
@@ -82,6 +83,7 @@ export function Admin() {
     { id: 'materials', label: t('admin.tab.materials') },
     { id: 'exchange', label: t('admin.tab.exchange') },
     { id: 'art', label: t('admin.tab.art') },
+    { id: 'info', label: t('admin.tab.info') },
   ];
 
   return (
@@ -109,6 +111,7 @@ export function Admin() {
         {tab === 'materials' && <MaterialsTab />}
         {tab === 'exchange' && <ExchangeTab />}
         {tab === 'art' && <ArtTab />}
+        {tab === 'info' && <InfoTab />}
       </div>
     </div>
   );

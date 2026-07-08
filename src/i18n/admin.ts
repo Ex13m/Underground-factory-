@@ -13,6 +13,13 @@ export default {
     'admin.tab.materials': 'Материалы',
     'admin.tab.exchange': 'Обмен',
     'admin.tab.art': 'Арт',
+    'admin.tab.info': 'Инфо',
+
+    'admin.info.version': 'ВЕРСИЯ САЙТА',
+    'admin.info.changelog': 'полная история изменений',
+    'admin.info.models': 'МОДЕЛИ ГЕНЕРАЦИИ',
+    'admin.info.credits': 'остаток кредитов',
+    'admin.info.measured': 'замер',
 
     'admin.lock.title': 'КОДОВЫЙ ЗАМОК',
     'admin.lock.hint': 'Служебное помещение. Введите код доступа персонала.',
@@ -164,6 +171,13 @@ export default {
     'admin.tab.materials': 'Materials',
     'admin.tab.exchange': 'Exchange',
     'admin.tab.art': 'Art',
+    'admin.tab.info': 'Info',
+
+    'admin.info.version': 'SITE VERSION',
+    'admin.info.changelog': 'full change history',
+    'admin.info.models': 'GENERATION MODELS',
+    'admin.info.credits': 'credits left',
+    'admin.info.measured': 'measured',
 
     'admin.lock.title': 'CODE LOCK',
     'admin.lock.hint': 'Staff room. Enter the personnel access code.',
