@@ -125,12 +125,13 @@ export async function generateImage(req: GenRequest): Promise<Blob> {
     return pollinationsGenerate(prompt, req.width, req.height);
   }
   if (req.provider === 'openai') {
-    if (!keys.openai) throw new Error('NO_KEY:openai');
+    // нет ключа — не ругаемся, а тихо генерим бесплатным (прототип должен работать сразу)
+    if (!keys.openai) return pollinationsGenerate(prompt, req.width, req.height);
     return references.length
       ? openaiEdit(keys.openai, prompt, references, req.width, req.height)
       : openaiGenerate(keys.openai, prompt, req.width, req.height);
   }
-  if (!keys.gemini) throw new Error('NO_KEY:gemini');
+  if (!keys.gemini) return pollinationsGenerate(prompt, req.width, req.height);
   return geminiGenerate(keys.gemini, prompt, references, req.width, req.height);
 }
 

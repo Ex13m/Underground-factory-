@@ -174,8 +174,7 @@ export function ArtEditor() {
       clearPreview();
       setPreview({ blob, url: URL.createObjectURL(blob) });
     } catch (e: any) {
-      const msg = String(e?.message ?? e);
-      setError(msg.startsWith('NO_KEY') ? t('art.err.nokey') : msg);
+      setError(String(e?.message ?? e));
     } finally {
       setBusy(false);
     }
