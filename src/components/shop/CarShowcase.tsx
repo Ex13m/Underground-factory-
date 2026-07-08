@@ -157,16 +157,25 @@ export function CarShowcase({
       </div>
 
       <div className="carshow-stage">
-        {/* выбранная тачка: красная, в центре, неподвижна — лента едет позади */}
+        {/* выбранная тачка: плашка TARGET LOCKED в центре, неподвижна —
+            лента едет позади; ✕ возвращает её в поток, dblclick — модалка */}
         {activeCar && (
           <button
             type="button"
             className="carshow-card panel active pinned"
             title={t('catalog.cars.hint')}
-            onClick={() => handleClick(activeCar.id)}
             onDoubleClick={() => handleDoubleClick(activeCar.id)}
             onMouseDown={(e) => e.preventDefault()}
           >
+            <span className="tape carshow-lock">{t('catalog.car.badge')}</span>
+            <span
+              className="carshow-unpin"
+              role="button"
+              aria-label="reset"
+              onClick={(e) => { e.stopPropagation(); onFilter(''); }}
+            >
+              ✕
+            </span>
             <span className="carshow-media">
               <Img src={activeCar.img} seed={`car-${activeCar.id}`} alt={`${activeCar.make} ${activeCar.model}`} />
             </span>

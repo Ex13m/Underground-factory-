@@ -80,6 +80,9 @@ export function ArtEditor() {
   const dragRef = useRef<{ dx: number; dy: number } | null>(null);
 
   function dragStart(e: React.PointerEvent) {
+    // клики по кнопкам шапки (✕) не начинают перетаскивание — иначе
+    // setPointerCapture перехватывает click и крестик «не работает»
+    if ((e.target as Element).closest('button')) return;
     const r = panelRef.current?.getBoundingClientRect();
     if (!r) return;
     dragRef.current = { dx: e.clientX - r.left, dy: e.clientY - r.top };
