@@ -16,6 +16,7 @@ import { Admin } from './pages/Admin';
 
 import { AuthModal } from './components/AuthModal';
 import { ArtEditor } from './fx/ArtEditor';
+import { UpdatesTicker } from './fx/UpdatesTicker';
 import { CursorFX } from './fx/CursorFX';
 import { BootIntro } from './fx/BootIntro';
 import { Bot } from './bot/Bot';
@@ -66,6 +67,7 @@ function Shell() {
       <Footer />
       <AuthModal />
       <ArtEditor />
+      <UpdatesTicker />
       <BootIntro />
       <CursorFX />
       <Bot />
