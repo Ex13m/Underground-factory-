@@ -396,14 +396,11 @@ section.inverse .shop-section-sub { color: #55524b; }
 .carshow-brand:hover { border-color: var(--blood); color: #fff; }
 .carshow-brand.on { background: var(--blood); border-color: var(--blood); color: #fff; transform: rotate(0deg); }
 
-/* горизонтальная лента с scroll-snap и тонким красным скроллбаром */
+/* самоходная бесконечная лента с тонким красным скроллбаром */
 .carshow-track {
   display: flex; gap: 14px;
   overflow-x: auto;
-  /* proximity вместо mandatory: жёсткий snap сдвигал ленту между mousedown
-     и mouseup (фокус скроллил карточку в зону видимости) — и click по
-     карточке срабатывал только со второго раза */
-  scroll-snap-type: x proximity;
+  /* без snap: лента едет сама по кругу, snap дёргал бы её */
   padding: 4px 2px 12px;
   scrollbar-width: thin;
   scrollbar-color: var(--blood) rgba(236, 234, 229, 0.08);
@@ -414,7 +411,6 @@ section.inverse .shop-section-sub { color: #55524b; }
 
 .carshow-card {
   flex: 0 0 230px;
-  scroll-snap-align: start;
   display: flex; flex-direction: column; gap: 5px;
   padding: 0 0 14px;
   text-align: left;
