@@ -7,8 +7,7 @@ import type { LocalText } from '../lib/types';
  * что реально поменялось с прошлого релиза (коротко, по-русски и по-английски).
  */
 export const UPDATE_NOTES: LocalText[] = [
-  { ru: 'ОБНОВЛЕНИЕ ▸ ИНТРО НА НАСТОЯЩЕМ ВИДЕО', en: 'UPDATE ▸ REAL-VIDEO BOOT INTRO' },
-  { ru: 'ФАВИКОНКА ▸ КОЛЕСО КРУТИТСЯ', en: 'FAVICON ▸ THE WHEEL SPINS' },
-  { ru: 'ГЕНЕРАЦИЯ КАРТИНОК ▸ ТЕПЕРЬ И С СЕРВЕРА', en: 'IMAGE GEN ▸ NOW SERVER-SIDE TOO' },
-  { ru: 'КАРУСЕЛЬ ТАЧЕК ▸ ЕДЕТ ПО КРУГУ САМА', en: 'CAR CAROUSEL ▸ SELF-DRIVING LOOP' },
+  { ru: 'ИНТРО ▸ ВСПЫШКА ФАР И СРАЗУ В ЦЕХ', en: 'INTRO ▸ HEADLIGHT BURST, STRAIGHT TO THE SHOP' },
+  { ru: 'АРТ-РЕДАКТОР ▸ ПРОМПТ СОБЕРЁТСЯ САМ', en: 'ART EDITOR ▸ THE PROMPT WRITES ITSELF' },
+  { ru: 'ГЕНЕРАЦИЯ ▸ КАЧЕСТВЕННЕЕ И С СЕРВЕРА', en: 'IMAGE GEN ▸ SHARPER, SERVER-SIDE TOO' },
 ];

@@ -146,7 +146,7 @@ export function pollinationsUrl(prompt: string, w: number, h: number): string {
   const seed = Math.floor(Math.random() * 1e9); // новый вариант при каждом запуске
   return (
     `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}` +
-    `?width=${px(w)}&height=${px(h)}&seed=${seed}&nologo=true`
+    `?width=${px(w)}&height=${px(h)}&seed=${seed}&nologo=true&model=flux&enhance=true`
   );
 }
 

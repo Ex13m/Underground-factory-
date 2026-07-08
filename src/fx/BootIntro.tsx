@@ -12,10 +12,11 @@ import { useUI } from '../store/ui';
 import '../styles/boot.css';
 
 // ролик зажигания; когда Higgsfield доступен — заменить на спецролик
-// «фары строго в камеру» по пути /media/intro/ignition.mp4
+// «машина строго передом, камера наезжает, фары бьют в кадр»
+// по пути /media/intro/ignition.mp4
 const INTRO_VIDEO = '/media/cars/nissan-silvia-s15/live.mp4';
-/** за сколько секунд до конца ролика начинаем помехи */
-const OUT_BEFORE_END = 0.5;
+/** секунда ролика, на которой фары уже горят — резкая вспышка и переход */
+const OUT_AT_SEC = 3.0;
 const OUT_MS = 1100;
 
 const LINES = [
@@ -83,12 +84,13 @@ export function BootIntro() {
         onError={() => setPhase('done')}
         onEnded={() => setPhase('out')}
         onTimeUpdate={(e) => {
-          const v = e.currentTarget;
-          if (phase === 'run' && v.duration && v.duration - v.currentTime <= OUT_BEFORE_END) {
+          if (phase === 'run' && e.currentTarget.currentTime >= OUT_AT_SEC) {
             setPhase('out');
           }
         }}
       />
+      {/* резкая вспышка света в момент перехода */}
+      <div className="boot-flash" aria-hidden />
       <div className="boot-vignette" aria-hidden />
 
       {/* логотип поверх видео */}

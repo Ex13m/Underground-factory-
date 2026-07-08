@@ -40,6 +40,36 @@ export interface ArtTarget {
   refs?: Array<{ url: string; label: string }>;
 }
 
+/** Случайные сцены для авто-промпта тачек. */
+const CAR_SCENES = [
+  'night industrial dock, wet asphalt reflections',
+  'underground parking garage, blood-red neon rim light',
+  'night street with japanese neon signs, light rain',
+  'airfield apron at dusk, dramatic sky',
+  'mountain road at night, fog in the headlights',
+];
+
+/**
+ * Авто-промпт по объекту: если поле пустое, генератор сам понимает,
+ * что за тачка (марка/модель/годы) или деталь, и собирает промпт
+ * со случайной сценой — каждый запуск даёт новую версию.
+ */
+function autoPrompt(key: string): string | null {
+  const cm = key.match(/^car(?:-live)?-(.+)$/);
+  if (cm) {
+    const c = api.listCars().find((x) => x.id === cm[1]);
+    if (c) {
+      const scene = CAR_SCENES[Math.floor(Math.random() * CAR_SCENES.length)];
+      return `${c.make} ${c.model} (${c.years}), tastefully tuned custom version with aftermarket body kit, ${scene}, cinematic photo, film grain, no text`;
+    }
+  }
+  const p = api.listProducts().find((x) => key.startsWith(x.id));
+  if (p) {
+    return `studio product photograph: ${p.name.en}, ${p.material.en}, floating in mid-air on a matte black background, dramatic blood-red rim lighting, high contrast premium catalog shot, no car, no text`;
+  }
+  return null;
+}
+
 /** Другие фото того же объекта: остальные медиа обвеса / фото других тачек. */
 function siblingRefs(key: string): Array<{ url: string; label: string }> {
   const out: Array<{ url: string; label: string }> = [];
@@ -167,7 +197,10 @@ export function ArtEditor() {
   }
 
   async function generate() {
-    if (!target || !prompt.trim() || busy) return;
+    if (!target || busy) return;
+    // пустое поле — авто-промпт по объекту (тачка/деталь), каждый раз новая сцена
+    const effPrompt = prompt.trim() || autoPrompt(target.key);
+    if (!effPrompt) return;
     setError('');
     setApplied(false);
 
@@ -179,7 +212,7 @@ export function ArtEditor() {
       (provider === 'openai' && !keys.openai) ||
       (provider === 'gemini' && !keys.gemini);
     if (keyless) {
-      const fp = finalPrompt(prompt.trim(), useStyle);
+      const fp = finalPrompt(effPrompt, useStyle);
       setBusy(true);
       try {
         const r = await fetch('/api/generate', {
@@ -208,7 +241,7 @@ export function ArtEditor() {
       const blobs = await Promise.all(refs.filter((r) => r.on).map((r) => fetchAsBlob(r.url)));
       const blob = await generateImage({
         provider,
-        prompt: prompt.trim(),
+        prompt: effPrompt,
         useStyle,
         references: blobs.filter((b): b is Blob => !!b),
         width: target.width,
@@ -258,11 +291,13 @@ export function ArtEditor() {
   // заявка на генерацию через Higgsfield — исполняется Claude в терминале
   const [queued, setQueued] = useState(false);
   function orderHiggsfield() {
-    if (!target || !prompt.trim()) return;
+    if (!target) return;
+    const effPrompt = prompt.trim() || autoPrompt(target.key);
+    if (!effPrompt) return;
     api.queueGen({
       key: target.key,
       kind: target.kind === 'video' ? 'video' : 'image',
-      prompt: prompt.trim(),
+      prompt: effPrompt,
       width: Math.round(target.width),
       height: Math.round(target.height),
       createdAt: Date.now(),
@@ -382,7 +417,12 @@ export function ArtEditor() {
           )}
 
           <div className="artedit-row">
-            <button className="btn" onClick={generate} disabled={busy || !prompt.trim()} data-testid="artedit-generate">
+            <button
+              className="btn"
+              onClick={generate}
+              disabled={busy || (!prompt.trim() && !autoPrompt(target.key))}
+              data-testid="artedit-generate"
+            >
               {busy ? t('art.busy') : preview ? t('art.more') : t('art.generate')}
             </button>
             {preview && (
@@ -401,7 +441,7 @@ export function ArtEditor() {
             <button
               className="btn sm dark"
               onClick={orderHiggsfield}
-              disabled={!prompt.trim()}
+              disabled={!prompt.trim() && !autoPrompt(target.key)}
               title={t('art.order.hint')}
               data-testid="artedit-order"
             >
