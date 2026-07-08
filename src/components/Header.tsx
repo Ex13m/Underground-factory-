@@ -26,7 +26,7 @@ export function Header() {
         <nav className="uf-nav">
           <NavLink to="/catalog" data-hint="nav-catalog">{t('common.nav.catalog')}</NavLink>
           <NavLink to="/account" data-hint="nav-account">{t('common.nav.account')}</NavLink>
-          <NavLink to="/admin">{t('common.nav.admin')}</NavLink>
+          <NavLink to="/admin" className="uf-nav-admin">{t('common.nav.admin')}</NavLink>
         </nav>
 
         <div className="uf-header-actions">

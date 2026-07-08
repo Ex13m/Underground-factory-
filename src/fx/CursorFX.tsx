@@ -81,12 +81,13 @@ export function CursorFX() {
     window.addEventListener('resize', resize);
 
     // --- мышь
-    const mouse = { x: W / 2, y: H / 2, seen: false, aim: false };
+    const mouse = { x: W / 2, y: H / 2, seen: false, aim: false, lastMove: performance.now() };
     let hitPending = false;
     const onMove = (e: MouseEvent) => {
       mouse.x = e.clientX;
       mouse.y = e.clientY;
       mouse.seen = true;
+      mouse.lastMove = performance.now();
       hitPending = true; // hit-test один раз за кадр, не на каждый event
     };
     window.addEventListener('mousemove', onMove, { passive: true });
@@ -97,6 +98,7 @@ export function CursorFX() {
     const smoke = new Ring<SmokeP>(PHYS.SMOKE_MAX);
     let segFlip = 0;
     let smokeAcc = 0;
+    let showPhase = 0; // фаза «показухи» вокруг флажка (круги/восьмёрки)
 
     /** мировые координаты задних колёс (для следа и дыма) */
     const rearWheels = (): [{ x: number; y: number }, { x: number; y: number }] => {
@@ -131,8 +133,30 @@ export function CursorFX() {
       const cx = mouse.seen ? mouse.x : W / 2;
       const cy = mouse.seen ? mouse.y : H / 2;
 
+      // курсор замер и машинка рядом с флажком → «показуха»:
+      // дрифт вокруг флажка кругами, потом восьмёрками (дым + следы рисуются ниже)
+      const idle = now - mouse.lastMove > 1200;
+      const nearFlag = Math.hypot(cx - car.x, cy - car.y) < 320;
+      let tx = cx;
+      let ty = cy;
+      let park = true;
+      if (idle && nearFlag) {
+        showPhase += dt * 2.4;
+        const R = 110;
+        if (Math.floor(showPhase / 15) % 2 === 0) {
+          // круг
+          tx = cx + Math.cos(showPhase) * R;
+          ty = cy + Math.sin(showPhase) * R;
+        } else {
+          // восьмёрка (лемниската)
+          tx = cx + Math.sin(showPhase) * R * 1.25;
+          ty = cy + Math.sin(showPhase) * Math.cos(showPhase) * R * 1.1;
+        }
+        park = false;
+      }
+
       const [rl0, rr0] = rearWheels();
-      updateCar(car, cx, cy, dt);
+      updateCar(car, tx, ty, dt, park);
       const [rl1, rr1] = rearWheels();
 
       // дрифт: след шин + дым
@@ -168,7 +192,7 @@ export function CursorFX() {
       cc.lineCap = 'round';
       cc.lineWidth = 3;
       trails.forEach((s) => {
-        s.life -= dt * 0.5;
+        s.life -= dt * 0.85; // следы покрышек тают быстро
         if (s.life <= 0) return;
         cc.globalAlpha = s.life * 0.55;
         cc.strokeStyle = s.red ? '#8f1216' : '#000';

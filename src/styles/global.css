@@ -138,6 +138,38 @@ body.calm .noise { animation: none; inset: 0; width: 100%; height: 100%; }
 @keyframes glitch-a { 0%{clip-path:inset(10% 0 55% 0)} 50%{clip-path:inset(35% 0 30% 0)} 100%{clip-path:inset(5% 0 70% 0)} }
 @keyframes glitch-b { 0%{clip-path:inset(60% 0 10% 0)} 50%{clip-path:inset(45% 0 40% 0)} 100%{clip-path:inset(75% 0 3% 0)} }
 
+/* автоглитч: надпись «дрожит» сама, без наведения — фирменный эффект
+   (hero-заголовок, названия тачек, заголовок каталога) */
+.glitch.auto { animation: glitch-tremor 2.6s steps(2) infinite; }
+@keyframes glitch-tremor {
+  0%, 82%, 100% { transform: none; }
+  84% { transform: translate(1.5px, -1px) skewX(-0.5deg); }
+  87% { transform: translate(-1.5px, 1px); }
+  90% { transform: translate(1px, 1.5px) skewX(0.4deg); }
+  93% { transform: translate(-1px, -1px); }
+  96% { transform: none; }
+}
+.glitch.auto::before {
+  color: var(--blood);
+  animation: glitch-auto-a 4.2s steps(2) infinite;
+}
+.glitch.auto::after {
+  color: var(--paper);
+  animation: glitch-auto-b 5.6s steps(2) infinite;
+}
+@keyframes glitch-auto-a {
+  0%, 84.9%, 94%, 100% { opacity: 0; }
+  85%, 88% { opacity: 0.85; transform: translate(3px, -2px); clip-path: inset(10% 0 55% 0); }
+  89%, 93.9% { opacity: 0.85; transform: translate(-2px, 1px); clip-path: inset(40% 0 25% 0); }
+}
+@keyframes glitch-auto-b {
+  0%, 88.9%, 97%, 100% { opacity: 0; }
+  89%, 92% { opacity: 0.85; transform: translate(-3px, 2px); clip-path: inset(60% 0 10% 0); }
+  93%, 96.9% { opacity: 0.85; transform: translate(2px, -1px); clip-path: inset(20% 0 60% 0); }
+}
+body.calm .glitch.auto { animation: none; }
+body.calm .glitch.auto::before, body.calm .glitch.auto::after { animation: none; opacity: 0; }
+
 /* ---------- HUD plate / panel ---------- */
 .panel {
   position: relative;
@@ -347,6 +379,9 @@ body.calm .reveal { opacity: 1; transform: none; transition: none; }
 }
 .uf-nav a:hover { color: var(--blood); }
 .uf-nav a.active { color: var(--blood); }
+/* админка — «служебная дверь»: видна только при наведении */
+.uf-nav a.uf-nav-admin { opacity: 0; transition: opacity 0.25s; }
+.uf-nav a.uf-nav-admin:hover, .uf-nav a.uf-nav-admin.active { opacity: 1; }
 .uf-nav a.active::after { content: ''; position: absolute; left: 14px; right: 14px; bottom: 2px; height: 2px; background: var(--blood); }
 
 .uf-header-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }

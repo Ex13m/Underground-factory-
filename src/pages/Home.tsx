@@ -105,7 +105,7 @@ export function Home() {
           <div className="uf-hero-content">
             <span className="tape">{t('home.hero.tape')}</span>
             <h1 className="stencil uf-hero-title">
-              <span className="glitch" data-text={t('home.hero.title')}>
+              <span className="glitch auto" data-text={t('home.hero.title')}>
                 {t('home.hero.title')}
               </span>
             </h1>

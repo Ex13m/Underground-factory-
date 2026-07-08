@@ -9,14 +9,16 @@ import type { CarModel, Product } from '../lib/types';
 const u = (id: string, w = 1400) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=75`;
 
 export const SEED_CARS: CarModel[] = [
-  { id: 'nissan-silvia-s15', make: 'Nissan', model: 'Silvia S15', years: '1999–2002', img: u('1511919884226-fd3cad34687c') },
-  { id: 'toyota-supra-a80', make: 'Toyota', model: 'Supra A80', years: '1993–2002', img: u('1525609004556-c46c7d6cf023') },
-  { id: 'mazda-rx7-fd', make: 'Mazda', model: 'RX-7 FD', years: '1992–2002', img: u('1502877338535-766e1452684a') },
-  { id: 'toyota-ae86', make: 'Toyota', model: 'AE86 Trueno', years: '1983–1987', img: u('1471444928139-48c5bf5173f8') },
-  { id: 'bmw-e36', make: 'BMW', model: 'E36 Coupe', years: '1990–2000', img: u('1493238792000-8113da705763') },
-  { id: 'honda-civic-ek9', make: 'Honda', model: 'Civic EK9', years: '1997–2000', img: u('1605559424843-9e4c228bf1c2') },
-  { id: 'nissan-gtr-r34', make: 'Nissan', model: 'Skyline R34', years: '1999–2002', img: u('1542282088-fe8426682b8f') },
-  { id: 'lada-2107', make: 'LADA', model: '2107', years: '1982–2012', img: u('1583121274602-3e2820c69888') },
+  // фото сгенерированы нейросетью (Higgsfield): 3 полные тачки — гаражная серия,
+  // остальные — серия «в дрифте»
+  { id: 'nissan-silvia-s15', make: 'Nissan', model: 'Silvia S15', years: '1999–2002', img: '/img/gen/car-s15.jpg' },
+  { id: 'toyota-supra-a80', make: 'Toyota', model: 'Supra A80', years: '1993–2002', img: '/img/gen/car-supra.jpg' },
+  { id: 'mazda-rx7-fd', make: 'Mazda', model: 'RX-7 FD', years: '1992–2002', img: '/img/gen/car-rx7.jpg' },
+  { id: 'toyota-ae86', make: 'Toyota', model: 'AE86 Trueno', years: '1983–1987', img: '/img/gen/drift-ae86.jpg' },
+  { id: 'bmw-e36', make: 'BMW', model: 'E36 Coupe', years: '1990–2000', img: '/img/gen/drift-e36.jpg' },
+  { id: 'honda-civic-ek9', make: 'Honda', model: 'Civic EK9', years: '1997–2000', img: '/img/gen/drift-ek9.jpg' },
+  { id: 'nissan-gtr-r34', make: 'Nissan', model: 'Skyline R34', years: '1999–2002', img: '/img/gen/drift-r34.jpg' },
+  { id: 'lada-2107', make: 'LADA', model: '2107', years: '1982–2012', img: '/img/gen/drift-lada.jpg' },
 ];
 
 export const SEED_PRODUCTS: Product[] = [
@@ -35,8 +37,8 @@ export const SEED_PRODUCTS: Product[] = [
     material: { ru: 'Карбон 2×2 твил, автоклав', en: '2×2 twill carbon, autoclave-cured' },
     fits: ['nissan-silvia-s15', 'nissan-gtr-r34'],
     media: [
-      { type: 'image', url: '/img/widebody-a.jpg', seed: 'kit-widebody-s15-a' },
-      { type: 'image', url: '/img/widebody-b.jpg', seed: 'kit-widebody-s15-b' },
+      { type: 'image', url: '/img/gen/widebody-1.jpg', seed: 'kit-widebody-s15-a' },
+      { type: 'image', url: '/img/gen/widebody-2.jpg', seed: 'kit-widebody-s15-b' },
     ],
     hit: true,
   },
@@ -53,10 +55,10 @@ export const SEED_PRODUCTS: Product[] = [
     heatC: 210,
     rarity: 'carbon',
     material: { ru: 'Карбон 2×2 твил, автоклав', en: '2×2 twill carbon, autoclave-cured' },
-    fits: ['toyota-supra-a80', 'bmw-e36', 'nissan-gtr-r34'],
+    fits: ['toyota-supra-a80', 'bmw-e36', 'nissan-gtr-r34', 'mazda-rx7-fd'],
     media: [
-      { type: 'image', url: '/img/wing-a.jpg', seed: 'wing-gt-supra-a' },
-      { type: 'image', url: u('1542282088-fe8426682b8f'), seed: 'wing-gt-supra-b' },
+      { type: 'image', url: '/img/gen/wing-1.jpg', seed: 'wing-gt-supra-a' },
+      { type: 'image', url: '/img/gen/wing-2.jpg', seed: 'wing-gt-supra-b' },
     ],
     hit: true,
   },
@@ -73,9 +75,10 @@ export const SEED_PRODUCTS: Product[] = [
     heatC: 140,
     rarity: 'composite',
     material: { ru: 'Стеклокомпозит ручной укладки', en: 'Hand-laid fibreglass composite' },
-    fits: ['mazda-rx7-fd', 'nissan-silvia-s15', 'honda-civic-ek9'],
+    fits: ['mazda-rx7-fd', 'nissan-silvia-s15', 'honda-civic-ek9', 'toyota-supra-a80'],
     media: [
-      { type: 'image', url: '/img/splitter-a.jpg', seed: 'splitter-rx7-a' },
+      { type: 'image', url: '/img/gen/splitter-1.jpg', seed: 'splitter-rx7-a' },
+      { type: 'image', url: '/img/gen/splitter-2.jpg', seed: 'splitter-rx7-b' },
     ],
   },
   {
@@ -91,10 +94,10 @@ export const SEED_PRODUCTS: Product[] = [
     heatC: 190,
     rarity: 'carbon',
     material: { ru: 'Карбон, глянцевый лак UV-cut', en: 'Carbon fibre, UV-cut gloss clearcoat' },
-    fits: ['bmw-e36', 'nissan-gtr-r34', 'toyota-supra-a80'],
+    fits: ['bmw-e36', 'nissan-gtr-r34', 'toyota-supra-a80', 'nissan-silvia-s15', 'mazda-rx7-fd'],
     media: [
-      { type: 'image', url: '/img/diffuser-a.jpg', seed: 'diffuser-chrome-a' },
-      { type: 'image', url: '/img/diffuser-b.jpg', seed: 'diffuser-chrome-b' },
+      { type: 'image', url: '/img/gen/diffuser-1.jpg', seed: 'diffuser-chrome-a' },
+      { type: 'image', url: '/img/gen/diffuser-2.jpg', seed: 'diffuser-chrome-b' },
     ],
     hit: true,
   },
@@ -113,8 +116,8 @@ export const SEED_PRODUCTS: Product[] = [
     material: { ru: 'Сухой карбон (препрег), автоклав', en: 'Dry carbon (prepreg), autoclave-cured' },
     fits: ['toyota-ae86', 'nissan-silvia-s15', 'mazda-rx7-fd'],
     media: [
-      { type: 'image', url: '/img/oneofone-a.jpg', seed: 'kit-wet-legend-a' },
-      { type: 'image', url: '/img/oneofone-b.jpg', seed: 'kit-wet-legend-b' },
+      { type: 'image', url: '/img/gen/oneofone-1.jpg', seed: 'kit-wet-legend-a' },
+      { type: 'image', url: '/img/gen/oneofone-2.jpg', seed: 'kit-wet-legend-b' },
     ],
     hit: true,
   },
@@ -148,7 +151,10 @@ export const SEED_PRODUCTS: Product[] = [
     rarity: 'composite',
     material: { ru: 'Стеклокомпозит ручной укладки', en: 'Hand-laid fibreglass composite' },
     fits: ['honda-civic-ek9', 'nissan-silvia-s15', 'mazda-rx7-fd'],
-    media: [{ type: 'image', url: '/img/canards-a.jpg', seed: 'canards-civic-a' }],
+    media: [
+      { type: 'image', url: '/img/gen/canards-1.jpg', seed: 'canards-civic-a' },
+      { type: 'image', url: '/img/gen/canards-2.jpg', seed: 'canards-civic-b' },
+    ],
   },
   {
     id: 'hood-vents-e36',
@@ -179,8 +185,11 @@ export const SEED_PRODUCTS: Product[] = [
     heatC: 140,
     rarity: 'composite',
     material: { ru: 'Стеклокомпозит ручной укладки', en: 'Hand-laid fibreglass composite' },
-    fits: ['nissan-gtr-r34', 'toyota-supra-a80'],
-    media: [{ type: 'image', url: '/img/skirts-a.jpg', seed: 'skirts-r34-a' }],
+    fits: ['nissan-gtr-r34', 'toyota-supra-a80', 'nissan-silvia-s15'],
+    media: [
+      { type: 'image', url: '/img/gen/skirts-1.jpg', seed: 'skirts-r34-a' },
+      { type: 'image', url: '/img/gen/skirts-2.jpg', seed: 'skirts-r34-b' },
+    ],
   },
   {
     id: 'wing-lada',
@@ -213,7 +222,10 @@ export const SEED_PRODUCTS: Product[] = [
     rarity: 'carbon',
     material: { ru: 'Карбон 2×2 твил, синее стекло', en: '2×2 twill carbon, blue convex glass' },
     fits: ['nissan-silvia-s15', 'toyota-ae86', 'honda-civic-ek9', 'mazda-rx7-fd', 'bmw-e36', 'toyota-supra-a80', 'nissan-gtr-r34', 'lada-2107'],
-    media: [{ type: 'image', url: u('1552519507-da3b142c6e3d'), seed: 'mirrors-aero-a' }],
+    media: [
+      { type: 'image', url: '/img/gen/mirrors-1.jpg', seed: 'mirrors-aero-a' },
+      { type: 'image', url: '/img/gen/mirrors-2.jpg', seed: 'mirrors-aero-b' },
+    ],
   },
   {
     id: 'kit-full-supra',
@@ -230,8 +242,8 @@ export const SEED_PRODUCTS: Product[] = [
     material: { ru: 'Стеклокомпозит ручной укладки', en: 'Hand-laid fibreglass composite' },
     fits: ['toyota-supra-a80'],
     media: [
-      { type: 'image', url: '/img/armor-a.jpg', seed: 'kit-full-supra-a' },
-      { type: 'image', url: u('1552519507-da3b142c6e3d'), seed: 'kit-full-supra-b' },
+      { type: 'image', url: '/img/gen/armor-1.jpg', seed: 'kit-full-supra-a' },
+      { type: 'image', url: '/img/gen/armor-2.jpg', seed: 'kit-full-supra-b' },
     ],
   },
 ];

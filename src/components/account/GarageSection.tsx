@@ -82,7 +82,11 @@ export function GarageSection() {
                 {active && <span className="tape uf-garage-card-tape">{t('account.garage.active')}</span>}
                 <Img src={car.img} seed={`car-${car.modelId ?? car.id}`} alt={`${car.make} ${car.model}`} />
                 <div className="uf-garage-card-body">
-                  <h3 className="stencil">{car.make} {car.model}</h3>
+                  <h3 className="stencil">
+                    <span className="glitch auto" data-text={`${car.make} ${car.model}`}>
+                      {car.make} {car.model}
+                    </span>
+                  </h3>
                   <span className="tech-label">{car.year}</span>
                   <div className="uf-garage-card-actions">
                     <Link

@@ -12,6 +12,11 @@ export default {
     'admin.tab.exchange': 'Обмен',
     'admin.tab.art': 'Арт',
 
+    'admin.lock.title': 'КОДОВЫЙ ЗАМОК',
+    'admin.lock.hint': 'Служебное помещение. Введите код доступа персонала.',
+    'admin.lock.btn': 'Открыть',
+    'admin.lock.err': 'Неверный код. Попытка зафиксирована в журнале цеха.',
+
     'admin.art.title': 'АРТ-РЕДАКТОР',
     'admin.art.text': 'Правка медиа прямо на сайте: включите режим, кликните любую картинку или видео-фон — откроется панель с промптом. Замены хранятся в этом браузере и снимаются в один клик.',
     'admin.art.on': 'Включить арт-редактор',
@@ -126,6 +131,11 @@ export default {
     'admin.tab.promos': 'Promo',
     'admin.tab.exchange': 'Exchange',
     'admin.tab.art': 'Art',
+
+    'admin.lock.title': 'CODE LOCK',
+    'admin.lock.hint': 'Staff room. Enter the personnel access code.',
+    'admin.lock.btn': 'Unlock',
+    'admin.lock.err': 'Wrong code. The attempt is logged in the shop journal.',
 
     'admin.art.title': 'ART EDITOR',
     'admin.art.text': 'Edit media right on the site: enable the mode, click any image or video background — a prompt panel opens. Overrides live in this browser and reset in one click.',

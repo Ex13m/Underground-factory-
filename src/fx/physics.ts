@@ -7,22 +7,23 @@
 export const PHYS = {
   /** макс. скорость, px/s */
   MAX_SPEED: 950,
-  /** тяга к цели, px/s^2 */
-  ACCEL: 2400,
-  /** экспоненциальное сопротивление, 1/s */
-  DRAG: 1.4,
-  /** пружина носа: rad/s^2 на радиан рассогласования */
-  TURN_SPRING: 30,
-  /** демпфер угловой скорости, 1/s (ближе к критическому — без вихляния) */
-  TURN_DAMP: 8.5,
+  /** разгон, px/s^2 */
+  ACCEL: 900,
+  /** торможение, px/s^2 */
+  BRAKE: 1700,
+  /** «сцепление»: скорость подтягивания вектора движения к носу, 1/s.
+      Меньше — размашистее занос на резких поворотах */
+  GRIP: 3.0,
+  /** базовая скорость руления, rad/s */
+  TURN_BASE: 2.2,
+  /** прибавка к рулению за скорость, rad/s на px/s */
+  TURN_PER_SPEED: 0.004,
   /** порог угла заноса для следа/дыма, rad */
   DRIFT_SLIP: 0.32,
   /** порог скорости для следа/дыма, px/s */
   DRIFT_SPEED: 260,
   /** ближе этого — сброс газа и торможение: подъехала и встала, px */
   STOP_DIST: 80,
-  /** дополнительное сопротивление при остановке у цели, 1/s */
-  BRAKE_DRAG: 5.5,
   /** лимит кольцевого буфера следа шин (сегменты) */
   TRAIL_MAX: 400,
   /** лимит частиц дыма */
@@ -107,52 +108,40 @@ export function createCar(x: number, y: number, vx: number, vy: number, heading:
   };
 }
 
-/** Один шаг физики (dt в секундах, вызывается из rAF). */
-export function updateCar(car: Car, tx: number, ty: number, dt: number): void {
+/**
+ * Один шаг физики (dt в секундах, вызывается из rAF).
+ * Модель «как машина»: едет только туда, куда смотрит нос; к цели доворачивает
+ * рулём с ограниченной скоростью (получается дуга), вектор движения догоняет
+ * нос через «сцепление» — на резком довороте возникает красивый занос.
+ * Цель сзади? Не разворачивается на месте, а закладывает дугу.
+ * park=false — режим «показухи»: у цели не тормозим (дрифт вокруг флажка).
+ */
+export function updateCar(car: Car, tx: number, ty: number, dt: number, park = true): void {
   const dx = tx - car.x;
   const dy = ty - car.y;
   const dist = Math.hypot(dx, dy) || 1;
 
-  // у цели газ сброшен — машина подъезжает и останавливается, а не толчётся
-  const arriving = dist < PHYS.STOP_DIST;
-  if (!arriving) {
-    car.vx += (dx / dist) * PHYS.ACCEL * dt;
-    car.vy += (dy / dist) * PHYS.ACCEL * dt;
-  }
+  // --- руль: нос доворачивает к цели с ограниченной угловой скоростью
+  const diff = wrapAngle(Math.atan2(dy, dx) - car.heading);
+  const steerRate = PHYS.TURN_BASE + car.speed * PHYS.TURN_PER_SPEED;
+  car.heading = wrapAngle(car.heading + clamp(diff * 3.2, -steerRate, steerRate) * dt);
+  car.steer = clamp(diff * 1.1, -0.6, 0.6);
 
-  // сопротивление (+ тормоз у цели)
-  const drag = Math.exp(-(PHYS.DRAG + (arriving ? PHYS.BRAKE_DRAG : 0)) * dt);
-  car.vx *= drag;
-  car.vy *= drag;
+  // --- газ/тормоз: цель по курсу и далеко → газ; сзади или рядом → сброс
+  const align01 = Math.max(0, Math.cos(diff)); // 1 = точно по курсу
+  const arriving = park && dist < PHYS.STOP_DIST;
+  const targetSpeed = arriving
+    ? 0
+    : Math.min(PHYS.MAX_SPEED, (120 + dist * 2.6) * (0.25 + 0.75 * align01));
+  const rate = targetSpeed > car.speed ? PHYS.ACCEL : PHYS.BRAKE;
+  car.speed += clamp(targetSpeed - car.speed, -rate * dt, rate * dt);
+  car.braking = targetSpeed < car.speed - 40;
 
-  // ограничение скорости: у цели медленнее (не таранит кружок)
-  let speed = Math.hypot(car.vx, car.vy);
-  const cap = Math.min(PHYS.MAX_SPEED, 140 + dist * 3.2);
-  if (speed > cap) {
-    const k = cap / speed;
-    car.vx *= k;
-    car.vy *= k;
-    speed = cap;
-  }
-
-  // нос догоняет вектор скорости с запаздыванием (пружина+демпфер) => занос
-  if (speed > 24) {
-    const va = Math.atan2(car.vy, car.vx);
-    const diff = wrapAngle(va - car.heading);
-    car.angVel += (diff * PHYS.TURN_SPRING - car.angVel * PHYS.TURN_DAMP) * dt;
-    car.slip = diff;
-    car.steer = clamp(diff * 1.25, -0.6, 0.6); // контр-руление
-  } else {
-    car.angVel *= Math.exp(-6 * dt);
-    car.slip *= 0.9;
-    car.steer *= 0.85;
-  }
-  car.heading = wrapAngle(car.heading + car.angVel * dt);
-
-  // торможение (с гистерезисом, чтобы стопы не мигали)
-  const decel = (speed - car.speed) / Math.max(dt, 1e-4);
-  car.braking = decel < -300 || (car.braking && decel < -60);
-  car.speed = speed;
+  // --- сцепление: вектор движения тянется к направлению носа (иначе — занос)
+  const k = Math.min(1, PHYS.GRIP * dt);
+  car.vx += (Math.cos(car.heading) * car.speed - car.vx) * k;
+  car.vy += (Math.sin(car.heading) * car.speed - car.vy) * k;
+  car.slip = car.speed > 40 ? wrapAngle(Math.atan2(car.vy, car.vx) - car.heading) : car.slip * 0.9;
 
   car.x += car.vx * dt;
   car.y += car.vy * dt;

@@ -5,16 +5,17 @@
    ============================================================ */
 
 .adm-head { padding: 26px 0 18px; position: relative; overflow: hidden; }
-.adm-head .stencil { font-size: clamp(28px, 5vw, 54px); color: var(--blood); animation: adm-flash 1.6s ease-in-out infinite; }
-@keyframes adm-flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
-/* stitch: сканирующая линия по шапке STAFF ONLY */
+/* заголовок статичный — админка должна читаться, а не мигать */
+.adm-head .stencil { font-size: clamp(28px, 5vw, 54px); }
+/* stitch: сканирующая линия по шапке STAFF ONLY (медленная, ненавязчивая) */
 .adm-head::after {
   content: ''; position: absolute; left: 0; right: 0; top: 0; height: 2px;
   background: var(--blood); box-shadow: 0 0 15px var(--blood);
-  animation: adm-scan 3s linear infinite;
+  opacity: 0.5;
+  animation: adm-scan 6s linear infinite;
 }
-@keyframes adm-scan { 0% { top: 0; opacity: 0; } 50% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
-body.calm .adm-head .stencil, body.calm .adm-head::after { animation: none; }
+@keyframes adm-scan { 0% { top: 0; opacity: 0; } 50% { opacity: 0.5; } 100% { top: 100%; opacity: 0; } }
+body.calm .adm-head::after { animation: none; }
 .adm-head-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-bottom: 10px; }
 .adm-sub { color: var(--steel); font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; }
 

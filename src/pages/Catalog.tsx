@@ -83,7 +83,9 @@ export function Catalog() {
       <div className="container cat-head">
         <span className="tape">{t('catalog.tape')}</span>
         <h1 className="stencil shop-section-title" style={{ marginTop: 12 }}>
-          {t('catalog.title')}
+          <span className="glitch auto" data-text={t('catalog.title')}>
+            {t('catalog.title')}
+          </span>
         </h1>
         <p className="shop-section-sub" style={{ marginTop: 8 }}>
           {t('catalog.sub')}
@@ -99,7 +101,9 @@ export function Catalog() {
                   <div>
                     <span className="tape">{t('catalog.car.badge')}</span>
                     <div className="cat-car-name">
-                      {car.make} {car.model}
+                      <span className="glitch auto" data-text={`${car.make} ${car.model}`}>
+                        {car.make} {car.model}
+                      </span>
                     </div>
                     <div className="cat-car-years">
                       {car.years} // {t('catalog.car.smart')}
