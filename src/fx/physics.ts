@@ -12,19 +12,17 @@ export const PHYS = {
   /** экспоненциальное сопротивление, 1/s */
   DRAG: 1.4,
   /** пружина носа: rad/s^2 на радиан рассогласования */
-  TURN_SPRING: 38,
-  /** демпфер угловой скорости, 1/s (ζ≈0.6 — лёгкий overshoot) */
-  TURN_DAMP: 7.5,
+  TURN_SPRING: 30,
+  /** демпфер угловой скорости, 1/s (ближе к критическому — без вихляния) */
+  TURN_DAMP: 8.5,
   /** порог угла заноса для следа/дыма, rad */
   DRIFT_SLIP: 0.32,
   /** порог скорости для следа/дыма, px/s */
   DRIFT_SPEED: 260,
-  /** ближе этого — переходим на орбиту-«восьмёрку» вокруг кружка, px */
-  ORBIT_DIST: 150,
-  /** радиус орбиты, px */
-  ORBIT_R: 95,
-  /** угловая скорость орбитальной цели, rad/s */
-  ORBIT_SPEED: 2.6,
+  /** ближе этого — сброс газа и торможение: подъехала и встала, px */
+  STOP_DIST: 80,
+  /** дополнительное сопротивление при остановке у цели, 1/s */
+  BRAKE_DRAG: 5.5,
   /** лимит кольцевого буфера следа шин (сегменты) */
   TRAIL_MAX: 400,
   /** лимит частиц дыма */
@@ -115,12 +113,15 @@ export function updateCar(car: Car, tx: number, ty: number, dt: number): void {
   const dy = ty - car.y;
   const dist = Math.hypot(dx, dy) || 1;
 
-  // тяга к цели
-  car.vx += (dx / dist) * PHYS.ACCEL * dt;
-  car.vy += (dy / dist) * PHYS.ACCEL * dt;
+  // у цели газ сброшен — машина подъезжает и останавливается, а не толчётся
+  const arriving = dist < PHYS.STOP_DIST;
+  if (!arriving) {
+    car.vx += (dx / dist) * PHYS.ACCEL * dt;
+    car.vy += (dy / dist) * PHYS.ACCEL * dt;
+  }
 
-  // сопротивление
-  const drag = Math.exp(-PHYS.DRAG * dt);
+  // сопротивление (+ тормоз у цели)
+  const drag = Math.exp(-(PHYS.DRAG + (arriving ? PHYS.BRAKE_DRAG : 0)) * dt);
   car.vx *= drag;
   car.vy *= drag;
 

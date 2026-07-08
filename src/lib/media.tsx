@@ -5,7 +5,15 @@
  * (силуэт тачки, штрих-коды, тех-маркировка). Детерминирован по seed.
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { getOverride, onMediaChanged } from './mediaStore';
+
+/** Подписка на оверрайд арт-редактора по ключу (= seed). */
+function useMediaOverride(key: string) {
+  const [, bump] = useState(0);
+  useEffect(() => onMediaChanged(() => bump((n) => n + 1)), []);
+  return getOverride(key);
+}
 
 // deterministic PRNG from a string seed
 function mulberry(seedStr: string) {
@@ -100,15 +108,18 @@ export function Img({
 }) {
   const [failed, setFailed] = useState(false);
   const fallback = useMemo(() => genArt(seed), [seed]);
+  const override = useMediaOverride(seed);
   return (
     <img
-      src={failed || !src ? fallback : src}
+      src={override?.url ?? (failed || !src ? fallback : src)}
       alt={alt}
       className={className}
       style={style}
       loading="lazy"
       onError={() => setFailed(true)}
       draggable={false}
+      data-uf-media={seed}
+      data-uf-kind="image"
     />
   );
 }
@@ -117,9 +128,34 @@ export function Img({
 export function VideoBg({ sources, seed, className }: { sources: string[]; seed: string; className?: string }) {
   const [idx, setIdx] = useState(0);
   const fallback = useMemo(() => genArt(seed, 1600, 900), [seed]);
+  const override = useMediaOverride(seed);
+  if (override?.kind === 'video') {
+    return (
+      <video
+        key={override.url}
+        className={className}
+        src={override.url}
+        autoPlay
+        muted
+        loop
+        playsInline
+        data-uf-media={seed}
+        data-uf-kind="video"
+      />
+    );
+  }
+  if (override) {
+    // сгенерированная картинка вместо видео-фона — статичный кадр в той же обёртке
+    return (
+      <div className={`videobg-fallback ${className ?? ''}`} aria-hidden data-uf-media={seed} data-uf-kind="video">
+        <img src={override.url} alt="" />
+        <div className="videobg-scan" />
+      </div>
+    );
+  }
   if (idx >= sources.length) {
     return (
-      <div className={`videobg-fallback ${className ?? ''}`} aria-hidden>
+      <div className={`videobg-fallback ${className ?? ''}`} aria-hidden data-uf-media={seed} data-uf-kind="video">
         <img src={fallback} alt="" />
         <div className="videobg-scan" />
       </div>
@@ -135,6 +171,8 @@ export function VideoBg({ sources, seed, className }: { sources: string[]; seed:
       loop
       playsInline
       onError={() => setIdx((i) => i + 1)}
+      data-uf-media={seed}
+      data-uf-kind="video"
     />
   );
 }

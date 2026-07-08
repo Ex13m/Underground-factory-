@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { api } from '../../lib/api';
 import { useI18n } from '../../lib/i18n';
 import { Img } from '../../lib/media';
+import { getOverride, moveOverride } from '../../lib/mediaStore';
+import { openArtEditor } from '../../fx/ArtEditor';
 import { useCatalog } from '../../store/catalog';
 import { makeId } from './util';
 
@@ -26,13 +28,16 @@ export function CarsTab() {
     };
     setErrors(errs);
     if (Object.values(errs).some(Boolean)) return;
+    const id = makeId(`${make} ${model}`);
     api.addCar({
-      id: makeId(`${make} ${model}`),
+      id,
       make: make.trim(),
       model: model.trim(),
       years: years.trim(),
       img: img.trim(),
     });
+    // сгенерированное в черновике фото переезжает на итоговый сид тачки
+    void moveOverride(`car-draft-${make}-${model}`, `car-${id}`);
     setMake(''); setModel(''); setYears(''); setImg('');
     setErrors({});
   };
@@ -68,13 +73,27 @@ export function CarsTab() {
               {cars.map((c) => (
                 <tr key={c.id}>
                   <td>
-                    <Img className="adm-thumb" src={c.img || undefined} seed={c.id} alt={`${c.make} ${c.model}`} />
+                    <Img className="adm-thumb" src={c.img || undefined} seed={`car-${c.id}`} alt={`${c.make} ${c.model}`} />
                   </td>
                   <td>{c.make}</td>
                   <td>{c.model}</td>
                   <td>{c.years}</td>
                   <td>
                     <div className="adm-actions">
+                      <button
+                        className="adm-mini-btn"
+                        onClick={() =>
+                          openArtEditor({
+                            key: `car-${c.id}`,
+                            kind: 'image',
+                            src: getOverride(`car-${c.id}`)?.url ?? (c.img || undefined),
+                            width: 800,
+                            height: 500,
+                          })
+                        }
+                      >
+                        {t('admin.media.gen')}
+                      </button>
                       {c.custom ? (
                         <>
                           <span className="adm-badge">{t('admin.badge.custom')}</span>
@@ -119,6 +138,21 @@ export function CarsTab() {
               <label htmlFor="cf-img">{t('admin.f.img')}</label>
               <div className="adm-inline">
                 <Img className="adm-thumb" src={img.trim() || undefined} seed={`car-draft-${make}-${model}`} alt="" />
+                <button
+                  type="button"
+                  className="adm-mini-btn"
+                  onClick={() =>
+                    openArtEditor({
+                      key: `car-draft-${make}-${model}`,
+                      kind: 'image',
+                      src: getOverride(`car-draft-${make}-${model}`)?.url ?? (img.trim() || undefined),
+                      width: 800,
+                      height: 500,
+                    })
+                  }
+                >
+                  {t('admin.media.gen')}
+                </button>
                 <input
                   id="cf-img"
                   className="field"

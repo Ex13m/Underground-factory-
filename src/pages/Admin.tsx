@@ -12,9 +12,10 @@ import { CarsTab } from '../components/admin/CarsTab';
 import { OrdersTab } from '../components/admin/OrdersTab';
 import { PromosTab } from '../components/admin/PromosTab';
 import { ExchangeTab } from '../components/admin/ExchangeTab';
+import { ArtTab } from '../components/admin/ArtTab';
 import '../styles/admin.css';
 
-type TabId = 'products' | 'cars' | 'orders' | 'promos' | 'exchange';
+type TabId = 'products' | 'cars' | 'orders' | 'promos' | 'exchange' | 'art';
 
 export function Admin() {
   const { t } = useI18n();
@@ -26,6 +27,7 @@ export function Admin() {
     { id: 'orders', label: t('admin.tab.orders') },
     { id: 'promos', label: t('admin.tab.promos') },
     { id: 'exchange', label: t('admin.tab.exchange') },
+    { id: 'art', label: t('admin.tab.art') },
   ];
 
   return (
@@ -48,6 +50,7 @@ export function Admin() {
         {tab === 'orders' && <OrdersTab />}
         {tab === 'promos' && <PromosTab />}
         {tab === 'exchange' && <ExchangeTab />}
+        {tab === 'art' && <ArtTab />}
       </div>
     </div>
   );

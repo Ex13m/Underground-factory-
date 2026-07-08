@@ -1,7 +1,8 @@
 /**
  * UNDERGROUND FACTORY — CursorFX.
- * Курсор-флажок 🏁 + кольцо-мишень (верхний canvas, z 9600)
- * и дрифт-машинка-преследователь (нижний canvas, z 8900, под .noise=9000).
+ * Курсор: открытое перекрестие в точке клика + маленький флажок 🏁 вбок
+ * (верхний canvas, z 9600) и дрифт-машинка-преследователь (нижний canvas,
+ * z 8900, под .noise=9000).
  *
  * Полностью выключается при: useUI.calm, (pointer: coarse), prefers-reduced-motion.
  * Один rAF-цикл, пауза при скрытой вкладке, cleanup при unmount.
@@ -22,15 +23,10 @@ import {
   SPRITE_SCALE,
   drawCarSprite,
   drawFlag,
-  drawTargetRing,
 } from './sprites';
 import '../styles/fx.css';
 
 const INTERACTIVE = 'a, button, input, select, textarea, [role="button"], .btn';
-
-/** Смещение кольца-мишени относительно точки курсора (флажок «рядом»). */
-const RING_DX = 18;
-const RING_DY = 14;
 
 export function CursorFX() {
   const calm = useUI((s) => s.calm);
@@ -99,7 +95,6 @@ export function CursorFX() {
     const car = createCar(-140, H * 0.72, 880, -140, Math.atan2(-140, 880) + 1.0);
     const trails = new Ring<TrailSeg>(PHYS.TRAIL_MAX);
     const smoke = new Ring<SmokeP>(PHYS.SMOKE_MAX);
-    let orbitPhase = 0;
     let segFlip = 0;
     let smokeAcc = 0;
 
@@ -132,23 +127,12 @@ export function CursorFX() {
         mouse.aim = !!(el && el.closest(INTERACTIVE));
       }
 
-      // цель = кольцо-мишень у флажка; до первого движения мыши — центр экрана
-      const ringX = mouse.x + RING_DX;
-      const ringY = mouse.y + RING_DY;
-      const cx = mouse.seen ? ringX : W / 2;
-      const cy = mouse.seen ? ringY : H / 2;
-
-      // возле цели — орбитальная составляющая («восьмёрки» вокруг кружка)
-      let tx = cx;
-      let ty = cy;
-      if (Math.hypot(cx - car.x, cy - car.y) < PHYS.ORBIT_DIST) {
-        orbitPhase += PHYS.ORBIT_SPEED * dt;
-        tx = cx + Math.cos(orbitPhase) * PHYS.ORBIT_R;
-        ty = cy + Math.sin(orbitPhase * 2) * PHYS.ORBIT_R * 0.55;
-      }
+      // цель машинки = сам курсор; до первого движения мыши — центр экрана
+      const cx = mouse.seen ? mouse.x : W / 2;
+      const cy = mouse.seen ? mouse.y : H / 2;
 
       const [rl0, rr0] = rearWheels();
-      updateCar(car, tx, ty, dt);
+      updateCar(car, cx, cy, dt);
       const [rl1, rr1] = rearWheels();
 
       // дрифт: след шин + дым
@@ -209,10 +193,9 @@ export function CursorFX() {
       cc.globalAlpha = 1;
       drawCarSprite(cc, car);
 
-      // ---- верхний слой: кольцо-мишень + флажок вместо курсора
+      // ---- верхний слой: перекрестие + флажок вместо курсора
       fc.clearRect(0, 0, W, H);
       if (mouse.seen) {
-        drawTargetRing(fc, ringX, ringY, t, mouse.aim);
         drawFlag(fc, mouse.x, mouse.y, t, mouse.aim);
       }
     };

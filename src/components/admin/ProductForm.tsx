@@ -4,6 +4,8 @@ import { useMemo, useState } from 'react';
 import { api } from '../../lib/api';
 import { useI18n } from '../../lib/i18n';
 import { Img } from '../../lib/media';
+import { getOverride, moveOverride } from '../../lib/mediaStore';
+import { openArtEditor } from '../../fx/ArtEditor';
 import { GRADE_META, GRADE_ORDER } from '../../lib/types';
 import type { CarModel, MaterialGrade, MediaItem, Product } from '../../lib/types';
 import { makeId, posNum } from './util';
@@ -79,9 +81,13 @@ export function ProductForm({ cars, initial, onDone }: Props) {
     if (Object.keys(errs).length) return;
 
     const id = editing ? initial!.id : makeId(nameEn);
-    const mediaItems: MediaItem[] = media
-      .filter((m) => m.url.trim())
-      .map((m, i) => ({ type: m.type, url: m.url.trim(), seed: `${id}-${i}` }));
+    // строка без URL, но со сгенерированной картинкой — тоже валидное медиа
+    const kept = media
+      .map((m, i) => ({ ...m, draftKey: `${previewSeed}-${i}` }))
+      .filter((m) => m.url.trim() || getOverride(m.draftKey));
+    const mediaItems: MediaItem[] = kept.map((m, i) => ({ type: m.type, url: m.url.trim(), seed: `${id}-${i}` }));
+    // сгенерированные в черновике картинки переезжают на итоговые сиды
+    kept.forEach((m, i) => void moveOverride(m.draftKey, `${id}-${i}`));
 
     const payload: Product = {
       id,
@@ -225,6 +231,31 @@ export function ProductForm({ cars, initial, onDone }: Props) {
                     <option value="image">{t('admin.media.image')}</option>
                     <option value="video">{t('admin.media.video')}</option>
                   </select>
+                  <button
+                    type="button"
+                    className="adm-mini-btn"
+                    onClick={() =>
+                      openArtEditor({
+                        key: `${previewSeed}-${i}`,
+                        kind: 'image',
+                        src: getOverride(`${previewSeed}-${i}`)?.url ?? (m.url.trim() || undefined),
+                        width: 800,
+                        height: 500,
+                        // предыдущие фото этой детали — референсы для следующей генерации
+                        refs: media
+                          .map((r, j) => ({
+                            url: getOverride(`${previewSeed}-${j}`)?.url ?? r.url.trim(),
+                            label: `#${j + 1}`,
+                            j,
+                            type: r.type,
+                          }))
+                          .filter((r) => r.j !== i && r.type === 'image' && r.url)
+                          .map(({ url, label }) => ({ url, label })),
+                      })
+                    }
+                  >
+                    {t('admin.media.gen')}
+                  </button>
                   <button
                     type="button"
                     className="adm-mini-btn danger"

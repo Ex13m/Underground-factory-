@@ -15,6 +15,7 @@ import { Account } from './pages/Account';
 import { Admin } from './pages/Admin';
 
 import { AuthModal } from './components/AuthModal';
+import { ArtEditor } from './fx/ArtEditor';
 import { CursorFX } from './fx/CursorFX';
 import { BootIntro } from './fx/BootIntro';
 import { Bot } from './bot/Bot';
@@ -64,6 +65,7 @@ function Shell() {
       </main>
       <Footer />
       <AuthModal />
+      <ArtEditor />
       <BootIntro />
       <CursorFX />
       <Bot />

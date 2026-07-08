@@ -118,15 +118,21 @@ export function drawCarSprite(ctx: CanvasRenderingContext2D, car: Car): void {
   ctx.restore();
 }
 
-const FLAG_COLS = 4;
-const FLAG_ROWS = 3;
-const CELL_W = 6.5;
-const CELL_H = 5.5;
-const POLE_H = 30;
+const FLAG_COLS = 3;
+const FLAG_ROWS = 2;
+const CELL_W = 5.5;
+const CELL_H = 4.5;
+/** древко наклонено и отходит вбок — сама точка клика остаётся свободной */
+const POLE_BASE_DX = 5;
+const POLE_BASE_DY = -5;
+const POLE_TOP_DX = 14;
+const POLE_TOP_DY = -26;
 
 /**
- * Финишный флажок: древко в точке курсора, клетчатое полотнище 4x3
- * волнуется по синусу; в состоянии aim машет сильнее и быстрее.
+ * Курсор: открытое перекрестие в самой точке клика (центр всегда виден,
+ * ничем не перекрыт) + маленький полупрозрачный финишный флажок на наклонном
+ * древке вбок от точки. В состоянии aim перекрестие сжимается и краснеет,
+ * флажок машет сильнее.
  */
 export function drawFlag(
   ctx: CanvasRenderingContext2D,
@@ -135,32 +141,51 @@ export function drawFlag(
   t: number,
   aim: boolean,
 ): void {
-  const topX = x;
-  const topY = y - POLE_H;
-
-  // древко
-  ctx.strokeStyle = '#9a968c';
-  ctx.lineWidth = 2;
+  // --- перекрестие с зазором: 4 штриха вокруг пустого центра + точка
+  const gap = aim ? 2.5 : 3.5;
+  const len = aim ? 4 : 5.5;
+  ctx.strokeStyle = aim ? BLOOD : PAPER;
+  ctx.lineWidth = 1.5;
+  ctx.globalAlpha = 0.95;
   ctx.beginPath();
-  ctx.moveTo(x, y + 1);
-  ctx.lineTo(topX, topY - 1);
+  for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+    ctx.moveTo(x + dx * gap, y + dy * gap);
+    ctx.lineTo(x + dx * (gap + len), y + dy * (gap + len));
+  }
+  ctx.stroke();
+  ctx.fillStyle = BLOOD;
+  ctx.beginPath();
+  ctx.arc(x, y, 1.4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // --- флажок: полупрозрачный, в стороне от точки
+  const topX = x + POLE_TOP_DX;
+  const topY = y + POLE_TOP_DY;
+  ctx.globalAlpha = 0.75;
+
+  // древко (наклонное)
+  ctx.strokeStyle = '#9a968c';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(x + POLE_BASE_DX, y + POLE_BASE_DY);
+  ctx.lineTo(topX, topY);
   ctx.stroke();
 
   // навершие
   ctx.fillStyle = BLOOD;
   ctx.beginPath();
-  ctx.arc(topX, topY - 2, 2, 0, Math.PI * 2);
+  ctx.arc(topX, topY - 1, 1.6, 0, Math.PI * 2);
   ctx.fill();
 
   // волна: смещение вертикальных кромок полотнища (у древка — 0)
-  const amp = aim ? 3.4 : 1.7;
+  const amp = aim ? 2.6 : 1.3;
   const spd = aim ? 15 : 8;
   const off: number[] = [];
   for (let i = 0; i <= FLAG_COLS; i++) {
     off.push(Math.sin(t * spd + i * 0.85) * amp * (i / FLAG_COLS));
   }
 
-  // клетки 4x3 (чёрный/белый)
+  // клетки (чёрный/белый)
   for (let c = 0; c < FLAG_COLS; c++) {
     const x0 = topX + 1 + c * CELL_W;
     const x1 = x0 + CELL_W;
@@ -189,6 +214,7 @@ export function drawFlag(
   }
   ctx.closePath();
   ctx.stroke();
+  ctx.globalAlpha = 1;
 }
 
 /**
