@@ -59,6 +59,9 @@ export function Catalog() {
     setPriceMax(bounds.max);
     setOnlyCar(true);
     setSort('weight');
+    // сброс = чистый каталог: снимаем и фильтр по тачке (?car=…),
+    // иначе у тачки без деталей список остаётся пустым
+    setParams({});
   };
 
   const filtered = useMemo(() => {
