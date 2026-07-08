@@ -8,6 +8,8 @@ import { GRADE_ORDER, GRADE_META } from '../lib/types';
 import { Img } from '../lib/media';
 import { ProductCard } from '../components/shop/ProductCard';
 import { CarPicker } from '../components/shop/CarPicker';
+import { CarShowcase } from '../components/shop/CarShowcase';
+import { CarModal } from '../components/shop/CarModal';
 import { useReveal } from '../components/shop/useReveal';
 import '../styles/shop.css';
 
@@ -35,6 +37,12 @@ export function Catalog() {
   const [priceMax, setPriceMax] = useState(() => bounds.max);
   const [onlyCar, setOnlyCar] = useState(true);
   const [sort, setSort] = useState<SortMode>('weight');
+  // тачка, открытая в большой модалке из карусели (null — закрыто)
+  const [showcaseCarId, setShowcaseCarId] = useState<string | null>(null);
+  const showcaseCar = useMemo(
+    () => cars.find((c) => c.id === showcaseCarId) ?? null,
+    [cars, showcaseCarId],
+  );
 
   // тачка из гаража юзера — предложение в один клик
   const garageCar = useMemo(() => {
@@ -90,6 +98,14 @@ export function Catalog() {
         <p className="shop-section-sub" style={{ marginTop: 8 }}>
           {t('catalog.sub')}
         </p>
+
+        {/* ============ CAR SHOWCASE (бренды + карусель тачек) ============ */}
+        {/* 1 клик = фильтр каталога по тачке, 2 клика = большая модалка */}
+        <CarShowcase
+          onOpen={setShowcaseCarId}
+          onFilter={(id) => setParams({ car: id })}
+          activeCarId={carId}
+        />
 
         {/* ============ CAR-FIRST BAR ============ */}
         <div className="cat-carbar">
@@ -256,6 +272,15 @@ export function Catalog() {
           )}
         </div>
       </div>
+
+      {/* ============ CAR MODAL ============ */}
+      {showcaseCar && (
+        <CarModal
+          car={showcaseCar}
+          onClose={() => setShowcaseCarId(null)}
+          onPickInCatalog={(id) => setParams({ car: id })}
+        />
+      )}
     </div>
   );
 }

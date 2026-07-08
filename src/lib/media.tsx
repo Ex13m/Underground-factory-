@@ -130,7 +130,8 @@ export function Img({
  * выбывает из ротации. Если живых не осталось — арт-фолбэк.
  */
 export function VideoBg({ sources, seed, className }: { sources: string[]; seed: string; className?: string }) {
-  const [idx, setIdx] = useState(0);
+  // монтаж стартует со случайного эпизода — каждая загрузка страницы разная
+  const [idx, setIdx] = useState(() => Math.floor(Math.random() * Math.max(1, sources.length)));
   const [dead, setDead] = useState<ReadonlySet<number>>(new Set());
   const fallback = useMemo(() => genArt(seed, 1600, 900), [seed]);
   const override = useMediaOverride(seed);

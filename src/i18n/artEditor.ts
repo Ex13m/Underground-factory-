@@ -21,7 +21,9 @@ export default {
     'art.applied': 'ПРИМЕНЕНО ▸ сохранено в этом браузере',
     'art.upload': 'Загрузить видео',
     'art.upload.hint': 'mp4 / webm — заменит анимацию этого блока',
-    'art.err.nokey': 'Нет ключа API. Введите ключ в Админке → вкладка АРТ.',
+    'art.err.nokey': 'Нет ключа API. Введите ключ в Админке → АРТ или выберите БЕСПЛАТНЫЙ генератор.',
+    'art.free': 'БЕСПЛАТНО',
+    'art.free.hint': 'Pollinations — без ключа; референсы не поддерживает',
   },
   en: {
     'art.badge': 'ART EDITOR ▸ ACTIVE',
@@ -44,6 +46,8 @@ export default {
     'art.applied': 'APPLIED ▸ saved in this browser',
     'art.upload': 'Upload video',
     'art.upload.hint': 'mp4 / webm — replaces this block’s animation',
-    'art.err.nokey': 'No API key. Enter it in Admin → ART tab.',
+    'art.err.nokey': 'No API key. Enter it in Admin → ART tab or pick the FREE generator.',
+    'art.free': 'FREE',
+    'art.free.hint': 'Pollinations — keyless; no reference support',
   },
 } as { ru: Record<string, string>; en: Record<string, string> };

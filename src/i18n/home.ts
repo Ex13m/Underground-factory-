@@ -22,6 +22,8 @@ export default {
     'home.rarity.abs': 'Бюджетно и ремонтопригодно. Гибкий, живучий, не боится бордюров. Царапнул — зашкурил и покрасил. Идеальный первый шаг.',
     'home.rarity.composite': 'Золотая середина. Стеклокомпозит ручной укладки: жёстче АБС, дешевле карбона, чинится в любом гараже. Рабочая лошадь трека.',
     'home.rarity.carbon': 'Вершина пищевой цепи. Препрег, автоклав, плетение как у гиперкаров. Легче всех, жёстче всех, дороже всех — и того стоит.',
+    'home.mat.tape': 'МАТЕРИАЛ',
+    'home.mat.specs': 'ТЕХНИЧЕСКИЕ ХАРАКТЕРИСТИКИ ▸',
 
     'home.steps.tape': 'PRODUCTION LINE',
     'home.steps.title': 'КАК МЫ ДЕЛАЕМ ОБВЕС',
@@ -78,6 +80,8 @@ export default {
     'home.rarity.abs': 'Budget-friendly and repairable. Flexible, tough, laughs at curbs. Scraped it? Sand and paint. The perfect first step.',
     'home.rarity.composite': 'The golden middle. Hand-laid fibreglass: stiffer than ABS, cheaper than carbon, fixable in any garage. The workhorse of the track.',
     'home.rarity.carbon': 'Top of the food chain. Prepreg, autoclave, hypercar-grade weave. Lightest, stiffest, priciest — and worth every cent.',
+    'home.mat.tape': 'MATERIAL',
+    'home.mat.specs': 'TECHNICAL SPECS ▸',
 
     'home.steps.tape': 'PRODUCTION LINE',
     'home.steps.title': 'HOW WE BUILD A KIT',

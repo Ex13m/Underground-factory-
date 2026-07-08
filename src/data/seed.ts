@@ -11,14 +11,14 @@ const u = (id: string, w = 1400) => `https://images.unsplash.com/photo-${id}?aut
 export const SEED_CARS: CarModel[] = [
   // фото сгенерированы нейросетью (Higgsfield): 3 полные тачки — гаражная серия,
   // остальные — серия «в дрифте»
-  { id: 'nissan-silvia-s15', make: 'Nissan', model: 'Silvia S15', years: '1999–2002', img: '/img/gen/car-s15.jpg' },
-  { id: 'toyota-supra-a80', make: 'Toyota', model: 'Supra A80', years: '1993–2002', img: '/img/gen/car-supra.jpg' },
-  { id: 'mazda-rx7-fd', make: 'Mazda', model: 'RX-7 FD', years: '1992–2002', img: '/img/gen/car-rx7.jpg' },
-  { id: 'toyota-ae86', make: 'Toyota', model: 'AE86 Trueno', years: '1983–1987', img: '/img/gen/drift-ae86.jpg' },
-  { id: 'bmw-e36', make: 'BMW', model: 'E36 Coupe', years: '1990–2000', img: '/img/gen/drift-e36.jpg' },
-  { id: 'honda-civic-ek9', make: 'Honda', model: 'Civic EK9', years: '1997–2000', img: '/img/gen/drift-ek9.jpg' },
-  { id: 'nissan-gtr-r34', make: 'Nissan', model: 'Skyline R34', years: '1999–2002', img: '/img/gen/drift-r34.jpg' },
-  { id: 'lada-2107', make: 'LADA', model: '2107', years: '1982–2012', img: '/img/gen/drift-lada.jpg' },
+  { id: 'nissan-silvia-s15', make: 'Nissan', model: 'Silvia S15', years: '1999–2002', img: '/img/gen/car-s15.jpg', video: '/video/car-live-s15.mp4' },
+  { id: 'toyota-supra-a80', make: 'Toyota', model: 'Supra A80', years: '1993–2002', img: '/img/gen/car-supra.jpg', video: '/video/car-live-supra.mp4' },
+  { id: 'mazda-rx7-fd', make: 'Mazda', model: 'RX-7 FD', years: '1992–2002', img: '/img/gen/car-rx7.jpg', video: '/video/car-live-rx7.mp4' },
+  { id: 'toyota-ae86', make: 'Toyota', model: 'AE86 Trueno', years: '1983–1987', img: '/img/gen/drift-ae86.jpg', video: '/video/car-live-ae86.mp4' },
+  { id: 'bmw-e36', make: 'BMW', model: 'E36 Coupe', years: '1990–2000', img: '/img/gen/drift-e36.jpg', video: '/video/car-live-e36.mp4' },
+  { id: 'honda-civic-ek9', make: 'Honda', model: 'Civic EK9', years: '1997–2000', img: '/img/gen/drift-ek9.jpg', video: '/video/car-live-ek9.mp4' },
+  { id: 'nissan-gtr-r34', make: 'Nissan', model: 'Skyline R34', years: '1999–2002', img: '/img/gen/drift-r34.jpg', video: '/video/car-live-r34.mp4' },
+  { id: 'lada-2107', make: 'LADA', model: '2107', years: '1982–2012', img: '/img/gen/drift-lada.jpg', video: '/video/car-live-lada.mp4' },
 ];
 
 export const SEED_PRODUCTS: Product[] = [
@@ -35,7 +35,7 @@ export const SEED_PRODUCTS: Product[] = [
     heatC: 200,
     rarity: 'carbon',
     material: { ru: 'Карбон 2×2 твил, автоклав', en: '2×2 twill carbon, autoclave-cured' },
-    fits: ['nissan-silvia-s15', 'nissan-gtr-r34'],
+    fits: ['nissan-silvia-s15', 'nissan-gtr-r34', 'mazda-rx7-fd'],
     media: [
       { type: 'image', url: '/img/gen/widebody-1.jpg', seed: 'kit-widebody-s15-a' },
       { type: 'image', url: '/img/gen/widebody-2.jpg', seed: 'kit-widebody-s15-b' },
@@ -55,7 +55,7 @@ export const SEED_PRODUCTS: Product[] = [
     heatC: 210,
     rarity: 'carbon',
     material: { ru: 'Карбон 2×2 твил, автоклав', en: '2×2 twill carbon, autoclave-cured' },
-    fits: ['toyota-supra-a80', 'bmw-e36', 'nissan-gtr-r34', 'mazda-rx7-fd'],
+    fits: ['toyota-supra-a80', 'bmw-e36', 'nissan-gtr-r34', 'mazda-rx7-fd', 'toyota-ae86'],
     media: [
       { type: 'image', url: '/img/gen/wing-1.jpg', seed: 'wing-gt-supra-a' },
       { type: 'image', url: '/img/gen/wing-2.jpg', seed: 'wing-gt-supra-b' },
@@ -75,7 +75,7 @@ export const SEED_PRODUCTS: Product[] = [
     heatC: 140,
     rarity: 'composite',
     material: { ru: 'Стеклокомпозит ручной укладки', en: 'Hand-laid fibreglass composite' },
-    fits: ['mazda-rx7-fd', 'nissan-silvia-s15', 'honda-civic-ek9', 'toyota-supra-a80'],
+    fits: ['mazda-rx7-fd', 'nissan-silvia-s15', 'honda-civic-ek9', 'toyota-supra-a80', 'toyota-ae86', 'bmw-e36', 'lada-2107'],
     media: [
       { type: 'image', url: '/img/gen/splitter-1.jpg', seed: 'splitter-rx7-a' },
       { type: 'image', url: '/img/gen/splitter-2.jpg', seed: 'splitter-rx7-b' },
@@ -94,7 +94,7 @@ export const SEED_PRODUCTS: Product[] = [
     heatC: 190,
     rarity: 'carbon',
     material: { ru: 'Карбон, глянцевый лак UV-cut', en: 'Carbon fibre, UV-cut gloss clearcoat' },
-    fits: ['bmw-e36', 'nissan-gtr-r34', 'toyota-supra-a80', 'nissan-silvia-s15', 'mazda-rx7-fd'],
+    fits: ['bmw-e36', 'nissan-gtr-r34', 'toyota-supra-a80', 'nissan-silvia-s15', 'mazda-rx7-fd', 'honda-civic-ek9'],
     media: [
       { type: 'image', url: '/img/gen/diffuser-1.jpg', seed: 'diffuser-chrome-a' },
       { type: 'image', url: '/img/gen/diffuser-2.jpg', seed: 'diffuser-chrome-b' },
@@ -134,8 +134,11 @@ export const SEED_PRODUCTS: Product[] = [
     heatC: 90,
     rarity: 'abs',
     material: { ru: 'АБС + грунт под покраску', en: 'ABS + paint-ready primer' },
-    fits: ['toyota-ae86'],
-    media: [{ type: 'image', url: '/img/lip-a.jpg', seed: 'lip-ae86-a' }],
+    fits: ['toyota-ae86', 'honda-civic-ek9', 'lada-2107'],
+    media: [
+      { type: 'image', url: '/img/gen/lip-1.jpg', seed: 'lip-ae86-a' },
+      { type: 'image', url: '/img/gen/lip-2.jpg', seed: 'lip-ae86-b' },
+    ],
   },
   {
     id: 'canards-civic',
@@ -150,7 +153,7 @@ export const SEED_PRODUCTS: Product[] = [
     heatC: 140,
     rarity: 'composite',
     material: { ru: 'Стеклокомпозит ручной укладки', en: 'Hand-laid fibreglass composite' },
-    fits: ['honda-civic-ek9', 'nissan-silvia-s15', 'mazda-rx7-fd'],
+    fits: ['honda-civic-ek9', 'nissan-silvia-s15', 'mazda-rx7-fd', 'toyota-ae86', 'nissan-gtr-r34'],
     media: [
       { type: 'image', url: '/img/gen/canards-1.jpg', seed: 'canards-civic-a' },
       { type: 'image', url: '/img/gen/canards-2.jpg', seed: 'canards-civic-b' },
@@ -170,7 +173,10 @@ export const SEED_PRODUCTS: Product[] = [
     rarity: 'composite',
     material: { ru: 'Стеклокомпозит, гелькоут чёрный', en: 'Fibreglass composite, black gelcoat' },
     fits: ['bmw-e36'],
-    media: [{ type: 'image', url: '/img/hood-a.jpg', seed: 'hood-vents-e36-a' }],
+    media: [
+      { type: 'image', url: '/img/gen/hood-1.jpg', seed: 'hood-vents-e36-a' },
+      { type: 'image', url: '/img/gen/hood-2.jpg', seed: 'hood-vents-e36-b' },
+    ],
   },
   {
     id: 'skirts-r34',
@@ -185,7 +191,7 @@ export const SEED_PRODUCTS: Product[] = [
     heatC: 140,
     rarity: 'composite',
     material: { ru: 'Стеклокомпозит ручной укладки', en: 'Hand-laid fibreglass composite' },
-    fits: ['nissan-gtr-r34', 'toyota-supra-a80', 'nissan-silvia-s15'],
+    fits: ['nissan-gtr-r34', 'toyota-supra-a80', 'nissan-silvia-s15', 'bmw-e36', 'honda-civic-ek9'],
     media: [
       { type: 'image', url: '/img/gen/skirts-1.jpg', seed: 'skirts-r34-a' },
       { type: 'image', url: '/img/gen/skirts-2.jpg', seed: 'skirts-r34-b' },
@@ -205,7 +211,10 @@ export const SEED_PRODUCTS: Product[] = [
     rarity: 'abs',
     material: { ru: 'АБС + грунт под покраску', en: 'ABS + paint-ready primer' },
     fits: ['lada-2107'],
-    media: [{ type: 'image', url: '/img/spoiler-a.jpg', seed: 'wing-lada-a' }],
+    media: [
+      { type: 'image', url: '/img/gen/spoiler-1.jpg', seed: 'wing-lada-a' },
+      { type: 'image', url: '/img/gen/spoiler-2.jpg', seed: 'wing-lada-b' },
+    ],
     hit: true,
   },
   {
@@ -250,16 +259,19 @@ export const SEED_PRODUCTS: Product[] = [
 
 /** Hero/background video candidates — first reachable one wins, otherwise animated fallback. */
 export const HERO_VIDEOS = [
-  // монтаж из десяти ночных эпизодов (сгенерировано Higgsfield kling3_0_turbo,
-  // лежат локально), играют по кругу
+  // монтаж ночных эпизодов со всеми тачками каталога (сгенерировано Higgsfield
+  // kling3_0_turbo, лежат локально): старт со случайного, дальше по кругу
   '/video/hero-drift.mp4',
-  '/video/hero-s15-dock.mp4',
+  '/video/hero-s15-street.mp4',
   '/video/hero-burnout.mp4',
-  '/video/hero-supra-hwy.mp4',
-  '/video/hero-rx7-touge.mp4',
+  '/video/hero-supra-round.mp4',
+  '/video/hero-rx7-flames.mp4',
   '/video/hero-race.mp4',
-  '/video/hero-ae86-hill.mp4',
-  '/video/hero-r34-tunnel.mp4',
-  '/video/hero-garage.mp4',
-  '/video/hero-lada-snow.mp4',
+  '/video/hero-ae86-ramp.mp4',
+  '/video/hero-e36-dock.mp4',
+  '/video/hero-ek9-rain.mp4',
+  '/video/hero-r34-apron.mp4',
+  '/video/hero-tandem.mp4',
+  '/video/hero-drag.mp4',
+  '/video/hero-lada-barrel.mp4',
 ];

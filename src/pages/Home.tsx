@@ -8,7 +8,9 @@ import { HERO_VIDEOS } from '../data/seed';
 import { GRADE_ORDER, GRADE_META } from '../lib/types';
 import { ProductCard } from '../components/shop/ProductCard';
 import { CarPicker } from '../components/shop/CarPicker';
+import { MaterialModal } from '../components/shop/MaterialModal';
 import { useReveal } from '../components/shop/useReveal';
+import type { MaterialGrade } from '../lib/types';
 import '../styles/shop.css';
 
 /** Бегущий счётчик: анимирует число при появлении во вьюпорте. */
@@ -66,6 +68,7 @@ export function Home() {
   const navigate = useNavigate();
   const products = useCatalog((s) => s.products);
   const pageRef = useReveal<HTMLDivElement>([products.length]);
+  const [matModal, setMatModal] = useState<MaterialGrade | null>(null);
 
   const hits = useMemo(() => products.filter((p) => p.hit), [products]);
   const lightest = useMemo(
@@ -156,7 +159,15 @@ export function Home() {
             {GRADE_ORDER.map((r, i) => {
               const meta = GRADE_META[r];
               return (
-                <div key={r} className={`tier-card reveal d${Math.min(i, 3)}`}>
+                <div
+                  key={r}
+                  className={`tier-card reveal d${Math.min(i, 3)}`}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setMatModal(r)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') setMatModal(r); }}
+                  data-testid={`tier-${r}`}
+                >
                   <div className="tier-bar" style={{ background: meta.color }} aria-hidden />
                   <span className="tier-idx">
                     {t('home.rarity.tier')}—0{i + 1}
@@ -176,6 +187,7 @@ export function Home() {
         </div>
       </section>
       <div className="zig flip" aria-hidden />
+      {matModal && <MaterialModal grade={matModal} onClose={() => setMatModal(null)} />}
 
       {/* ============ HOW WE BUILD (scroll scene) ============ */}
       <section className="shop-section">

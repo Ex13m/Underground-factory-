@@ -30,6 +30,8 @@ export interface CarModel {
   model: string; // 'Silvia S15'
   years: string; // '1999–2002'
   img: string;
+  /** ролик «оживления» по фото, генерируется автоматически */
+  video?: string;
   custom?: boolean;
 }
 

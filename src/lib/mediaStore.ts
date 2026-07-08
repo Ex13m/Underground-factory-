@@ -1,15 +1,17 @@
 /**
- * MediaStore — оверрайды картинок/видео арт-редактора.
+ * MediaStore — оверрайды картинок/видео арт-редактора + 3D-модели (STL).
  * Блобы живут в IndexedDB (localStorage мал для изображений), в памяти — кэш
  * objectURL для синхронного рендера. Ключ оверрайда = seed медиа-объекта:
  * он уникален на объект и одинаков для одной картинки во всех местах сайта.
+ * STL-модели деталей хранятся с kind='model' по ключу `${productId}-stl` —
+ * задел под точную генерацию по геометрии.
  */
 
 const DB_NAME = 'uf-media';
 const STORE = 'overrides';
 const EVT = 'uf:media-changed';
 
-export type MediaKind = 'image' | 'video';
+export type MediaKind = 'image' | 'video' | 'model';
 
 export interface MediaOverride {
   key: string;

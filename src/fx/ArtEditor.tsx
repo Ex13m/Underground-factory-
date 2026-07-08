@@ -66,7 +66,7 @@ export function ArtEditor() {
   const [target, setTarget] = useState<ArtTarget | null>(null);
   const [refs, setRefs] = useState<RefCand[]>([]);
   const [prompt, setPrompt] = useState('');
-  const [provider, setProvider] = useState<GenProvider>(readGenKeys().provider ?? 'gemini');
+  const [provider, setProvider] = useState<GenProvider>(readGenKeys().provider ?? 'pollinations');
   const [useStyle, setUseStyle] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -211,7 +211,12 @@ export function ArtEditor() {
           ref={panelRef}
           className="artedit-panel panel"
           data-testid="artedit-panel"
-          style={pos ? { left: pos.x, top: pos.y, right: 'auto' } : undefined}
+          // позиция задаётся инлайном: плавающее окно не зависит от каскада стилей
+          style={
+            pos
+              ? { position: 'fixed', left: pos.x, top: pos.y, right: 'auto' }
+              : { position: 'fixed', top: 80, right: 14 }
+          }
         >
           <header
             className="artedit-head"
@@ -259,6 +264,13 @@ export function ArtEditor() {
           />
 
           <div className="artedit-row artedit-provider">
+            <button
+              className={`btn sm ${provider === 'pollinations' ? '' : 'ghost'}`}
+              onClick={() => pickProvider('pollinations')}
+              title={t('art.free.hint')}
+            >
+              {t('art.free')}
+            </button>
             <button
               className={`btn sm ${provider === 'openai' ? '' : 'ghost'}`}
               onClick={() => pickProvider('openai')}

@@ -187,6 +187,85 @@ textarea.adm-import {
   font-size: 12px;
 }
 
+/* ============================================================
+   TREE TAB — дерево цеха: тачка ▸ детали ▸ материал.
+   ============================================================ */
+.adm-tree { display: grid; gap: 12px; }
+
+.adm-tree-node {
+  border: 1px solid rgba(236, 234, 229, 0.18);
+  transition: border-color 0.15s;
+}
+.adm-tree-node.open { border-color: rgba(224, 27, 34, 0.55); }
+
+.adm-tree-head {
+  display: flex; align-items: center; gap: 14px;
+  width: 100%;
+  padding: 10px 14px;
+  text-align: left;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.adm-tree-head:hover { background: rgba(224, 27, 34, 0.06); }
+.adm-tree-head .tech-label { margin-left: auto; white-space: nowrap; }
+.adm-tree-car {
+  font-weight: 700; font-size: 14px;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  min-width: 0;
+}
+.adm-tree-years { color: var(--steel); font-size: 11px; margin-left: 8px; text-transform: none; }
+.adm-tree-chevron { color: var(--blood); font-size: 14px; }
+
+.adm-tree-body {
+  padding: 4px 14px 14px;
+  border-top: 1px dashed rgba(236, 234, 229, 0.18);
+}
+
+/* строки деталей с dashed-разделителями */
+.adm-tree-part {
+  display: grid;
+  grid-template-columns: 62px auto minmax(0, 1fr) auto auto;
+  gap: 12px; align-items: center;
+  padding: 9px 0;
+  border-bottom: 1px dashed rgba(236, 234, 229, 0.14);
+  font-family: var(--font-mono); font-size: 13px;
+}
+.adm-tree-sku { color: var(--steel); white-space: nowrap; font-size: 12px; }
+.adm-tree-main { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
+.adm-tree-name { min-width: 0; }
+.adm-tree-grade {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 2px 8px;
+  border: 1px solid currentColor;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 4px) 100%, 0 100%);
+  white-space: nowrap;
+}
+.adm-tree-grade.glow { text-shadow: 0 0 8px currentColor; }
+label.adm-mini-btn { display: inline-flex; align-items: center; cursor: pointer; }
+
+/* привязать существующую деталь */
+.adm-tree-attach { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+.adm-tree-attach select.field { max-width: 380px; }
+.adm-mini-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.adm-mini-btn:disabled:hover { background: transparent; border-color: rgba(236, 234, 229, 0.3); color: var(--paper-dim); }
+
+/* форма быстрого создания — красная рамка слева */
+.adm-quick {
+  margin-top: 16px;
+  padding: 12px 14px 14px;
+  border-left: 3px solid var(--blood);
+  background: rgba(224, 27, 34, 0.05);
+}
+.adm-quick-row {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) 120px auto;
+  gap: 12px; align-items: end;
+  margin-top: 10px;
+}
+.adm-quick .adm-flash { display: block; margin-top: 10px; }
+
 /* ---------- responsive ---------- */
 @media (max-width: 760px) {
   .adm-grid { grid-template-columns: 1fr; }
@@ -194,4 +273,8 @@ textarea.adm-import {
   .adm-media-row { grid-template-columns: 72px minmax(0, 1fr); }
   .adm-media-row .adm-thumb { width: 72px; height: 46px; }
   .adm-table { min-width: 560px; }
+  .adm-tree-part { grid-template-columns: 62px minmax(0, 1fr); }
+  .adm-tree-part .adm-num { text-align: left; }
+  .adm-quick-row { grid-template-columns: 1fr; align-items: stretch; }
+  .adm-tree-attach { flex-wrap: wrap; }
 }

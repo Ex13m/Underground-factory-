@@ -1,21 +1,23 @@
 /**
  * ADMIN — служебное помещение UNDERGROUND FACTORY.
- * Вкладки: ОБВЕСЫ / ТАЧКИ / ЗАКАЗЫ / ПРОМО / ОБМЕН.
+ * Вкладки: ЦЕХ / ОБВЕСЫ / ТАЧКИ / ЗАКАЗЫ / ПРОМО / МАТЕРИАЛЫ / ОБМЕН / АРТ.
  * Всё через api (lib/api.ts); стор каталога обновляется сам (onDataChanged).
  */
 
 import { useState } from 'react';
 import { useI18n } from '../lib/i18n';
 import { Tabs } from '../components/admin/Tabs';
+import { TreeTab } from '../components/admin/TreeTab';
 import { ProductsTab } from '../components/admin/ProductsTab';
 import { CarsTab } from '../components/admin/CarsTab';
 import { OrdersTab } from '../components/admin/OrdersTab';
 import { PromosTab } from '../components/admin/PromosTab';
+import { MaterialsTab } from '../components/admin/MaterialsTab';
 import { ExchangeTab } from '../components/admin/ExchangeTab';
 import { ArtTab } from '../components/admin/ArtTab';
 import '../styles/admin.css';
 
-type TabId = 'products' | 'cars' | 'orders' | 'promos' | 'exchange' | 'art';
+type TabId = 'tree' | 'products' | 'cars' | 'orders' | 'promos' | 'materials' | 'exchange' | 'art';
 
 export function Admin() {
   const { t } = useI18n();
@@ -72,10 +74,12 @@ export function Admin() {
   }
 
   const tabs = [
+    { id: 'tree', label: t('admin.tab.tree') },
     { id: 'products', label: t('admin.tab.products') },
     { id: 'cars', label: t('admin.tab.cars') },
     { id: 'orders', label: t('admin.tab.orders') },
     { id: 'promos', label: t('admin.tab.promos') },
+    { id: 'materials', label: t('admin.tab.materials') },
     { id: 'exchange', label: t('admin.tab.exchange') },
     { id: 'art', label: t('admin.tab.art') },
   ];
@@ -95,10 +99,12 @@ export function Admin() {
 
         <Tabs tabs={tabs} active={tab} onChange={(id) => setTab(id as TabId)} />
 
+        {tab === 'tree' && <TreeTab />}
         {tab === 'products' && <ProductsTab />}
         {tab === 'cars' && <CarsTab />}
         {tab === 'orders' && <OrdersTab />}
         {tab === 'promos' && <PromosTab />}
+        {tab === 'materials' && <MaterialsTab />}
         {tab === 'exchange' && <ExchangeTab />}
         {tab === 'art' && <ArtTab />}
       </div>

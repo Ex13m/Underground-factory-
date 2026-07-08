@@ -5,7 +5,7 @@
  * прототип, слой заменяется на серверный прокси без изменения интерфейса.
  */
 
-export type GenProvider = 'openai' | 'gemini';
+export type GenProvider = 'pollinations' | 'openai' | 'gemini';
 
 export interface GenKeys {
   openai?: string;
@@ -121,6 +121,9 @@ export async function generateImage(req: GenRequest): Promise<Blob> {
     const raster = r.type.includes('svg') ? await rasterize(r, req.width, req.height) : r;
     if (raster) references.push(raster);
   }
+  if (req.provider === 'pollinations') {
+    return pollinationsGenerate(prompt, req.width, req.height);
+  }
   if (req.provider === 'openai') {
     if (!keys.openai) throw new Error('NO_KEY:openai');
     return references.length
@@ -129,6 +132,23 @@ export async function generateImage(req: GenRequest): Promise<Blob> {
   }
   if (!keys.gemini) throw new Error('NO_KEY:gemini');
   return geminiGenerate(keys.gemini, prompt, references, req.width, req.height);
+}
+
+/**
+ * Pollinations — бесплатная генерация без ключа (картинка приходит прямо по URL).
+ * Референсы не поддерживает, только текст+стиль; для теста и быстрых замен.
+ */
+async function pollinationsGenerate(prompt: string, w: number, h: number): Promise<Blob> {
+  const px = (n: number) => Math.max(256, Math.min(1600, Math.round(n) * 2));
+  const seed = Math.floor(Math.random() * 1e9); // новый вариант при каждом запуске
+  const url =
+    `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}` +
+    `?width=${px(w)}&height=${px(h)}&seed=${seed}&nologo=true`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Pollinations HTTP ${res.status}`);
+  const blob = await res.blob();
+  if (!blob.type.startsWith('image/')) throw new Error('Pollinations: не картинка в ответе');
+  return blob;
 }
 
 async function openaiGenerate(key: string, prompt: string, w: number, h: number): Promise<Blob> {

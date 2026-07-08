@@ -6,7 +6,8 @@
  */
 
 import { SEED_CARS, SEED_PRODUCTS } from '../data/seed';
-import type { CarModel, Order, Product, Promo } from './types';
+import { DEFAULT_MATERIALS, type MaterialInfo } from '../data/materials';
+import type { CarModel, MaterialGrade, Order, Product, Promo } from './types';
 
 const LS = {
   customProducts: 'uf:products:custom',
@@ -15,6 +16,7 @@ const LS = {
   customCars: 'uf:cars:custom',
   orders: 'uf:orders',
   promos: 'uf:promos',
+  materials: 'uf:materials',
 };
 
 function read<T>(key: string, fallback: T): T {
@@ -105,6 +107,27 @@ export const api = {
 
   deleteCar(id: string) {
     write(LS.customCars, read<CarModel[]>(LS.customCars, []).filter((c) => c.id !== id));
+  },
+
+  // ---- materials (паспорта материалов: карбон/композит/АБС) ----
+  listMaterials(): Record<MaterialGrade, MaterialInfo> {
+    const overrides = read<Partial<Record<MaterialGrade, MaterialInfo>>>(LS.materials, {});
+    return {
+      abs: { ...DEFAULT_MATERIALS.abs, ...overrides.abs },
+      composite: { ...DEFAULT_MATERIALS.composite, ...overrides.composite },
+      carbon: { ...DEFAULT_MATERIALS.carbon, ...overrides.carbon },
+    };
+  },
+
+  getMaterial(grade: MaterialGrade): MaterialInfo {
+    return api.listMaterials()[grade];
+  },
+
+  updateMaterial(grade: MaterialGrade, patch: Partial<MaterialInfo>): MaterialInfo {
+    const overrides = read<Partial<Record<MaterialGrade, MaterialInfo>>>(LS.materials, {});
+    overrides[grade] = { ...api.getMaterial(grade), ...patch, grade };
+    write(LS.materials, overrides);
+    return overrides[grade]!;
   },
 
   // ---- orders ----
