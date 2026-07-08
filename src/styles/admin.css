@@ -4,8 +4,17 @@
    Подключается только из pages/Admin.tsx.
    ============================================================ */
 
-.adm-head { padding: 26px 0 18px; }
-.adm-head .stencil { font-size: clamp(28px, 5vw, 54px); }
+.adm-head { padding: 26px 0 18px; position: relative; overflow: hidden; }
+.adm-head .stencil { font-size: clamp(28px, 5vw, 54px); color: var(--blood); animation: adm-flash 1.6s ease-in-out infinite; }
+@keyframes adm-flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+/* stitch: сканирующая линия по шапке STAFF ONLY */
+.adm-head::after {
+  content: ''; position: absolute; left: 0; right: 0; top: 0; height: 2px;
+  background: var(--blood); box-shadow: 0 0 15px var(--blood);
+  animation: adm-scan 3s linear infinite;
+}
+@keyframes adm-scan { 0% { top: 0; opacity: 0; } 50% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
+body.calm .adm-head .stencil, body.calm .adm-head::after { animation: none; }
 .adm-head-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-bottom: 10px; }
 .adm-sub { color: var(--steel); font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; }
 
@@ -94,15 +103,15 @@
   border: 1px dashed rgba(236, 234, 229, 0.25);
 }
 
-/* ---------- forms ---------- */
-.adm-form { margin-top: 6px; }
+/* ---------- forms (stitch: registry terminal) ---------- */
+.adm-form { margin-top: 6px; border: 2px solid var(--blood); box-shadow: 8px 8px 0 rgba(224, 27, 34, 0.2); }
 .adm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
 .adm-grid .span2 { grid-column: 1 / -1; }
 .adm-fld label {
   display: block;
   font-family: var(--font-mono); font-size: 10px; font-weight: 700;
   letter-spacing: 0.16em; text-transform: uppercase;
-  color: var(--steel);
+  color: var(--blood);
   margin-bottom: 6px;
 }
 .adm-fld textarea.field { resize: vertical; min-height: 74px; }
@@ -112,7 +121,7 @@
   color: var(--blood);
   margin-top: 4px;
 }
-.field.invalid { border-color: var(--blood); box-shadow: 0 0 0 1px var(--blood) inset; }
+.field.invalid { border-bottom-color: var(--blood); box-shadow: 0 1px 0 var(--blood); }
 
 .adm-check {
   display: inline-flex; align-items: center; gap: 9px;

@@ -28,6 +28,16 @@
 .uf-cart-row img {
   width: 110px; height: 76px; object-fit: cover;
   clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  filter: grayscale(1);
+  transition: filter 0.3s;
+}
+.uf-cart-row:hover img { filter: grayscale(0); }
+/* stitch: строка корзины — HUD-пластина со сдвигом */
+.uf-cart-list > .panel { transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), border-color 0.2s; }
+.uf-cart-list > .panel:hover {
+  transform: translate(4px, 4px);
+  border-color: var(--blood);
+  box-shadow: inset 0 0 20px rgba(224, 27, 34, 0.15);
 }
 .uf-cart-row-name { font-size: 15px; margin-bottom: 2px; }
 .uf-cart-row-meta { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
@@ -57,12 +67,14 @@
   border-right: 1px solid rgba(236,234,229,0.3);
 }
 
-/* weight plate */
+/* weight plate (stitch: пунктирная рама, дисплейная цифра) */
 .uf-weight {
   display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px;
-  margin-top: 16px; padding: 12px 16px;
+  margin-top: 16px; padding: 14px 16px;
+  background: var(--surface-c-lowest);
+  border: 2px dashed rgba(224, 27, 34, 0.5);
 }
-.uf-weight b { font-family: var(--font-mono); font-size: 22px; color: var(--blood); }
+.uf-weight b { font-family: var(--font-display); font-weight: 900; font-size: 24px; letter-spacing: -0.03em; color: var(--blood); }
 
 /* summary column */
 .uf-summary { position: sticky; top: calc(var(--header-h) + 40px); display: flex; flex-direction: column; gap: 14px; }
@@ -72,6 +84,20 @@
 .uf-summary-row.total {
   font-size: 20px; font-weight: 700;
   border-top: 1px dashed rgba(236,234,229,0.3); padding-top: 10px; margin-top: 4px;
+}
+.uf-summary-row.total span:last-child {
+  font-family: var(--font-display); font-weight: 900; letter-spacing: -0.03em;
+  font-size: 26px; color: var(--blood);
+}
+/* stitch: итоговая панель с красным ребром и hazard-водяным знаком */
+.uf-summary > .panel:first-child, .uf-summary > .panel.rivets {
+  border-right: 4px solid var(--blood);
+  position: relative; overflow: hidden;
+}
+.uf-summary > .panel:first-child::after {
+  content: ''; position: absolute; top: -20%; right: -46px; width: 96px; height: 140%;
+  background: repeating-linear-gradient(45deg, var(--blood) 0 10px, transparent 10px 20px);
+  opacity: 0.12; transform: rotate(12deg); pointer-events: none;
 }
 
 /* promo */
@@ -121,10 +147,11 @@
 
 .uf-co-pay { width: 100%; justify-content: center; font-size: 16px; padding: 16px 26px; }
 
-/* processing console */
+/* processing console (stitch: чёрный терминал с красным ребром) */
 .uf-co-console {
-  background: var(--void);
-  border: 1px solid rgba(236,234,229,0.2);
+  background: #000;
+  border: 1px solid rgba(236,234,229,0.14);
+  border-left: 2px solid var(--blood);
   padding: 22px;
   font-family: var(--font-mono); font-size: 14px;
   min-height: 140px;
@@ -241,9 +268,13 @@ body.calm .uf-confetti i { animation: none; display: none; }
   padding: 22px;
 }
 .uf-acc-avatar {
-  width: 72px; height: 72px; object-fit: cover;
-  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+  width: 88px; height: 88px; object-fit: cover;
+  border: 2px solid var(--blood);
+  clip-path: polygon(0 14px, 14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%);
+  filter: grayscale(1);
+  transition: filter 0.5s;
 }
+.uf-acc-profile:hover .uf-acc-avatar { filter: grayscale(0); }
 .uf-acc-profile-info { flex: 1; min-width: 200px; }
 .uf-acc-profile-info h2 { font-size: 22px; }
 .uf-acc-profile-info .mail { font-family: var(--font-mono); font-size: 13px; color: var(--paper-dim); }
@@ -258,9 +289,12 @@ body.calm .uf-confetti i { animation: none; display: none; }
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 16px;
 }
-.uf-garage-card { padding: 0; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; }
-.uf-garage-card.active { border-color: var(--blood); box-shadow: 0 0 0 1px var(--blood), 0 0 22px rgba(224, 27, 34, 0.35); }
+.uf-garage-card { padding: 0; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s, transform 0.2s, opacity 0.2s; opacity: 0.85; }
+.uf-garage-card:hover { opacity: 1; }
+.uf-garage-card:active { transform: translate(4px, 4px); }
+.uf-garage-card.active { opacity: 1; border-color: var(--blood); box-shadow: 0 0 0 1px var(--blood), 0 0 22px rgba(224, 27, 34, 0.35); }
 .uf-garage-card img { width: 100%; height: 140px; object-fit: cover; }
+.uf-garage-card-tape { transform: rotate(-1.5deg); box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5); }
 .uf-garage-card-body { padding: 14px; }
 .uf-garage-card-body h3 { font-size: 15px; }
 .uf-garage-card-tape { position: absolute; top: 10px; left: -4px; z-index: 2; }

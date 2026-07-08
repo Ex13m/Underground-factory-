@@ -24,6 +24,14 @@
   --glow-red: rgba(224, 27, 34, 0.6);
   --success: #4caf50;
 
+  /* stitch export: слои поверхностей и разделители */
+  --surface-c-lowest: #0e0e0d;
+  --surface-c-low: #1c1c1a;
+  --surface-c: #20201e;
+  --surface-c-high: #2a2a29;
+  --surface-var: #353533;
+  --error-container: #93000a;
+
   --font-display: 'Unbounded', 'Arial Black', sans-serif;
   --font-mono: 'JetBrains Mono', 'Courier New', monospace;
   --font-body: 'Manrope', 'Segoe UI', sans-serif;
@@ -61,11 +69,22 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 input, select, textarea { font: inherit; }
 img, video { display: block; max-width: 100%; }
 
-/* ---------- film grain over everything ---------- */
+/* ---------- film grain over everything (stitch: живое зерно) ---------- */
 .noise {
-  position: fixed; inset: 0; z-index: 9000; pointer-events: none; opacity: 0.05;
+  position: fixed; inset: -100%; width: 300%; height: 300%;
+  z-index: 9000; pointer-events: none; opacity: 0.04;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain 8s steps(10) infinite;
 }
+@keyframes grain {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-5%, -8%); }
+  30% { transform: translate(4%, -4%); }
+  50% { transform: translate(-6%, 6%); }
+  70% { transform: translate(7%, 2%); }
+  90% { transform: translate(-3%, 8%); }
+}
+body.calm .noise { animation: none; inset: 0; width: 100%; height: 100%; }
 
 /* ---------- typography ---------- */
 .stencil {
@@ -86,6 +105,27 @@ img, video { display: block; max-width: 100%; }
   color: var(--steel);
 }
 
+/* stitch: заголовок секции с ромбом-разделителем */
+.section-head {
+  display: flex; align-items: center; gap: 16px; margin-bottom: 32px;
+}
+.section-head .stencil { font-size: clamp(26px, 4vw, 46px); }
+.section-head .rule {
+  flex: 1; height: 2px; background: var(--surface-var); position: relative;
+}
+.section-head .rule::before {
+  content: ''; position: absolute; left: 0; top: 50%;
+  width: 12px; height: 12px; background: var(--blood);
+  transform: translateY(-50%) rotate(45deg);
+}
+
+/* stitch: пульсирующая точка статуса */
+.status-dot {
+  display: inline-block; width: 8px; height: 8px; background: var(--blood);
+  animation: pulse-red 1.5s infinite ease-in-out;
+}
+@keyframes pulse-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
 /* distorted display word */
 .glitch { position: relative; display: inline-block; }
 .glitch::before, .glitch::after {
@@ -103,9 +143,22 @@ img, video { display: block; max-width: 100%; }
   position: relative;
   background: var(--void-2);
   clip-path: var(--panel-clip);
-  border: 1px solid rgba(236, 234, 229, 0.16);
+  border: 1px solid var(--surface-var);
   padding: 20px;
 }
+/* stitch: интерактивные пластины сдвигаются вниз-вправо */
+.panel.hud:hover {
+  transform: translate(4px, 4px);
+  border-color: var(--blood);
+  transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), border-color 0.2s;
+}
+/* stitch: декоративные HUD-уголки */
+.hud-corner {
+  position: absolute; width: 90px; height: 90px;
+  border: 2px solid var(--blood); opacity: 0.4; pointer-events: none;
+}
+.hud-corner.tl { top: 24px; left: 24px; border-right: 0; border-bottom: 0; }
+.hud-corner.br { bottom: 24px; right: 24px; border-left: 0; border-top: 0; }
 .panel.inverse { background: var(--paper); color: var(--void); border-color: rgba(10, 10, 9, 0.2); }
 
 /* rivet dots — put on .panel via extra class */
@@ -183,27 +236,29 @@ img, video { display: block; max-width: 100%; }
   transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
   position: relative;
 }
-.btn:hover { background: #fff; color: var(--void); transform: translate(-1px, -1px); }
-.btn:active { transform: translate(1px, 1px); }
+.btn:hover { filter: brightness(1.12); box-shadow: 0 0 24px rgba(224, 27, 34, 0.45); }
+.btn:active { transform: scale(0.97); }
 .btn.ghost { background: transparent; color: var(--paper); box-shadow: inset 0 0 0 1px rgba(236,234,229,0.4); }
 .btn.ghost:hover { background: var(--paper); color: var(--void); }
 .btn.dark { background: var(--void); color: var(--paper); box-shadow: inset 0 0 0 1px rgba(236,234,229,0.25); }
 .btn.dark:hover { background: var(--blood); color: #fff; }
 .btn:disabled { opacity: 0.4; pointer-events: none; }
 
-/* ---------- inputs ---------- */
+/* ---------- inputs (stitch: подчёркнутые терминальные поля) ---------- */
 .field {
   width: 100%;
-  background: var(--void);
-  border: 1px solid rgba(236, 234, 229, 0.22);
+  background: var(--surface-c-low);
+  border: 0;
+  border-bottom: 2px solid var(--surface-var);
   color: var(--paper);
   font-family: var(--font-mono);
+  font-weight: 700;
   padding: 11px 14px;
   outline: none;
-  transition: border-color 0.15s;
+  transition: border-color 0.2s;
 }
-.field:focus { border-color: var(--blood); }
-.field::placeholder { color: #55575a; }
+.field:focus { border-bottom-color: var(--blood); }
+.field::placeholder { color: #55575a; font-weight: 400; }
 select.field option { background: var(--void-2); }
 
 /* ---------- layout ---------- */
@@ -269,7 +324,7 @@ body.calm .reveal { opacity: 1; transform: none; transition: none; }
   position: sticky; top: 0; z-index: 1000;
   background: rgba(10, 10, 9, 0.92);
   backdrop-filter: blur(8px);
-  border-bottom: 1px solid rgba(236, 234, 229, 0.14);
+  border-bottom: 2px solid var(--blood);
 }
 .uf-header-row {
   height: var(--header-h);
@@ -290,7 +345,7 @@ body.calm .reveal { opacity: 1; transform: none; transition: none; }
   padding: 8px 14px; color: var(--paper-dim);
   position: relative;
 }
-.uf-nav a:hover { color: #fff; }
+.uf-nav a:hover { color: var(--blood); }
 .uf-nav a.active { color: var(--blood); }
 .uf-nav a.active::after { content: ''; position: absolute; left: 14px; right: 14px; bottom: 2px; height: 2px; background: var(--blood); }
 
@@ -306,8 +361,23 @@ body.calm .reveal { opacity: 1; transform: none; transition: none; }
 .hdr-btn .count { color: var(--blood); }
 .hdr-btn.primary .count { color: #fff; }
 
-.uf-footer { border-top: 1px solid rgba(236,234,229,0.14); margin-top: 60px; }
-.uf-footer-row { display: flex; flex-wrap: wrap; align-items: center; gap: 26px; padding: 34px 0; }
+.uf-footer {
+  position: relative; overflow: hidden;
+  background: var(--surface-c-lowest);
+  border-top: 4px solid var(--error-container);
+  margin-top: 60px;
+}
+.uf-footer::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 8px;
+  background: repeating-linear-gradient(45deg, var(--blood) 0 10px, var(--void-2) 10px 20px);
+}
+/* гигантский иероглиф-водяной знак (stitch footer) */
+.uf-footer::after {
+  content: '軽量'; position: absolute; bottom: -80px; right: -40px;
+  font-family: var(--font-jp); font-weight: 900; font-size: 260px;
+  line-height: 1; opacity: 0.05; pointer-events: none;
+}
+.uf-footer-row { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 26px; padding: 40px 0 34px; }
 
 @media (max-width: 900px) {
   .uf-nav { display: none; }

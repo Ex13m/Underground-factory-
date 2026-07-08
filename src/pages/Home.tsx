@@ -84,6 +84,17 @@ export function Home() {
         <VideoBg sources={HERO_VIDEOS} seed="hero" />
         <div className="uf-hero-overlay" aria-hidden />
 
+        {/* stitch HUD: уголки, координаты, статус системы */}
+        <div className="hud-corner tl" aria-hidden />
+        <div className="hud-corner br" aria-hidden style={{ right: 80 }} />
+        <div className="uf-hero-coords" aria-hidden>COORD: 55.7558° N // 37.6173° E</div>
+        <div className="container">
+          <div className="uf-hero-status" aria-hidden>
+            <span className="row"><span className="status-dot" /> SYSTEM ▸ ONLINE</span>
+            <span className="row" style={{ color: 'var(--steel)' }}>ENCRYPTION ▸ AES-256 // UF-042</span>
+          </div>
+        </div>
+
         <div className="uf-side-decal" aria-hidden>
           <span className="v-jp jp">軽量</span>
           <span className="v-tech">UF—042 // CARBON DIV.</span>
