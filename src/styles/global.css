@@ -149,24 +149,21 @@ body.calm .noise { animation: none; inset: 0; width: 100%; height: 100%; }
   93% { transform: translate(-1px, -1px); }
   96% { transform: none; }
 }
+/* слои работают ТОЙ ЖЕ анимацией, что и первый (hover) вариант глитча —
+   glitch-a/glitch-b с бегущими полосами; вторая анимация лишь открывает
+   их вспышками каждые несколько секунд */
 .glitch.auto::before {
   color: var(--blood);
-  animation: glitch-auto-a 4.2s steps(2) infinite;
+  transform: translate(3px, -2px);
+  animation: glitch-a 0.5s steps(3) infinite, glitch-vis-a 4.2s steps(1) infinite;
 }
 .glitch.auto::after {
   color: var(--paper);
-  animation: glitch-auto-b 5.6s steps(2) infinite;
+  transform: translate(-3px, 2px);
+  animation: glitch-b 0.44s steps(3) infinite, glitch-vis-b 5.6s steps(1) infinite;
 }
-@keyframes glitch-auto-a {
-  0%, 84.9%, 94%, 100% { opacity: 0; }
-  85%, 88% { opacity: 0.85; transform: translate(3px, -2px); clip-path: inset(10% 0 55% 0); }
-  89%, 93.9% { opacity: 0.85; transform: translate(-2px, 1px); clip-path: inset(40% 0 25% 0); }
-}
-@keyframes glitch-auto-b {
-  0%, 88.9%, 97%, 100% { opacity: 0; }
-  89%, 92% { opacity: 0.85; transform: translate(-3px, 2px); clip-path: inset(60% 0 10% 0); }
-  93%, 96.9% { opacity: 0.85; transform: translate(2px, -1px); clip-path: inset(20% 0 60% 0); }
-}
+@keyframes glitch-vis-a { 0%, 84.9% { opacity: 0; } 85%, 93% { opacity: 0.85; } 93.1%, 100% { opacity: 0; } }
+@keyframes glitch-vis-b { 0%, 88.9% { opacity: 0; } 89%, 96% { opacity: 0.85; } 96.1%, 100% { opacity: 0; } }
 body.calm .glitch.auto { animation: none; }
 body.calm .glitch.auto::before, body.calm .glitch.auto::after { animation: none; opacity: 0; }
 

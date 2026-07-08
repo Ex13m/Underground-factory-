@@ -73,6 +73,28 @@ export function ArtEditor() {
   const [preview, setPreview] = useState<{ blob: Blob; url: string } | null>(null);
   const [applied, setApplied] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  // плавающее окно: null → позиция по умолчанию (справа сверху), дальше — куда перетащили
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const panelRef = useRef<HTMLElement>(null);
+  const dragRef = useRef<{ dx: number; dy: number } | null>(null);
+
+  function dragStart(e: React.PointerEvent) {
+    const r = panelRef.current?.getBoundingClientRect();
+    if (!r) return;
+    dragRef.current = { dx: e.clientX - r.left, dy: e.clientY - r.top };
+    (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
+  }
+  function dragMove(e: React.PointerEvent) {
+    const d = dragRef.current;
+    if (!d) return;
+    setPos({
+      x: Math.min(Math.max(e.clientX - d.dx, 4), window.innerWidth - 120),
+      y: Math.min(Math.max(e.clientY - d.dy, 4), window.innerHeight - 60),
+    });
+  }
+  function dragEnd() {
+    dragRef.current = null;
+  }
 
   function openTarget(next: ArtTarget) {
     const ov = getOverride(next.key);
@@ -185,8 +207,19 @@ export function ArtEditor() {
     <>
       {artEdit && <div className="artedit-badge tape hazard">{t('art.badge')}</div>}
       {target && (
-        <aside className="artedit-panel panel" data-testid="artedit-panel">
-          <header className="artedit-head">
+        <aside
+          ref={panelRef}
+          className="artedit-panel panel"
+          data-testid="artedit-panel"
+          style={pos ? { left: pos.x, top: pos.y, right: 'auto' } : undefined}
+        >
+          <header
+            className="artedit-head"
+            onPointerDown={dragStart}
+            onPointerMove={dragMove}
+            onPointerUp={dragEnd}
+            title="Перетащите за шапку"
+          >
             <span className="tech-label">{t('art.title')}</span>
             <button className="artedit-x" onClick={() => setTarget(null)} aria-label={t('common.cancel')}>✕</button>
           </header>

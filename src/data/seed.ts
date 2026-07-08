@@ -250,9 +250,16 @@ export const SEED_PRODUCTS: Product[] = [
 
 /** Hero/background video candidates — first reachable one wins, otherwise animated fallback. */
 export const HERO_VIDEOS = [
-  // монтаж из трёх ночных эпизодов (сгенерировано Higgsfield kling3_0_turbo,
-  // лежат локально): дрифт → бёрнаут-пончик → старт гонки, по кругу
+  // монтаж из десяти ночных эпизодов (сгенерировано Higgsfield kling3_0_turbo,
+  // лежат локально), играют по кругу
   '/video/hero-drift.mp4',
+  '/video/hero-s15-dock.mp4',
   '/video/hero-burnout.mp4',
+  '/video/hero-supra-hwy.mp4',
+  '/video/hero-rx7-touge.mp4',
   '/video/hero-race.mp4',
+  '/video/hero-ae86-hill.mp4',
+  '/video/hero-r34-tunnel.mp4',
+  '/video/hero-garage.mp4',
+  '/video/hero-lada-snow.mp4',
 ];
