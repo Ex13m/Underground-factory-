@@ -169,7 +169,9 @@ export function Checkout() {
     <div className="page container">
       <div className="uf-page-head">
         <span className="tech-label">{t('cart.checkout.phase')}</span>
-        <h1 className="stencil">{t('cart.checkout.title')}</h1>
+        <h1 className="stencil">
+          <span className="glitch auto" data-text={t('cart.checkout.title')}>{t('cart.checkout.title')}</span>
+        </h1>
         <span className="tech-label">{t('cart.checkout.secure')}</span>
       </div>
 

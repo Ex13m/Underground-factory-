@@ -136,16 +136,27 @@ export async function generateImage(req: GenRequest): Promise<Blob> {
 }
 
 /**
- * Pollinations — бесплатная генерация без ключа (картинка приходит прямо по URL).
- * Референсы не поддерживает, только текст+стиль; для теста и быстрых замен.
+ * Pollinations — бесплатная генерация без ключа: картинка живёт прямо по URL.
+ * Простейший автономный путь: браузер показывает URL обычным <img>,
+ * «Применить» сохраняет саму ссылку (см. mediaStore.setUrlOverride) —
+ * никакого скачивания кодом, ломаться нечему.
  */
-async function pollinationsGenerate(prompt: string, w: number, h: number): Promise<Blob> {
+export function pollinationsUrl(prompt: string, w: number, h: number): string {
   const px = (n: number) => Math.max(256, Math.min(1600, Math.round(n) * 2));
   const seed = Math.floor(Math.random() * 1e9); // новый вариант при каждом запуске
-  const url =
+  return (
     `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}` +
-    `?width=${px(w)}&height=${px(h)}&seed=${seed}&nologo=true`;
-  const res = await fetch(url);
+    `?width=${px(w)}&height=${px(h)}&seed=${seed}&nologo=true`
+  );
+}
+
+/** Собрать финальный промпт с учётом стилевого суффикса сайта. */
+export function finalPrompt(prompt: string, useStyle: boolean): string {
+  return useStyle ? `${prompt}\n\n${STYLE_SUFFIX}` : prompt;
+}
+
+async function pollinationsGenerate(prompt: string, w: number, h: number): Promise<Blob> {
+  const res = await fetch(pollinationsUrl(prompt, w, h));
   if (!res.ok) throw new Error(`Pollinations HTTP ${res.status}`);
   const blob = await res.blob();
   if (!blob.type.startsWith('image/')) throw new Error('Pollinations: не картинка в ответе');

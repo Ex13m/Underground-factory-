@@ -140,30 +140,31 @@ body.calm .noise { animation: none; inset: 0; width: 100%; height: 100%; }
 
 /* автоглитч: надпись «дрожит» сама, без наведения — фирменный эффект
    (hero-заголовок, названия тачек, заголовок каталога) */
-.glitch.auto { animation: glitch-tremor 2.6s steps(2) infinite; }
+/* единый цикл 4.2s: дрожание текста и rgb-вспышки слоёв происходят В ОДИН
+   момент (как в первом hover-варианте), а не вразнобой */
+.glitch.auto { animation: glitch-tremor 4.2s steps(2) infinite; }
 @keyframes glitch-tremor {
-  0%, 82%, 100% { transform: none; }
-  84% { transform: translate(1.5px, -1px) skewX(-0.5deg); }
-  87% { transform: translate(-1.5px, 1px); }
+  0%, 84%, 100% { transform: none; }
+  86% { transform: translate(1.5px, -1px) skewX(-0.5deg); }
+  88% { transform: translate(-1.5px, 1px); }
   90% { transform: translate(1px, 1.5px) skewX(0.4deg); }
-  93% { transform: translate(-1px, -1px); }
-  96% { transform: none; }
+  92% { transform: translate(-1px, -1px); }
+  94% { transform: none; }
 }
 /* слои работают ТОЙ ЖЕ анимацией, что и первый (hover) вариант глитча —
-   glitch-a/glitch-b с бегущими полосами; вторая анимация лишь открывает
-   их вспышками каждые несколько секунд */
+   glitch-a/glitch-b с бегущими полосами; vis-маска открывает их в том же
+   окне 84–94%, что и дрожание */
 .glitch.auto::before {
   color: var(--blood);
   transform: translate(3px, -2px);
-  animation: glitch-a 0.5s steps(3) infinite, glitch-vis-a 4.2s steps(1) infinite;
+  animation: glitch-a 0.5s steps(3) infinite, glitch-vis 4.2s steps(1) infinite;
 }
 .glitch.auto::after {
   color: var(--paper);
   transform: translate(-3px, 2px);
-  animation: glitch-b 0.44s steps(3) infinite, glitch-vis-b 5.6s steps(1) infinite;
+  animation: glitch-b 0.44s steps(3) infinite, glitch-vis 4.2s steps(1) infinite;
 }
-@keyframes glitch-vis-a { 0%, 84.9% { opacity: 0; } 85%, 93% { opacity: 0.85; } 93.1%, 100% { opacity: 0; } }
-@keyframes glitch-vis-b { 0%, 88.9% { opacity: 0; } 89%, 96% { opacity: 0.85; } 96.1%, 100% { opacity: 0; } }
+@keyframes glitch-vis { 0%, 84% { opacity: 0; } 84.1%, 94% { opacity: 0.85; } 94.1%, 100% { opacity: 0; } }
 body.calm .glitch.auto { animation: none; }
 body.calm .glitch.auto::before, body.calm .glitch.auto::after { animation: none; opacity: 0; }
 

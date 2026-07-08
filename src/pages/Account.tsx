@@ -42,7 +42,9 @@ export function Account() {
     <div className="page container">
       <div className="uf-page-head">
         <span className="tech-label">{t('account.phase')}</span>
-        <h1 className="stencil">{t('account.title')}</h1>
+        <h1 className="stencil">
+          <span className="glitch auto" data-text={t('account.title')}>{t('account.title')}</span>
+        </h1>
       </div>
 
       <div className="uf-acc-sections">

@@ -15,9 +15,12 @@ import { bus } from '../lib/bus';
 import { useI18n } from '../lib/i18n';
 import { useUI } from '../store/ui';
 import {
-  generateImage, fetchAsBlob, readGenKeys, writeGenKeys, type GenProvider,
+  generateImage, fetchAsBlob, readGenKeys, writeGenKeys,
+  pollinationsUrl, finalPrompt, type GenProvider,
 } from '../lib/imagegen';
-import { getOverride, setOverride, removeOverride, type MediaKind } from '../lib/mediaStore';
+import {
+  getOverride, setOverride, setUrlOverride, removeOverride, type MediaKind,
+} from '../lib/mediaStore';
 import '../styles/art-editor.css';
 
 interface RefCand {
@@ -71,7 +74,8 @@ export function ArtEditor() {
   const [useStyle, setUseStyle] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [preview, setPreview] = useState<{ blob: Blob; url: string } | null>(null);
+  // blob === null → URL-режим (Pollinations): применяется сама ссылка
+  const [preview, setPreview] = useState<{ blob: Blob | null; url: string } | null>(null);
   const [applied, setApplied] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   // плавающее окно: null → позиция по умолчанию (справа сверху), дальше — куда перетащили
@@ -152,7 +156,7 @@ export function ArtEditor() {
 
   function clearPreview() {
     setPreview((p) => {
-      if (p) URL.revokeObjectURL(p.url);
+      if (p?.blob) URL.revokeObjectURL(p.url);
       return null;
     });
   }
@@ -164,9 +168,26 @@ export function ArtEditor() {
 
   async function generate() {
     if (!target || !prompt.trim() || busy) return;
-    setBusy(true);
     setError('');
     setApplied(false);
+
+    // простейший путь: без ключей — картинка прямо по URL, браузер грузит её
+    // сам через <img>, кодом ничего не качаем (CORS/сеть не при чём)
+    const keys = readGenKeys();
+    const keyless =
+      provider === 'pollinations' ||
+      (provider === 'openai' && !keys.openai) ||
+      (provider === 'gemini' && !keys.gemini);
+    if (keyless) {
+      clearPreview();
+      setPreview({
+        blob: null,
+        url: pollinationsUrl(finalPrompt(prompt.trim(), useStyle), target.width, target.height),
+      });
+      return;
+    }
+
+    setBusy(true);
     try {
       const blobs = await Promise.all(refs.filter((r) => r.on).map((r) => fetchAsBlob(r.url)));
       const blob = await generateImage({
@@ -188,7 +209,12 @@ export function ArtEditor() {
 
   async function apply() {
     if (!target || !preview) return;
-    await setOverride(target.key, 'image', preview.blob, { prompt: prompt.trim(), provider });
+    if (preview.blob) {
+      await setOverride(target.key, 'image', preview.blob, { prompt: prompt.trim(), provider });
+    } else {
+      // URL-режим: сохраняем саму ссылку — легко, автономно, переживает перезагрузку
+      setUrlOverride(target.key, preview.url, prompt.trim());
+    }
     clearPreview();
     setApplied(true);
   }

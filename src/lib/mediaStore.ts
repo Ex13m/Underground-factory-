@@ -34,6 +34,33 @@ interface CacheEntry {
 const cache = new Map<string, CacheEntry>();
 let ready = false;
 
+/**
+ * URL-оверрайды (localStorage): замена картинки прямой ссылкой без скачивания
+ * блоба — простейший автономный путь (Pollinations отдаёт картинку по URL).
+ * Блоб-оверрайд, если есть, имеет приоритет.
+ */
+const URL_LS = 'uf:media-urls';
+type UrlOverride = { url: string; prompt?: string; updatedAt: number };
+
+function readUrlMap(): Record<string, UrlOverride> {
+  try {
+    return JSON.parse(localStorage.getItem(URL_LS) ?? '{}') as Record<string, UrlOverride>;
+  } catch {
+    return {};
+  }
+}
+
+function writeUrlMap(map: Record<string, UrlOverride>) {
+  localStorage.setItem(URL_LS, JSON.stringify(map));
+  emit();
+}
+
+export function setUrlOverride(key: string, url: string, prompt?: string) {
+  const map = readUrlMap();
+  map[key] = { url, prompt, updatedAt: Date.now() };
+  writeUrlMap(map);
+}
+
 function openDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, 1);
@@ -84,11 +111,19 @@ export async function initMediaStore(): Promise<void> {
 }
 
 export function getOverride(key: string): CacheEntry | undefined {
-  return cache.get(key);
+  const blob = cache.get(key);
+  if (blob) return blob;
+  const u = readUrlMap()[key];
+  return u ? { url: u.url, kind: 'image', prompt: u.prompt, updatedAt: u.updatedAt } : undefined;
 }
 
 export function listOverrides(): Array<{ key: string } & CacheEntry> {
-  return [...cache.entries()]
+  const merged = new Map<string, CacheEntry>();
+  for (const [key, u] of Object.entries(readUrlMap())) {
+    merged.set(key, { url: u.url, kind: 'image', prompt: u.prompt, updatedAt: u.updatedAt });
+  }
+  for (const [key, e] of cache.entries()) merged.set(key, e); // блоб приоритетнее
+  return [...merged.entries()]
     .map(([key, e]) => ({ key, ...e }))
     .sort((a, b) => b.updatedAt - a.updatedAt);
 }
@@ -126,6 +161,11 @@ export async function removeOverride(key: string): Promise<void> {
   const old = cache.get(key);
   if (old) URL.revokeObjectURL(old.url);
   cache.delete(key);
+  const map = readUrlMap();
+  if (map[key]) {
+    delete map[key];
+    writeUrlMap(map);
+  }
   emit();
 }
 
@@ -133,6 +173,7 @@ export async function clearOverrides(): Promise<void> {
   await tx('readwrite', (s) => s.clear());
   for (const e of cache.values()) URL.revokeObjectURL(e.url);
   cache.clear();
+  localStorage.removeItem(URL_LS);
   emit();
 }
 

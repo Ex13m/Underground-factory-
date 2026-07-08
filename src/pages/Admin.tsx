@@ -93,7 +93,9 @@ export function Admin() {
             <span className="tape hazard">{t('admin.tape')}</span>
             <span className="barcode" aria-hidden />
           </div>
-          <h1 className="stencil">{t('admin.title')}</h1>
+          <h1 className="stencil">
+            <span className="glitch auto" data-text={t('admin.title')}>{t('admin.title')}</span>
+          </h1>
           <p className="adm-sub">{t('admin.sub')}</p>
         </header>
 

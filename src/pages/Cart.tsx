@@ -82,7 +82,9 @@ export function Cart() {
     <div className="page container">
       <div className="uf-page-head">
         <span className="tech-label">{t('cart.phase')}</span>
-        <h1 className="stencil">{t('cart.title')}</h1>
+        <h1 className="stencil">
+          <span className="glitch auto" data-text={t('cart.title')}>{t('cart.title')}</span>
+        </h1>
         <span className="tech-label">{t('cart.positions', { n: rows.length })}</span>
       </div>
 
