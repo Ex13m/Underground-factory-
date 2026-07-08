@@ -124,11 +124,25 @@ export function Img({
   );
 }
 
-/** Фоновое видео с каскадом источников и арт-фолбэком (анимированные декали на CSS). */
+/**
+ * Фоновое видео: список источников — это ПЛЕЙЛИСТ (монтаж эпизодов):
+ * ролики играют по очереди и зацикливаются по кругу; битый источник
+ * выбывает из ротации. Если живых не осталось — арт-фолбэк.
+ */
 export function VideoBg({ sources, seed, className }: { sources: string[]; seed: string; className?: string }) {
   const [idx, setIdx] = useState(0);
+  const [dead, setDead] = useState<ReadonlySet<number>>(new Set());
   const fallback = useMemo(() => genArt(seed, 1600, 900), [seed]);
   const override = useMediaOverride(seed);
+
+  const alive = sources.map((_, i) => i).filter((i) => !dead.has(i));
+  const nextAlive = (from: number) => {
+    for (let step = 1; step <= sources.length; step++) {
+      const i = (from + step) % sources.length;
+      if (!dead.has(i)) return i;
+    }
+    return -1;
+  };
   if (override?.kind === 'video') {
     return (
       <video
@@ -153,7 +167,7 @@ export function VideoBg({ sources, seed, className }: { sources: string[]; seed:
       </div>
     );
   }
-  if (idx >= sources.length) {
+  if (alive.length === 0) {
     return (
       <div className={`videobg-fallback ${className ?? ''}`} aria-hidden data-uf-media={seed} data-uf-kind="video">
         <img src={fallback} alt="" />
@@ -161,16 +175,22 @@ export function VideoBg({ sources, seed, className }: { sources: string[]; seed:
       </div>
     );
   }
+  const cur = dead.has(idx) ? nextAlive(idx) : idx;
   return (
     <video
-      key={sources[idx]}
+      key={sources[cur]}
       className={className}
-      src={sources[idx]}
+      src={sources[cur]}
       autoPlay
       muted
-      loop
+      // один живой ролик — обычный loop; несколько — монтаж по кругу
+      loop={alive.length === 1}
       playsInline
-      onError={() => setIdx((i) => i + 1)}
+      onEnded={() => setIdx(nextAlive(cur))}
+      onError={() => {
+        setDead((d) => new Set(d).add(cur));
+        setIdx(nextAlive(cur));
+      }}
       data-uf-media={seed}
       data-uf-kind="video"
     />

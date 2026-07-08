@@ -250,8 +250,9 @@ export const SEED_PRODUCTS: Product[] = [
 
 /** Hero/background video candidates — first reachable one wins, otherwise animated fallback. */
 export const HERO_VIDEOS = [
-  // сгенерировано нейросетью (Higgsfield kling3_0_turbo) под стиль сайта — лежит локально
+  // монтаж из трёх ночных эпизодов (сгенерировано Higgsfield kling3_0_turbo,
+  // лежат локально): дрифт → бёрнаут-пончик → старт гонки, по кругу
   '/video/hero-drift.mp4',
-  // внешние запасные (если локальный файл недоступен — каскад идёт дальше)
-  'https://videos.pexels.com/video-files/4568563/4568563-hd_1920_1080_30fps.mp4',
+  '/video/hero-burnout.mp4',
+  '/video/hero-race.mp4',
 ];
