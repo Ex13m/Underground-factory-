@@ -6,6 +6,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useI18n } from '../lib/i18n';
 import { bus } from '../lib/bus';
 import '../styles/gdpr.css';
@@ -40,10 +41,18 @@ export function GdprBanner() {
     window.setTimeout(() => window.location.reload(), 1200);
   };
 
-  return (
+  // портал в body: никакой transform/filter у предков не превратит
+  // position:fixed в «прилипший к контенту» — баннер всегда плавает над футером
+  return createPortal(
     <>
       {!accepted && (
-        <div className="gdpr panel" role="dialog" aria-label="GDPR" data-testid="gdpr">
+        <div
+          className="gdpr panel"
+          role="dialog"
+          aria-label="GDPR"
+          data-testid="gdpr"
+          style={{ position: 'fixed', right: 14, bottom: 14 }}
+        >
           <span className="tape dark">GDPR</span>
           <p className="gdpr-text">{t('gdpr.text')}</p>
           <div className="gdpr-actions">
@@ -95,6 +104,7 @@ export function GdprBanner() {
           GDPR
         </button>
       )}
-    </>
+    </>,
+    document.body,
   );
 }

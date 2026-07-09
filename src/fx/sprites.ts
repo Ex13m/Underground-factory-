@@ -141,18 +141,29 @@ export function drawFlag(
   t: number,
   aim: boolean,
 ): void {
-  // --- перекрестие с зазором: 4 штриха вокруг пустого центра + точка
+  // --- перекрестие с зазором: 4 штриха вокруг пустого центра + точка.
+  // Двойной штрих: сначала тёмная подложка (читаемость на светлых панелях),
+  // сверху — светлый/красный.
   const gap = aim ? 2.5 : 3.5;
   const len = aim ? 4 : 5.5;
-  ctx.strokeStyle = aim ? BLOOD : PAPER;
-  ctx.lineWidth = 1.5;
-  ctx.globalAlpha = 0.95;
   ctx.beginPath();
   for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
     ctx.moveTo(x + dx * gap, y + dy * gap);
     ctx.lineTo(x + dx * (gap + len), y + dy * (gap + len));
   }
+  ctx.strokeStyle = 'rgba(10, 10, 9, 0.9)';
+  ctx.lineWidth = 3.5;
+  ctx.globalAlpha = 0.9;
   ctx.stroke();
+  ctx.strokeStyle = aim ? BLOOD : PAPER;
+  ctx.lineWidth = 1.5;
+  ctx.globalAlpha = 0.95;
+  ctx.stroke();
+  // точка: тёмное кольцо + красный центр
+  ctx.fillStyle = 'rgba(10, 10, 9, 0.9)';
+  ctx.beginPath();
+  ctx.arc(x, y, 2.4, 0, Math.PI * 2);
+  ctx.fill();
   ctx.fillStyle = BLOOD;
   ctx.beginPath();
   ctx.arc(x, y, 1.4, 0, Math.PI * 2);

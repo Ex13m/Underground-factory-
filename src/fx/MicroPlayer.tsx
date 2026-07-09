@@ -1,7 +1,8 @@
 /**
  * Микро-плеер UNDERGROUND FACTORY: треки в случайном порядке, переходы —
- * ровные кроссфейды equal-power (два <audio> по очереди). Автостарт: пробуем
- * сразу; если браузер блокирует звук без жеста — запускаемся при первом клике.
+ * ровные кроссфейды equal-power (два <audio> по очереди).
+ * БЕЗ автозапуска (UX: навязанный звук раздражает) — радио стартует только
+ * по нажатию ▶; до первого запуска кнопка мягко пульсирует.
  * Управление: play/pause, назад, вперёд, громкость, mute.
  *
  * Музыкальный цех (store/radio + Админка → РАДИО):
@@ -410,22 +411,16 @@ export function MicroPlayer() {
       .catch(() => { /* заблокировано — попробуем на следующем жесте */ });
   };
 
-  // автостарт: пробуем сразу; дальше ДОБИВАЕМСЯ запуска на каждом жесте,
-  // пока звук не пошёл (после ручной паузы юзера больше не навязываемся)
+  // БЕЗ автозапуска: звук — только по явному нажатию ▶.
+  // Жесты лишь будят AudioContext, чтобы мастеринг завёлся мгновенно при старте.
   const userPausedRef = useRef(false);
   useEffect(() => {
-    start();
-    const onGesture = () => {
-      resumeCtx(); // жест — легальный момент разбудить AudioContext
-      if (!startedRef.current && !userPausedRef.current) start();
-    };
+    const onGesture = () => resumeCtx();
     window.addEventListener('pointerdown', onGesture, true);
     window.addEventListener('keydown', onGesture, true);
-    window.addEventListener('touchstart', onGesture, true);
     return () => {
       window.removeEventListener('pointerdown', onGesture, true);
       window.removeEventListener('keydown', onGesture, true);
-      window.removeEventListener('touchstart', onGesture, true);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -511,7 +506,11 @@ export function MicroPlayer() {
       <button className="ufplayer-btn" onClick={skipBack} aria-label="prev" disabled={!playing}>
         ⏮
       </button>
-      <button className="ufplayer-btn" onClick={toggle} aria-label="play/pause">
+      <button
+        className={`ufplayer-btn${!playing && !startedRef.current ? ' invite' : ''}`}
+        onClick={toggle}
+        aria-label="play/pause"
+      >
         {playing ? '❚❚' : '▶'}
       </button>
       <button className="ufplayer-btn" onClick={skipNext} aria-label="next" disabled={!playing}>
