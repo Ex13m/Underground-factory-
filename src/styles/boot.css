@@ -115,3 +115,11 @@
 .boot--out .boot-video { filter: saturate(0.6) contrast(1.15); }
 
 .boot-stripe { position: absolute; bottom: 0; left: 0; right: 0; }
+
+/* Во время интро канвас кастомного курсора лежит ПОД оверлеем (z 9600 < 9800),
+   а системный курсор спрятан глобально (html.fx-no-cursor) — вернуть его,
+   иначе SKIP приходится искать вслепую. */
+html.fx-no-cursor .boot,
+html.fx-no-cursor .boot * { cursor: auto; }
+html.fx-no-cursor .boot button,
+html.fx-no-cursor .boot [role="button"] { cursor: pointer; }
