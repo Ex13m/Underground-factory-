@@ -5,8 +5,9 @@
  * Право на удаление — кнопка «Стереть мои данные» (чистит всё локальное).
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useI18n } from '../lib/i18n';
+import { bus } from '../lib/bus';
 import '../styles/gdpr.css';
 
 const LS_KEY = 'uf:gdpr';
@@ -16,6 +17,9 @@ export function GdprBanner() {
   const [accepted, setAccepted] = useState(() => localStorage.getItem(LS_KEY) === 'accepted');
   const [policyOpen, setPolicyOpen] = useState(false);
   const [wiped, setWiped] = useState(false);
+
+  // политику можно открыть из любого места сайта (окно входа и т.п.)
+  useEffect(() => bus.on('gdpr:open', () => setPolicyOpen(true)), []);
 
   const accept = () => {
     localStorage.setItem(LS_KEY, 'accepted');
@@ -61,9 +65,11 @@ export function GdprBanner() {
               <button className="artedit-x" onClick={() => setPolicyOpen(false)}>✕</button>
             </div>
             <div className="gdpr-modal-body">
+              <p>{t('gdpr.policy.controller')}</p>
               <p>{t('gdpr.policy.what')}</p>
               <p>{t('gdpr.policy.no')}</p>
               <p>{t('gdpr.policy.third')}</p>
+              <p>{t('gdpr.policy.rights')}</p>
               <p>{t('gdpr.policy.erase')}</p>
             </div>
             <div className="gdpr-actions">

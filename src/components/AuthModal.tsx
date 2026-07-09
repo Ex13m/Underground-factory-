@@ -73,6 +73,8 @@ export function AuthModal() {
 
   const [open, setOpen] = useState(false);
   const [redirecting, setRedirecting] = useState<AuthProvider | null>(null);
+  // GDPR: без явного согласия кнопки входа заблокированы
+  const [consent, setConsent] = useState(false);
 
   useEffect(() => bus.on('auth:open', () => setOpen(true)), []);
 
@@ -130,17 +132,37 @@ export function AuthModal() {
             </div>
           </div>
         ) : (
-          <div className="uf-oauth-list">
-            <button className="uf-oauth-btn" onClick={() => go('google')} data-testid="oauth-google">
-              <GoogleIcon /> {t('account.auth.google')}
-            </button>
-            <button className="uf-oauth-btn apple" onClick={() => go('apple')} data-testid="oauth-apple">
-              <AppleIcon /> {t('account.auth.apple')}
-            </button>
-            <button className="uf-oauth-btn github" onClick={() => go('github')} data-testid="oauth-github">
-              <GitHubIcon /> {t('account.auth.github')}
-            </button>
-          </div>
+          <>
+            <div className="uf-oauth-list" style={{ opacity: consent ? 1 : 0.45 }}>
+              <button className="uf-oauth-btn" onClick={() => go('google')} disabled={!consent} data-testid="oauth-google">
+                <GoogleIcon /> {t('account.auth.google')}
+              </button>
+              <button className="uf-oauth-btn apple" onClick={() => go('apple')} disabled={!consent} data-testid="oauth-apple">
+                <AppleIcon /> {t('account.auth.apple')}
+              </button>
+              <button className="uf-oauth-btn github" onClick={() => go('github')} disabled={!consent} data-testid="oauth-github">
+                <GitHubIcon /> {t('account.auth.github')}
+              </button>
+            </div>
+            {/* GDPR: явное согласие перед входом/регистрацией */}
+            <label className="uf-gdpr-consent" data-testid="auth-consent">
+              <input
+                type="checkbox"
+                checked={consent}
+                onChange={(e) => setConsent(e.target.checked)}
+              />
+              <span>
+                {t('gdpr.consent')}{' '}
+                <button
+                  type="button"
+                  className="uf-gdpr-link"
+                  onClick={() => bus.emit('gdpr:open')}
+                >
+                  {t('gdpr.policy.title')}
+                </button>
+              </span>
+            </label>
+          </>
         )}
 
         <div className="tech-label uf-auth-demo">{t('account.auth.demo')}</div>

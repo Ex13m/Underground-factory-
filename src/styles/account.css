@@ -233,6 +233,23 @@ body.calm .uf-confetti i { animation: none; display: none; }
 
 .uf-auth-demo { margin-top: 16px; text-align: center; }
 
+/* GDPR-согласие в окне входа */
+.uf-gdpr-consent {
+  display: flex; gap: 10px; align-items: flex-start;
+  margin-top: 14px;
+  font-family: var(--font-mono); font-size: 11px; line-height: 1.5;
+  color: var(--paper-dim);
+  cursor: pointer;
+}
+.uf-gdpr-consent input { accent-color: var(--blood); width: 15px; height: 15px; margin-top: 1px; cursor: pointer; flex-shrink: 0; }
+.uf-gdpr-link {
+  color: var(--blood);
+  text-decoration: underline;
+  font-size: 11px;
+  padding: 0;
+}
+.uf-oauth-btn:disabled { cursor: not-allowed; }
+
 /* fake redirect popup */
 .uf-auth-popup {
   border: 1px solid rgba(236,234,229,0.25);
