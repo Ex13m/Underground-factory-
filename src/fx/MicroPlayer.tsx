@@ -69,21 +69,20 @@ export function MicroPlayer() {
     return orderRef.current[posRef.current];
   };
 
-  /** длина следующего кроссфейда выбирается заранее (на трек) */
-  const plannedFadeRef = useRef(3);
+  /** нормальный переход: ровный кроссфейд фиксированной длины */
+  const FADE_SEC = 1.5;
 
   /** диджейский кроссфейд equal-power: без провала громкости в середине */
   const crossfade = (toTrack: Track, fadeSec?: number) => {
     const cur = curEl();
     const nxt = nxtEl();
-    const fade = Math.max(0.5, fadeSec ?? plannedFadeRef.current);
+    const fade = Math.max(0.5, fadeSec ?? FADE_SEC);
     fadingRef.current = true;
 
     nxt.src = toTrack.url;
     nxt.volume = 0;
     nxt.play().catch(() => { /* не сыграл — подхватим на следующем тике */ });
     setTitle(toTrack.title);
-    plannedFadeRef.current = 2 + Math.random() * 3; // фейд для следующего перехода
 
     cancelAnimationFrame(rafRef.current);
     const t0 = performance.now();
@@ -141,15 +140,14 @@ export function MicroPlayer() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // хвост трека → фейд стартует РОВНО за выбранную длину до конца:
-  // текущий дозвучивает весь фейд, не обрываясь
+  // хвост трека → ровный кроссфейд в самом конце, текущий дозвучивает полностью
   useEffect(() => {
     if (!playing) return;
     const iv = window.setInterval(() => {
       const cur = curEl();
       if (!cur || fadingRef.current || !cur.duration) return;
       const left = cur.duration - cur.currentTime;
-      if (left <= plannedFadeRef.current) crossfade(nextTrack(), Math.max(0.5, left - 0.1));
+      if (left <= FADE_SEC) crossfade(nextTrack(), Math.max(0.5, left - 0.1));
     }, 250);
     return () => window.clearInterval(iv);
     // eslint-disable-next-line react-hooks/exhaustive-deps
