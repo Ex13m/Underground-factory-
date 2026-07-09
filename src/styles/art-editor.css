@@ -149,3 +149,7 @@ body.art-edit .uf-hero-content { position: relative; z-index: 2; }
   display: block;
   border: 1px solid rgba(236, 234, 229, 0.25);
 }
+
+/* поле API-ключа провайдера */
+.artedit-keyrow { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+.artedit-keyrow .field { flex: 1; min-width: 0; font-size: 12px; }

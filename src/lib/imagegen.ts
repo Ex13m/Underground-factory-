@@ -233,6 +233,47 @@ async function geminiGenerate(
   return b64ToBlob(img.data, img.mimeType ?? img.mime_type ?? 'image/png');
 }
 
+/**
+ * Опознание тачки по фото (Gemini vision, нужен свой ключ):
+ * возвращает { name, passport } — марка/модель и «паспорт» в стиле цеха.
+ */
+export async function geminiIdentifyCar(
+  key: string,
+  jpegBase64: string,
+): Promise<{ name: string; passport: string }> {
+  const body = {
+    contents: [
+      {
+        parts: [
+          { inline_data: { mime_type: 'image/jpeg', data: jpegBase64 } },
+          {
+            text:
+              'Опознай автомобиль на фото. Ответь СТРОГО одним JSON без пояснений: ' +
+              '{"name":"Марка Модель (поколение или годы)","passport":"краткий паспорт машины по-русски в дерзком стиле андеграунд-гаража: цвет, кузов, диски, характерные детали — одна-две фразы"}',
+          },
+        ],
+      },
+    ],
+  };
+  const res = await fetch(
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+      body: JSON.stringify(body),
+    },
+  );
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data?.error?.message ?? `Gemini HTTP ${res.status}`);
+  const text: string =
+    data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text ?? '').join('') ?? '';
+  const m = text.match(/\{[\s\S]*\}/);
+  if (!m) throw new Error('Gemini: ответ без JSON');
+  const parsed = JSON.parse(m[0]) as { name?: string; passport?: string };
+  if (!parsed.name) throw new Error('Gemini: не опознал машину');
+  return { name: parsed.name, passport: parsed.passport ?? '' };
+}
+
 /** Достать текущую картинку как блоб для референса (best-effort: CORS может не пустить). */
 export async function fetchAsBlob(src: string): Promise<Blob | undefined> {
   try {

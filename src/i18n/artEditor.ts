@@ -28,6 +28,8 @@ export default {
     'art.order.hint': 'Заявка уходит в очередь (Админка → АРТ); исполняет Claude в терминале — качество выше бесплатного',
     'art.order.done': 'ЗАЯВКА В ОЧЕРЕДИ ▸ Админка → АРТ',
     'art.upload.image': 'Картинка файлом',
+    'art.key.ph': 'API-ключ провайдера (AIza… для Gemini)',
+    'art.key.note': 'ключ хранится только в этом браузере',
   },
   en: {
     'art.badge': 'ART EDITOR ▸ ACTIVE',
@@ -57,5 +59,7 @@ export default {
     'art.order.hint': 'Ticket goes to the queue (Admin → ART); Claude executes it in the terminal — higher quality than the free tier',
     'art.order.done': 'TICKET QUEUED ▸ Admin → ART',
     'art.upload.image': 'Image from file',
+    'art.key.ph': 'Provider API key (AIza… for Gemini)',
+    'art.key.note': 'the key lives only in this browser',
   },
 } as { ru: Record<string, string>; en: Record<string, string> };

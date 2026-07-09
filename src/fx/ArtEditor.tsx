@@ -103,6 +103,12 @@ export function ArtEditor() {
   const [refs, setRefs] = useState<RefCand[]>([]);
   const [prompt, setPrompt] = useState('');
   const [provider, setProvider] = useState<GenProvider>(readGenKeys().provider ?? 'pollinations');
+  /** черновик API-ключа выбранного провайдера (живёт в localStorage через writeGenKeys) */
+  const [keyDraft, setKeyDraft] = useState('');
+  useEffect(() => {
+    const k = readGenKeys();
+    setKeyDraft(provider === 'openai' ? k.openai ?? '' : provider === 'gemini' ? k.gemini ?? '' : '');
+  }, [provider]);
   const [useStyle, setUseStyle] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -398,6 +404,24 @@ export function ArtEditor() {
               NANO BANANA 2
             </button>
           </div>
+
+          {/* ключ выбранного провайдера: хранится ТОЛЬКО в этом браузере */}
+          {provider !== 'pollinations' && (
+            <div className="artedit-keyrow">
+              <input
+                className="field"
+                type="password"
+                autoComplete="off"
+                value={keyDraft}
+                placeholder={t('art.key.ph')}
+                onChange={(e) => {
+                  setKeyDraft(e.target.value);
+                  writeGenKeys({ [provider]: e.target.value.trim() } as Partial<import('../lib/imagegen').GenKeys>);
+                }}
+              />
+              <span className="tech-label">{t('art.key.note')}</span>
+            </div>
+          )}
 
           <label className="artedit-check">
             <input type="checkbox" checked={useStyle} onChange={(e) => setUseStyle(e.target.checked)} />

@@ -12,6 +12,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useI18n } from '../../lib/i18n';
 import { api } from '../../lib/api';
+import { geminiIdentifyCar, readGenKeys } from '../../lib/imagegen';
 import { allTracks } from '../../lib/radioTracks';
 import { REELS } from '../../data/reels';
 import { useReelFlags, reelFlags } from '../../store/reelflags';
@@ -68,6 +69,27 @@ export function ContentTab() {
   const [customCarName, setCustomCarName] = useState('');
   const [customPhoto, setCustomPhoto] = useState<string | null>(null);
   const [photoBusy, setPhotoBusy] = useState(false);
+  /** паспорт тачки от Gemini-распознавания (уходит в бриф, помогает консистентности) */
+  const [customPassport, setCustomPassport] = useState('');
+  const [identBusy, setIdentBusy] = useState(false);
+  const [identNote, setIdentNote] = useState<string | null>(null);
+
+  /** опознать тачку по фото (Gemini vision, ключ из арт-редактора) */
+  const identify = async () => {
+    const key = readGenKeys().gemini;
+    if (!key || !customPhoto || identBusy) return;
+    setIdentBusy(true);
+    setIdentNote(null);
+    try {
+      const r = await geminiIdentifyCar(key, customPhoto);
+      setCustomCarName(r.name);
+      setCustomPassport(r.passport);
+      setIdentNote(null);
+    } catch (e) {
+      setIdentNote(t('content.car.identErr'));
+    }
+    setIdentBusy(false);
+  };
   const [scenario, setScenario] = useState<Scenario>('beforeafter');
   const [scene, setScene] = useState<Scene>('nightrace');
   const [customPrompt, setCustomPrompt] = useState('');
@@ -208,7 +230,7 @@ export function ContentTab() {
     const brief = {
       carId,
       customCar: isCustomCar
-        ? { name: customCarName.trim() || 'CUSTOM', photoRef }
+        ? { name: customCarName.trim() || 'CUSTOM', photoRef, passport: customPassport || undefined }
         : undefined,
       productId: productId || 'full-kit',
       scenario,
@@ -353,11 +375,27 @@ export function ContentTab() {
                   />
                 </div>
                 {customPhoto && (
-                  <img
-                    className="cnt-photo-preview"
-                    src={`data:image/jpeg;base64,${customPhoto}`}
-                    alt=""
-                  />
+                  <>
+                    <img
+                      className="cnt-photo-preview"
+                      src={`data:image/jpeg;base64,${customPhoto}`}
+                      alt=""
+                    />
+                    {/* опознание по фото: нужен ключ Gemini (вводится в арт-редакторе) */}
+                    <div className="cnt-row">
+                      <button
+                        type="button"
+                        className="adm-mini-btn"
+                        onClick={() => void identify()}
+                        disabled={identBusy || !readGenKeys().gemini}
+                        title={readGenKeys().gemini ? '' : t('content.car.identNoKey')}
+                      >
+                        {identBusy ? t('content.car.identBusy') : t('content.car.ident')}
+                      </button>
+                      {identNote && <span className="tech-label">{identNote}</span>}
+                    </div>
+                    {customPassport && <p className="adm-note">{customPassport}</p>}
+                  </>
                 )}
               </>
             )}
