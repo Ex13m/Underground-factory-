@@ -69,24 +69,29 @@ export function MicroPlayer() {
     return orderRef.current[posRef.current];
   };
 
-  /** диджейский кроссфейд: следующий вступает, текущий уходит (2–6 с) */
-  const crossfade = (toTrack: Track, fast = false) => {
+  /** длина следующего кроссфейда выбирается заранее (на трек) */
+  const plannedFadeRef = useRef(3);
+
+  /** диджейский кроссфейд equal-power: без провала громкости в середине */
+  const crossfade = (toTrack: Track, fadeSec?: number) => {
     const cur = curEl();
     const nxt = nxtEl();
-    const fade = fast ? 0.8 : 2 + Math.random() * 4;
+    const fade = Math.max(0.5, fadeSec ?? plannedFadeRef.current);
     fadingRef.current = true;
 
     nxt.src = toTrack.url;
     nxt.volume = 0;
     nxt.play().catch(() => { /* не сыграл — подхватим на следующем тике */ });
     setTitle(toTrack.title);
+    plannedFadeRef.current = 2 + Math.random() * 3; // фейд для следующего перехода
 
     cancelAnimationFrame(rafRef.current);
     const t0 = performance.now();
     const step = (now: number) => {
       const k = Math.min(1, (now - t0) / (fade * 1000));
-      nxt.volume = master() * k;
-      cur.volume = master() * (1 - k);
+      // equal-power: сумма энергий постоянна — переход слитный, без «ямы»
+      nxt.volume = master() * Math.sin((k * Math.PI) / 2);
+      cur.volume = master() * Math.cos((k * Math.PI) / 2);
       if (k < 1) {
         rafRef.current = requestAnimationFrame(step);
       } else {
@@ -136,15 +141,16 @@ export function MicroPlayer() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // хвост трека → кроссфейд в случайный момент
+  // хвост трека → фейд стартует РОВНО за выбранную длину до конца:
+  // текущий дозвучивает весь фейд, не обрываясь
   useEffect(() => {
     if (!playing) return;
     const iv = window.setInterval(() => {
       const cur = curEl();
       if (!cur || fadingRef.current || !cur.duration) return;
       const left = cur.duration - cur.currentTime;
-      if (left <= 2 + Math.random() * 4) crossfade(nextTrack());
-    }, 500);
+      if (left <= plannedFadeRef.current) crossfade(nextTrack(), Math.max(0.5, left - 0.1));
+    }, 250);
     return () => window.clearInterval(iv);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playing]);
@@ -170,7 +176,7 @@ export function MicroPlayer() {
 
   const skipNext = () => {
     if (!startedRef.current || fadingRef.current) return;
-    crossfade(nextTrack(), true);
+    crossfade(nextTrack(), 0.8);
   };
 
   const skipBack = () => {
@@ -178,7 +184,7 @@ export function MicroPlayer() {
     const prev = historyRef.current.pop();
     if (!prev) return;
     // возвращаем позицию: prev снова станет «текущим» в порядке истории
-    crossfade(prev, true);
+    crossfade(prev, 0.8);
   };
 
   return (
