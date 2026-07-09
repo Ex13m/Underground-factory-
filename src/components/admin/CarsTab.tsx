@@ -9,15 +9,27 @@ import { openArtEditor } from '../../fx/ArtEditor';
 import { useCatalog } from '../../store/catalog';
 import { makeId } from './util';
 
+/** маркер пункта «добавить новую марку» в селекте */
+const NEW_MAKE = '__new__';
+
 export function CarsTab() {
   const { t } = useI18n();
   const cars = useCatalog((s) => s.cars);
 
-  const [make, setMake] = useState('');
+  // марки — селект из всех, что уже есть на сайте (сид + кастомные);
+  // «➕ новая марка» открывает поле ввода, после добавления тачки марка
+  // автоматически «запоминается» — список строится из каталога
+  const makes = [...new Set(cars.map((c) => c.make))].sort((a, b) => a.localeCompare(b));
+  const [makeSel, setMakeSel] = useState('');
+  const [newMake, setNewMake] = useState('');
+  const make = makeSel === NEW_MAKE ? newMake : makeSel;
   const [model, setModel] = useState('');
   const [years, setYears] = useState('');
   const [img, setImg] = useState('');
   const [errors, setErrors] = useState<Record<string, boolean>>({});
+
+  /** модели выбранной марки — подсказки в поле модели */
+  const modelsOfMake = cars.filter((c) => c.make === make).map((c) => c.model);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +50,7 @@ export function CarsTab() {
     });
     // сгенерированное в черновике фото переезжает на итоговый сид тачки
     void moveOverride(`car-draft-${make}-${model}`, `car-${id}`);
-    setMake(''); setModel(''); setYears(''); setImg('');
+    setMakeSel(''); setNewMake(''); setModel(''); setYears(''); setImg('');
     setErrors({});
   };
 
@@ -121,12 +133,47 @@ export function CarsTab() {
           <div className="adm-grid">
             <div className="adm-fld">
               <label htmlFor="cf-make">{t('admin.f.make')}</label>
-              <input id="cf-make" className={cls('make')} value={make} onChange={(e) => setMake(e.target.value)} placeholder="Nissan" />
+              <select
+                id="cf-make"
+                className={cls('make')}
+                value={makeSel}
+                onChange={(e) => setMakeSel(e.target.value)}
+                data-testid="cf-make"
+              >
+                <option value="">{t('admin.f.makePick')}</option>
+                {makes.map((m) => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+                <option value={NEW_MAKE}>{t('admin.f.makeNew')}</option>
+              </select>
+              {makeSel === NEW_MAKE && (
+                <input
+                  className={cls('make')}
+                  style={{ marginTop: 6 }}
+                  value={newMake}
+                  onChange={(e) => setNewMake(e.target.value)}
+                  placeholder={t('admin.f.makeNewPh')}
+                  autoFocus
+                />
+              )}
               {err('make')}
             </div>
             <div className="adm-fld">
               <label htmlFor="cf-model">{t('admin.f.model')}</label>
-              <input id="cf-model" className={cls('model')} value={model} onChange={(e) => setModel(e.target.value)} placeholder="Silvia S15" />
+              <input
+                id="cf-model"
+                className={cls('model')}
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                placeholder={makeSel === NEW_MAKE ? t('admin.f.modelFirstPh') : 'Silvia S15'}
+                list="cf-model-list"
+              />
+              {/* подсказки: модели этой марки, уже живущие на сайте */}
+              <datalist id="cf-model-list">
+                {modelsOfMake.map((m) => (
+                  <option key={m} value={m} />
+                ))}
+              </datalist>
               {err('model')}
             </div>
             <div className="adm-fld">
