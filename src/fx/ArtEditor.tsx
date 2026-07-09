@@ -15,7 +15,7 @@ import { bus } from '../lib/bus';
 import { useI18n } from '../lib/i18n';
 import { useUI } from '../store/ui';
 import {
-  generateImage, fetchAsBlob, readGenKeys, writeGenKeys,
+  readGenKeys, writeGenKeys,
   pollinationsUrl, finalPrompt, type GenProvider,
 } from '../lib/imagegen';
 import {
@@ -103,28 +103,18 @@ export function ArtEditor() {
   const [refs, setRefs] = useState<RefCand[]>([]);
   const [prompt, setPrompt] = useState('');
   const [provider, setProvider] = useState<GenProvider>(readGenKeys().provider ?? 'pollinations');
-  /** черновик API-ключа выбранного провайдера (живёт в localStorage через writeGenKeys) */
-  const [keyDraft, setKeyDraft] = useState('');
+  /** единый ключ Replicate (r8_…) для NANO BANANA и GPT IMAGE; живёт в localStorage */
+  const [keyDraft, setKeyDraft] = useState(() => readGenKeys().replicate ?? '');
   const [keyStatus, setKeyStatus] = useState<'idle' | 'testing' | 'ok' | 'bad'>('idle');
-  useEffect(() => {
-    const k = readGenKeys();
-    setKeyDraft(provider === 'openai' ? k.openai ?? '' : provider === 'gemini' ? k.gemini ?? '' : '');
-    setKeyStatus('idle');
-  }, [provider]);
 
-  /** живая проверка ключа: лёгкий запрос к API провайдера */
+  /** живая проверка: наша функция /api/generate?ping дергает Replicate этим ключом */
   const testKey = async () => {
     if (!keyDraft.trim() || keyStatus === 'testing') return;
     setKeyStatus('testing');
     try {
-      const res =
-        provider === 'gemini'
-          ? await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=1', {
-              headers: { 'x-goog-api-key': keyDraft.trim() },
-            })
-          : await fetch('https://api.openai.com/v1/models', {
-              headers: { Authorization: `Bearer ${keyDraft.trim()}` },
-            });
+      const res = await fetch('/api/generate?ping=1', {
+        headers: { 'x-replicate-key': keyDraft.trim() },
+      });
       setKeyStatus(res.ok ? 'ok' : 'bad');
     } catch {
       setKeyStatus('bad');
@@ -232,56 +222,48 @@ export function ArtEditor() {
     setError('');
     setApplied(false);
 
-    // путь без ключей: (1) серверная функция сайта (Replicate, ключ на Netlify),
-    // (2) если сервера нет — бесплатная картинка прямо по URL (Pollinations)
-    const keys = readGenKeys();
-    const keyless =
-      provider === 'pollinations' ||
-      (provider === 'openai' && !keys.openai) ||
-      (provider === 'gemini' && !keys.gemini);
-    if (keyless) {
-      const fp = finalPrompt(effPrompt, useStyle);
-      setBusy(true);
-      try {
-        const r = await fetch('/api/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: fp, width: target.width, height: target.height }),
-        });
-        if (r.ok && (r.headers.get('content-type') ?? '').startsWith('image/')) {
-          const blob = await r.blob();
-          clearPreview();
-          setPreview({ blob, url: URL.createObjectURL(blob) });
-          setBusy(false);
-          return;
-        }
-      } catch {
-        // функции нет (локальный dev) — падаем на бесплатный генератор
-      }
-      setBusy(false);
-      clearPreview();
-      setPreview({ blob: null, url: pollinationsUrl(fp, target.width, target.height) });
-      return;
-    }
+    const fp = finalPrompt(effPrompt, useStyle);
+    const rKey = readGenKeys().replicate?.trim();
 
+    // все провайдеры ходят через нашу функцию /api/generate (Replicate):
+    // БЕСПЛАТНО ▸ flux-schnell, NANO BANANA ▸ google/nano-banana, GPT IMAGE ▸ gpt-image-1.
+    // Ключ — из поля на сайте (заголовком) или из Netlify env.
+    const model = provider === 'gemini' ? 'nano' : provider === 'openai' ? 'gpt' : 'free';
     setBusy(true);
     try {
-      const blobs = await Promise.all(refs.filter((r) => r.on).map((r) => fetchAsBlob(r.url)));
-      const blob = await generateImage({
-        provider,
-        prompt: effPrompt,
-        useStyle,
-        references: blobs.filter((b): b is Blob => !!b),
-        width: target.width,
-        height: target.height,
+      const r = await fetch('/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(rKey ? { 'x-replicate-key': rKey } : {}),
+        },
+        body: JSON.stringify({ prompt: fp, width: target.width, height: target.height, model }),
       });
-      clearPreview();
-      setPreview({ blob, url: URL.createObjectURL(blob) });
-    } catch (e: any) {
-      setError(String(e?.message ?? e));
-    } finally {
-      setBusy(false);
+      if (r.ok && (r.headers.get('content-type') ?? '').startsWith('image/')) {
+        const blob = await r.blob();
+        clearPreview();
+        setPreview({ blob, url: URL.createObjectURL(blob) });
+        setBusy(false);
+        return;
+      }
+      // платная модель без ключа/с ошибкой — говорим прямо, а не молчим
+      if (provider !== 'pollinations') {
+        const data = await r.json().catch(() => ({} as { error?: string }));
+        setError(data?.error === 'NO_SERVER_KEY' ? t('art.err.norepl') : String(data?.error ?? `HTTP ${r.status}`));
+        setBusy(false);
+        return;
+      }
+    } catch {
+      // функции нет (локальный dev) или сеть — для БЕСПЛАТНО падаем на Pollinations
+      if (provider !== 'pollinations') {
+        setError(t('art.err.norepl'));
+        setBusy(false);
+        return;
+      }
     }
+    setBusy(false);
+    clearPreview();
+    setPreview({ blob: null, url: pollinationsUrl(fp, target.width, target.height) });
   }
 
   async function apply() {
@@ -422,11 +404,12 @@ export function ArtEditor() {
               className={`btn sm ${provider === 'gemini' ? '' : 'ghost'}`}
               onClick={() => pickProvider('gemini')}
             >
-              NANO BANANA 2
+              NANO BANANA
             </button>
           </div>
 
-          {/* ключ выбранного провайдера: хранится ТОЛЬКО в этом браузере */}
+          {/* единый ключ Replicate для платных моделей: хранится ТОЛЬКО в этом
+              браузере, уходит заголовком в нашу же функцию /api/generate */}
           {provider !== 'pollinations' && (
             <div className="artedit-keyrow">
               <input
@@ -438,7 +421,7 @@ export function ArtEditor() {
                 onChange={(e) => {
                   setKeyDraft(e.target.value);
                   setKeyStatus('idle');
-                  writeGenKeys({ [provider]: e.target.value.trim() } as Partial<import('../lib/imagegen').GenKeys>);
+                  writeGenKeys({ replicate: e.target.value.trim() });
                 }}
               />
               <button

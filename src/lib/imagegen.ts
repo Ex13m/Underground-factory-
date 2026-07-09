@@ -10,6 +10,8 @@ export type GenProvider = 'pollinations' | 'openai' | 'gemini';
 export interface GenKeys {
   openai?: string;
   gemini?: string;
+  /** единый ключ Replicate (r8_…) — модели nano-banana / gpt-image / flux через /api/generate */
+  replicate?: string;
   /** провайдер по умолчанию для панели */
   provider?: GenProvider;
 }
