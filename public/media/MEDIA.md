@@ -38,8 +38,20 @@ media/
 - **lada-2107** — wing-lada (abs);
   также: splitter-rx7, lip-ae86, mirrors-aero
 
-## Hero-эпизоды (сырьё для промороликов, 16:9 / 720p / 5 с)
+## Hero-эпизоды (16:9 / 720p / 5 с) — 30 роликов
 
-drift, burnout, race, s15-street, s15-dock, supra-hwy, supra-round, rx7-touge,
-rx7-flames, ae86-hill, ae86-ramp, e36-dock, ek9-rain, r34-tunnel, r34-apron,
-tandem, drag, garage, lada-snow, lada-barrel
+Базовые: drift, burnout, race, tandem, drag, garage.
+По тачкам: s15-street, s15-dock, supra-hwy, supra-round, rx7-touge,
+rx7-flames, ae86-hill, ae86-ramp, e36-dock, ek9-rain, r34-tunnel,
+r34-apron, lada-snow, lada-barrel.
+Агрессивная серия: jump-overpass, dock-jump, barrels, boxes, railroad,
+canal-wall, water-spray, gate, tandem-clip, trucks-180.
+
+В монтаже главной — 23 (см. HERO_VIDEOS в src/data/seed.ts), в Видеосалоне —
+все 30 (src/data/tv.ts). Порядок тасуется при каждой загрузке.
+
+## Прочее
+
+- `intro/ignition.mp4` — спецролик интро: машина строго передом,
+  фары бьют в объектив (~3,2 с — триггер вспышки в BootIntro).
+- `music/*.mp3` — 13 треков UF RADIO (плейлист: src/data/playlist.ts).

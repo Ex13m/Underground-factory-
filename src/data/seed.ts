@@ -294,4 +294,5 @@ export const HERO_VIDEOS = [
   '/media/hero/hero-tandem-clip.mp4',
   '/media/hero/hero-dock-jump.mp4',
   '/media/hero/hero-trucks-180.mp4',
+  '/media/hero/hero-ev-drag-crash.mp4',
 ];

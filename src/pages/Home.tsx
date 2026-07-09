@@ -238,8 +238,11 @@ export function Home() {
             <p className="shop-section-sub">{t('home.hits.sub')}</p>
           </div>
           <div className="pgrid">
-            {hits.map((p) => (
-              <ProductCard key={p.id} product={p} />
+            {/* карточки хитов всплывают каскадом, как остальные секции */}
+            {hits.map((p, i) => (
+              <div key={p.id} className={`reveal d${Math.min(i, 3)}`}>
+                <ProductCard product={p} />
+              </div>
             ))}
           </div>
         </div>

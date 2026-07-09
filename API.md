@@ -44,6 +44,12 @@
 зовёт Replicate (env `REPLICATE_API_TOKEN`) и возвращает байты картинки.
 Без ключа отвечает 501 — клиент падает на бесплатный генератор.
 
+**Серверная очередь заявок** — Netlify Function `/api/queue`
+(`netlify/functions/uf-queue.mts`, Netlify Blobs):
+`POST {key, kind, prompt, width, height}` — положить заявку (одна на key);
+`GET` — список; `DELETE` — очистить. Кнопка «Заказать ▸ Higgsfield»
+шлёт сюда автоматически; исполняет Claude в терминале.
+
 Итоговый каталог = `seed − hidden + overrides + custom`.
 
 **Продакшен.** Контракт `UF_API` — REST-образный. Чтобы переехать на реальный
