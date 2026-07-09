@@ -1,6 +1,6 @@
 /** Вкладка ТАЧКИ: справочник фитмента + добавление custom-моделей. */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { useI18n } from '../../lib/i18n';
 import { Img } from '../../lib/media';
@@ -31,8 +31,22 @@ export function CarsTab() {
   /** модели выбранной марки — подсказки в поле модели */
   const modelsOfMake = cars.filter((c) => c.make === make).map((c) => c.model);
 
-  /** заявки на видео-заставки, отправленные в этой сессии (для пометки «в очереди») */
+  /** заявки на видео-заставки: реальное состояние очереди сервера + свежие отправки */
   const [liveQueued, setLiveQueued] = useState<Record<string, boolean>>({});
+  useEffect(() => {
+    fetch('/api/queue')
+      .then((r) => (r.ok ? r.json() : []))
+      .then((list) => {
+        if (!Array.isArray(list)) return;
+        const q: Record<string, boolean> = {};
+        for (const tk of list) {
+          const m = String(tk?.key ?? '').match(/^car-live-(.+)$/);
+          if (m) q[m[1]] = true;
+        }
+        setLiveQueued((s) => ({ ...q, ...s }));
+      })
+      .catch(() => {});
+  }, []);
 
   /** заказать видео-заставку тачки: заявка в очередь, исполняет Claude
       (image-to-video от текущего фото тачки) */
