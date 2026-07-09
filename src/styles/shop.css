@@ -32,6 +32,8 @@
   position: relative;
   padding: 90px 0 120px;
   max-width: 900px;
+  /* главный слоган стоит справа (как в исходном дизайне) */
+  margin-left: auto;
 }
 .uf-hero-title {
   font-size: clamp(38px, 7.6vw, 108px);
