@@ -16,6 +16,7 @@ import { Admin } from './pages/Admin';
 import { TvSalon } from './pages/TvSalon';
 
 import { AuthModal } from './components/AuthModal';
+import { GdprBanner } from './components/GdprBanner';
 import { ArtEditor } from './fx/ArtEditor';
 import { UpdatesTicker } from './fx/UpdatesTicker';
 import { MicroPlayer } from './fx/MicroPlayer';
@@ -72,6 +73,7 @@ function Shell() {
       <ArtEditor />
       <UpdatesTicker />
       <MicroPlayer />
+      <GdprBanner />
       <BootIntro />
       <CursorFX />
       <Bot />

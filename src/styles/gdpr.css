@@ -1,0 +1,54 @@
+/* GDPR: плашка согласия и модалка политики */
+
+.gdpr {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  z-index: 8500; /* над ботом, под арт-редактором */
+  width: min(400px, calc(100vw - 28px));
+  padding: 16px;
+  border-color: var(--blood);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.6);
+}
+
+.gdpr-text {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--paper);
+  margin: 10px 0 14px;
+}
+
+.gdpr-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.gdpr-actions .btn { font-size: 12px; padding: 9px 16px; }
+
+.gdpr-modal {
+  width: min(560px, 94vw);
+  max-height: 84vh;
+  overflow-y: auto;
+  padding: 20px;
+}
+.gdpr-modal-body {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--paper);
+  display: grid;
+  gap: 10px;
+  margin: 14px 0 18px;
+}
+
+/* мини-кнопка после согласия: тихая, в правом нижнем углу над футером */
+.gdpr-mini {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  z-index: 900; /* под ботом (8000) — бот важнее */
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--steel);
+  border: 1px solid rgba(236, 234, 229, 0.18);
+  padding: 3px 8px;
+  background: rgba(10, 10, 9, 0.6);
+  opacity: 0.5;
+  transition: opacity 0.2s, color 0.2s;
+}
+.gdpr-mini:hover { opacity: 1; color: var(--paper); border-color: var(--blood); }
