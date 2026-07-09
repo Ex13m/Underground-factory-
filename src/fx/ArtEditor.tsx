@@ -105,10 +105,31 @@ export function ArtEditor() {
   const [provider, setProvider] = useState<GenProvider>(readGenKeys().provider ?? 'pollinations');
   /** черновик API-ключа выбранного провайдера (живёт в localStorage через writeGenKeys) */
   const [keyDraft, setKeyDraft] = useState('');
+  const [keyStatus, setKeyStatus] = useState<'idle' | 'testing' | 'ok' | 'bad'>('idle');
   useEffect(() => {
     const k = readGenKeys();
     setKeyDraft(provider === 'openai' ? k.openai ?? '' : provider === 'gemini' ? k.gemini ?? '' : '');
+    setKeyStatus('idle');
   }, [provider]);
+
+  /** живая проверка ключа: лёгкий запрос к API провайдера */
+  const testKey = async () => {
+    if (!keyDraft.trim() || keyStatus === 'testing') return;
+    setKeyStatus('testing');
+    try {
+      const res =
+        provider === 'gemini'
+          ? await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=1', {
+              headers: { 'x-goog-api-key': keyDraft.trim() },
+            })
+          : await fetch('https://api.openai.com/v1/models', {
+              headers: { Authorization: `Bearer ${keyDraft.trim()}` },
+            });
+      setKeyStatus(res.ok ? 'ok' : 'bad');
+    } catch {
+      setKeyStatus('bad');
+    }
+  };
   const [useStyle, setUseStyle] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -416,10 +437,30 @@ export function ArtEditor() {
                 placeholder={t('art.key.ph')}
                 onChange={(e) => {
                   setKeyDraft(e.target.value);
+                  setKeyStatus('idle');
                   writeGenKeys({ [provider]: e.target.value.trim() } as Partial<import('../lib/imagegen').GenKeys>);
                 }}
               />
-              <span className="tech-label">{t('art.key.note')}</span>
+              <button
+                type="button"
+                className="btn sm ghost"
+                onClick={() => void testKey()}
+                disabled={!keyDraft.trim() || keyStatus === 'testing'}
+              >
+                {keyStatus === 'testing' ? t('art.key.testing') : t('art.key.test')}
+              </button>
+              <span
+                className="tech-label"
+                style={keyStatus === 'ok' ? { color: '#46c85a' } : keyStatus === 'bad' ? { color: 'var(--blood)' } : undefined}
+              >
+                {keyStatus === 'ok'
+                  ? t('art.key.ok')
+                  : keyStatus === 'bad'
+                    ? t('art.key.bad')
+                    : keyDraft.trim()
+                      ? t('art.key.saved')
+                      : t('art.key.note')}
+              </span>
             </div>
           )}
 
@@ -496,7 +537,16 @@ export function ArtEditor() {
           {queued && <div className="artedit-ok">{t('art.order.done')}</div>}
           {preview && (
             <div className="artedit-preview">
-              <img src={preview.url} alt="" />
+              {/* URL-режим (бесплатный генератор): падение загрузки — видимая ошибка,
+                  а не вечная пустота */}
+              <img
+                src={preview.url}
+                alt=""
+                onError={() => {
+                  clearPreview();
+                  setError(t('art.err.genload'));
+                }}
+              />
             </div>
           )}
         </aside>
