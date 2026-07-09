@@ -1,67 +1,84 @@
 /**
- * Микро-плеер UNDERGROUND FACTORY: треки играют в случайном порядке,
- * переходы — диджейские кроссфейды случайной длины (2–6 с): следующий
- * трек вступает, пока текущий ещё дозвучивает. Два <audio> работают
- * по очереди. Старт — только по клику (политика автоплея браузеров).
+ * Микро-плеер UNDERGROUND FACTORY: треки в случайном порядке, переходы —
+ * диджейские кроссфейды случайной длины (2–6 с). Два <audio> работают
+ * по очереди. Автостарт: пробуем сразу; если браузер блокирует звук без
+ * жеста — запускаемся при первом любом клике/клавише на странице.
+ * Управление: play/pause, назад, вперёд, громкость, mute.
  */
 
 import { useEffect, useRef, useState } from 'react';
 import { PLAYLIST, type Track } from '../data/playlist';
 import '../styles/player.css';
 
-const VOLUME = 0.65;
-
-function shuffled(list: Track[]): Track[] {
-  const a = [...list];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
 export function MicroPlayer() {
   const [playing, setPlaying] = useState(false);
-  const [title, setTitle] = useState<string>('');
+  const [title, setTitle] = useState<string>('UF RADIO');
+  const [volume, setVolume] = useState(0.65);
+  const [muted, setMuted] = useState(false);
 
   const aRef = useRef<HTMLAudioElement>(null);
   const bRef = useRef<HTMLAudioElement>(null);
   /** какой из двух <audio> сейчас ведущий */
   const activeRef = useRef<0 | 1>(0);
-  const orderRef = useRef<Track[]>(shuffled(PLAYLIST));
+  const orderRef = useRef<Track[]>(shuffle(PLAYLIST));
   const posRef = useRef(0);
+  const historyRef = useRef<Track[]>([]);
   const fadingRef = useRef(false);
   const rafRef = useRef(0);
+  const startedRef = useRef(false);
+  /** актуальная громкость для rAF-кроссфейда */
+  const volRef = useRef(volume);
+  const mutedRef = useRef(muted);
 
-  const els = () => [aRef.current!, bRef.current!] as const;
+  function shuffle(list: Track[]): Track[] {
+    const a = [...list];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  const master = () => (mutedRef.current ? 0 : volRef.current);
+  const curEl = () => (activeRef.current === 0 ? aRef.current! : bRef.current!);
+  const nxtEl = () => (activeRef.current === 0 ? bRef.current! : aRef.current!);
+
+  // громкость/мьют применяются к ведущему прямо на лету
+  useEffect(() => {
+    volRef.current = volume;
+    mutedRef.current = muted;
+    if (!fadingRef.current && aRef.current && bRef.current) curEl().volume = master();
+  }, [volume, muted]);
 
   const nextTrack = (): Track => {
+    historyRef.current.push(orderRef.current[posRef.current]);
+    if (historyRef.current.length > 50) historyRef.current.shift();
     posRef.current += 1;
     if (posRef.current >= orderRef.current.length) {
-      orderRef.current = shuffled(PLAYLIST); // новый круг — новый порядок
+      orderRef.current = shuffle(PLAYLIST); // новый круг — новый порядок
       posRef.current = 0;
     }
     return orderRef.current[posRef.current];
   };
 
   /** диджейский кроссфейд: следующий вступает, текущий уходит (2–6 с) */
-  const crossfade = (toTrack: Track) => {
-    const [a, b] = els();
-    const cur = activeRef.current === 0 ? a : b;
-    const nxt = activeRef.current === 0 ? b : a;
-    const fade = 2 + Math.random() * 4;
+  const crossfade = (toTrack: Track, fast = false) => {
+    const cur = curEl();
+    const nxt = nxtEl();
+    const fade = fast ? 0.8 : 2 + Math.random() * 4;
     fadingRef.current = true;
 
     nxt.src = toTrack.url;
     nxt.volume = 0;
-    nxt.play().catch(() => { /* трек не сыграл — пропустим на следующем тике */ });
+    nxt.play().catch(() => { /* не сыграл — подхватим на следующем тике */ });
     setTitle(toTrack.title);
 
+    cancelAnimationFrame(rafRef.current);
     const t0 = performance.now();
     const step = (now: number) => {
       const k = Math.min(1, (now - t0) / (fade * 1000));
-      nxt.volume = VOLUME * k;
-      cur.volume = VOLUME * (1 - k);
+      nxt.volume = master() * k;
+      cur.volume = master() * (1 - k);
       if (k < 1) {
         rafRef.current = requestAnimationFrame(step);
       } else {
@@ -73,11 +90,50 @@ export function MicroPlayer() {
     rafRef.current = requestAnimationFrame(step);
   };
 
-  // следим за хвостом трека: пора — начинаем кроссфейд в случайный момент
+  const start = () => {
+    if (startedRef.current) return true;
+    const a = aRef.current;
+    if (!a) return false;
+    const first = orderRef.current[0];
+    a.src = first.url;
+    a.volume = master();
+    const p = a.play();
+    startedRef.current = true;
+    setTitle(first.title);
+    setPlaying(true);
+    p?.catch(() => {
+      // браузер заблокировал автозвук — ждём первый жест
+      startedRef.current = false;
+      setPlaying(false);
+      setTitle('UF RADIO');
+    });
+    return true;
+  };
+
+  // автостарт: сразу + на первом жесте, если сразу не дали
+  useEffect(() => {
+    start();
+    const onGesture = () => {
+      if (!startedRef.current) start();
+      if (startedRef.current) {
+        window.removeEventListener('pointerdown', onGesture);
+        window.removeEventListener('keydown', onGesture);
+      }
+    };
+    window.addEventListener('pointerdown', onGesture);
+    window.addEventListener('keydown', onGesture);
+    return () => {
+      window.removeEventListener('pointerdown', onGesture);
+      window.removeEventListener('keydown', onGesture);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // хвост трека → кроссфейд в случайный момент
   useEffect(() => {
     if (!playing) return;
     const iv = window.setInterval(() => {
-      const cur = activeRef.current === 0 ? aRef.current : bRef.current;
+      const cur = curEl();
       if (!cur || fadingRef.current || !cur.duration) return;
       const left = cur.duration - cur.currentTime;
       if (left <= 2 + Math.random() * 4) crossfade(nextTrack());
@@ -89,42 +145,67 @@ export function MicroPlayer() {
   useEffect(() => () => cancelAnimationFrame(rafRef.current), []);
 
   const toggle = () => {
-    const [a] = els();
-    if (!playing) {
-      if (!a.src) {
-        const first = orderRef.current[0];
-        a.src = first.url;
-        a.volume = VOLUME;
-        setTitle(first.title);
-      }
-      const cur = activeRef.current === 0 ? aRef.current! : bRef.current!;
-      cur.play().catch(() => { /* браузер не дал — юзер кликнет ещё раз */ });
-      setPlaying(true);
-    } else {
-      els().forEach((el) => el.pause());
+    if (!startedRef.current) {
+      start();
+      return;
+    }
+    if (playing) {
+      curEl().pause();
+      nxtEl().pause();
       setPlaying(false);
+    } else {
+      curEl().play().catch(() => {});
+      setPlaying(true);
     }
   };
 
-  const skip = () => {
-    if (!playing) return;
-    if (!fadingRef.current) crossfade(nextTrack());
+  const skipNext = () => {
+    if (!startedRef.current || fadingRef.current) return;
+    crossfade(nextTrack(), true);
+  };
+
+  const skipBack = () => {
+    if (!startedRef.current || fadingRef.current) return;
+    const prev = historyRef.current.pop();
+    if (!prev) return;
+    // возвращаем позицию: prev снова станет «текущим» в порядке истории
+    crossfade(prev, true);
   };
 
   return (
     <div className={`ufplayer${playing ? ' on' : ''}`} data-testid="ufplayer">
-      <audio ref={aRef} preload="none" />
+      <audio ref={aRef} preload="auto" />
       <audio ref={bRef} preload="none" />
+      <button className="ufplayer-btn" onClick={skipBack} aria-label="prev" disabled={!playing}>
+        ⏮
+      </button>
       <button className="ufplayer-btn" onClick={toggle} aria-label="play/pause">
         {playing ? '❚❚' : '▶'}
+      </button>
+      <button className="ufplayer-btn" onClick={skipNext} aria-label="next" disabled={!playing}>
+        ⏭
       </button>
       <div className="ufplayer-eq" aria-hidden>
         <i /><i /><i /><i />
       </div>
-      <div className="ufplayer-title mono">{playing ? title : 'UF RADIO'}</div>
-      <button className="ufplayer-btn" onClick={skip} aria-label="next" disabled={!playing}>
-        ⏭
+      <div className="ufplayer-title mono">{title}</div>
+      <button
+        className={`ufplayer-btn${muted ? ' muted' : ''}`}
+        onClick={() => setMuted((m) => !m)}
+        aria-label="mute"
+      >
+        {muted ? '🔇' : '🔊'}
       </button>
+      <input
+        className="ufplayer-vol"
+        type="range"
+        min={0}
+        max={1}
+        step={0.05}
+        value={volume}
+        onChange={(e) => setVolume(Number(e.target.value))}
+        aria-label="volume"
+      />
     </div>
   );
 }

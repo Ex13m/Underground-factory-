@@ -36,9 +36,12 @@
 ## Данные/состояние
 Всё в localStorage (`uf:*`). Сброс стенда: очистить localStorage.
 
-## Деплой
-Netlify, автодеплой из ветки `claude/car-tuning-shop-z39a5s` (конфиг в `netlify.toml`):
-https://incandescent-paletas-b62698.netlify.app
+## Деплой и ветки
+Основная ветка — `main` (default на GitHub). Netlify пока собирает прод из
+старой ветки `claude/car-tuning-shop-z39a5s`, поэтому КАЖДЫЙ пуш зеркалится
+в обе: `git push origin main && git push origin main:claude/car-tuning-shop-z39a5s`.
+Когда пользователь переключит Netlify (Build & deploy → Production branch →
+main) — зеркалить перестать. Прод: https://incandescent-paletas-b62698.netlify.app
 
 ## Версионирование и история изменений (обязательно)
 Перед КАЖДЫМ пушем в ветку деплоя:

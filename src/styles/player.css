@@ -26,6 +26,14 @@
 }
 .ufplayer-btn:hover { border-color: var(--blood); color: #fff; background: rgba(224, 27, 34, 0.2); }
 .ufplayer-btn:disabled { opacity: 0.35; }
+.ufplayer-btn.muted { color: var(--blood); border-color: var(--blood); }
+
+/* громкость: тонкий красный слайдер */
+.ufplayer-vol {
+  width: 62px;
+  accent-color: var(--blood);
+  cursor: pointer;
+}
 
 .ufplayer-title {
   font-size: 10px;
