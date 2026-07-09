@@ -12,6 +12,7 @@ import { useI18n } from '../../lib/i18n';
 import { useCatalog } from '../../store/catalog';
 import { useCart } from '../../store/cart';
 import { Img, VideoBg } from '../../lib/media';
+import { liveClipOf } from '../../data/livemap';
 import type { CarModel, MaterialGrade } from '../../lib/types';
 import { GRADE_ORDER, GRADE_META } from '../../lib/types';
 
@@ -74,9 +75,9 @@ export function CarModal({
         </button>
 
         <div className="carmodal-hero">
-          {car.video ? (
-            // «оживающая» тачка: VideoBg сам падает на арт-фолбэк, если файла ещё нет
-            <VideoBg sources={[car.video]} seed={`car-live-${car.id}`} />
+          {liveClipOf(car.id, car.video) ? (
+            // «оживающая» тачка: сид-поле video или карта заставок кастомных (livemap)
+            <VideoBg sources={[liveClipOf(car.id, car.video)!]} seed={`car-live-${car.id}`} />
           ) : (
             <Img src={car.img} seed={`car-${car.id}`} alt={`${car.make} ${car.model}`} />
           )}

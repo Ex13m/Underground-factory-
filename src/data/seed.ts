@@ -308,7 +308,6 @@ export const HERO_VIDEOS = [
   '/media/hero/hero-rally-night-jump.mp4',
   // экшн-серия: погони, трюки и опасные моменты на скорости (v0.19.0)
   '/media/hero/hero-police-pursuit.mp4',
-  '/media/hero/hero-train-crossing.mp4',
   '/media/hero/hero-barrier-sparks.mp4',
   '/media/hero/hero-garage-spiral.mp4',
   '/media/hero/hero-canyon-duel.mp4',

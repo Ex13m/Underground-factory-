@@ -44,7 +44,6 @@ export const TV_CLIPS: string[] = [
   '/media/hero/hero-mclaren-neon-rain.mp4',
   '/media/hero/hero-rally-night-jump.mp4',
   '/media/hero/hero-police-pursuit.mp4',
-  '/media/hero/hero-train-crossing.mp4',
   '/media/hero/hero-barrier-sparks.mp4',
   '/media/hero/hero-garage-spiral.mp4',
   '/media/hero/hero-canyon-duel.mp4',

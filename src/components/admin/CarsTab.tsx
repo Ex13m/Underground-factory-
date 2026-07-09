@@ -7,6 +7,7 @@ import { Img } from '../../lib/media';
 import { getOverride, moveOverride } from '../../lib/mediaStore';
 import { openArtEditor } from '../../fx/ArtEditor';
 import { useCatalog } from '../../store/catalog';
+import { liveClipOf } from '../../data/livemap';
 import { makeId } from './util';
 
 /** маркер пункта «добавить новую марку» в селекте */
@@ -119,8 +120,8 @@ export function CarsTab() {
             </thead>
             <tbody>
               {cars.map((c) => {
-                // видео-заставка: есть у тачки (сид) или загружена оверрайдом
-                const hasLive = !!c.video || !!getOverride(`car-live-${c.id}`);
+                // видео-заставка: сид-поле, карта кастомных (livemap) или оверрайд
+                const hasLive = !!liveClipOf(c.id, c.video) || !!getOverride(`car-live-${c.id}`);
                 return (
                 <tr key={c.id}>
                   <td>
