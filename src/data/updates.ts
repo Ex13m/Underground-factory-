@@ -7,7 +7,7 @@ import type { LocalText } from '../lib/types';
  * что реально поменялось с прошлого релиза (коротко, по-русски и по-английски).
  */
 export const UPDATE_NOTES: LocalText[] = [
+  { ru: 'ЦЕХ РИЛСОВ ▸ ТЕПЕРЬ И ПО ФОТО ТВОЕЙ ТАЧКИ', en: 'REEL SHOP ▸ NOW FROM A PHOTO OF YOUR CAR' },
   { ru: 'ПИТ-БОСС ВОДИТ ПО ЦЕХУ ▸ СКАЖИ «ОТКРОЙ КОРЗИНУ»', en: 'PIT BOSS GUIDES YOU ▸ SAY "OPEN THE CART"' },
   { ru: 'КОД FIGABOSS2026 ▸ −15% КАЖДОМУ', en: 'CODE FIGABOSS2026 ▸ −15% FOR EVERYONE' },
-  { ru: 'НОВЫЙ КУРСОР-ТАХОМЕТР ▸ РАЗГОНИ СТРЕЛКУ МЫШКОЙ', en: 'NEW TACHO CURSOR ▸ REV THE NEEDLE WITH YOUR MOUSE' },
 ];

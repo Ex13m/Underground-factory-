@@ -75,7 +75,15 @@ public/media/music + playlist.ts; `stems-audio` — разложить трек 
 `reel` — собрать рилс 9:16 по JSON из prompt СТРОГО по `BRANDBOOK.md`
 (хук от кульминации → биты → CTA, клипы Higgsfield 720×1280, сборка ffmpeg
 с музыкой и глитч-титрами, звук оставить aac 128k), файл в public/media/reels/,
-запись в src/data/reels.ts (полка в Админке → Контент).
+запись в src/data/reels.ts (полка в Админке → Контент). Правила монтажа рилсов:
+динамическая нарезка ~12 склеек по ~2 с; каждый сегмент нормализовать
+`scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280`; титры
+Impact с прыжками размера + красно-синие глитч-вспышки и полосы помех
+(образец — scratchpad reel/filter6.txt прошлых сессий, паттерн в git-истории);
+разделитель в титрах `//` (глиф ▸ в Impact ненадёжен). Если в брифе
+customCar.photoRef — забрать фото GET /api/track?name=<ref> и генерить клипы
+image-to-video (kling, medias role start_image) от этого фото. Промокод из CTA
+должен существовать в BUILTIN_PROMOS (api.ts) — добавить, если новый.
 Все mp4 перед коммитом жать: `ffmpeg -an -c:v libx264 -preset slow -crf 25
 -movflags +faststart -pix_fmt yuv420p` (видео на сайте всегда muted).
 

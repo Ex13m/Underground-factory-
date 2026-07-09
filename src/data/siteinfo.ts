@@ -14,6 +14,18 @@ export const HF_CREDITS = {
   plan: 'Ultimate',
 };
 
+/**
+ * Накопительные датчики расхода на проект (шапка + Инфо).
+ * Higgsfield — точно из биллинга (transactions); HeyGen — пока не использовался;
+ * Claude Code — оценка (точного счётчика у сессий нет): вход+выход с учётом
+ * кэша за все сессии разработки с 2026-07-08. Обновляется с релизами.
+ */
+export const SPEND_METERS = [
+  { id: 'hf', label: 'HIGGSFIELD', spent: '≈815', unit: { ru: 'кредитов', en: 'credits' }, exact: true },
+  { id: 'heygen', label: 'HEYGEN', spent: '0', unit: { ru: 'кредитов', en: 'credits' }, exact: true },
+  { id: 'claude', label: 'CLAUDE CODE', spent: '≈25M', unit: { ru: 'токенов (оценка)', en: 'tokens (estimate)' }, exact: false },
+] as const;
+
 export interface InfoSection {
   title: LocalText;
   items: LocalText[];

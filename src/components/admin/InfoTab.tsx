@@ -5,7 +5,7 @@
  */
 
 import { useI18n } from '../../lib/i18n';
-import { GEN_MODELS, HF_CREDITS, SITE_INFO } from '../../data/siteinfo';
+import { GEN_MODELS, HF_CREDITS, SITE_INFO, SPEND_METERS } from '../../data/siteinfo';
 
 export function InfoTab() {
   const { t, lt } = useI18n();
@@ -67,6 +67,14 @@ export function InfoTab() {
             {' '}▸ {t('admin.info.spent')}: <b>{HF_CREDITS.spent}</b>
             {' '}({HF_CREDITS.plan}, {t('admin.info.measured')} {HF_CREDITS.measuredAt})
           </span>
+        </div>
+        {/* накопительные датчики расхода на проект (дублируются в шапке) */}
+        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', margin: '10px 0 14px' }}>
+          {SPEND_METERS.map((m) => (
+            <span key={m.id} className="tech-label">
+              {m.label}: <b style={{ color: 'var(--blood)' }}>{m.spent}</b> {lt(m.unit)}
+            </span>
+          ))}
         </div>
         <div className="adm-form-actions">
           <a className="btn ghost" href="https://higgsfield.ai" target="_blank" rel="noreferrer">

@@ -179,3 +179,32 @@
 
 /* счётчик токенов в шапке */
 .uf-nav-tokens { font-size: 11px; letter-spacing: 0.06em; }
+
+/* своя тачка: превью фото-референса */
+.cnt-photo-preview {
+  max-width: 180px;
+  border: 1px solid rgba(236, 234, 229, 0.3);
+  display: block;
+  margin: 4px 0 8px;
+}
+
+/* конвейер одобрения рилсов */
+.cnt-reel-flags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 6px 0;
+}
+.cnt-reel-card.ok { border-color: rgba(70, 200, 90, 0.5); }
+.cnt-pub.on { color: #46c85a; border-color: #46c85a; }
+.cnt-pub.wait {
+  color: var(--hazard, #e0a51b);
+  border-color: var(--hazard, #e0a51b);
+  animation: cnt-pub-blink 1.4s ease-in-out infinite;
+}
+@keyframes cnt-pub-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+body.calm .cnt-pub.wait { animation: none; }

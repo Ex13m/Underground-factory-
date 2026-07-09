@@ -1,10 +1,10 @@
 /**
- * Публикация треков радио (Админка → РАДИО → «Загрузить MP3»).
- * Файл ≤4.5 МБ улетает сюда (Netlify Blobs, store 'uf-tracks'), рядом в
- * /api/queue падает заявка kind:'add-track' — Claude в терминале забирает файл
- * (GET /api/track?name=...), кладёт в public/media/music и прописывает в сид.
+ * Файловый мост админки (Netlify Blobs, store 'uf-tracks'):
+ * - треки радио (Админка → РАДИО → «Загрузить MP3», заявка add-track);
+ * - фото-референсы своих тачек для рилсов (Контент → «Своя тачка», reelref-*.jpg).
+ * Claude в терминале забирает файл GET /api/track?name=... при исполнении заявки.
  * - POST { name, dataBase64 } — сохранить (>4.5 МБ — честный отказ 413);
- * - GET ?name=<имя>           — отдать файл (audio/mpeg);
+ * - GET ?name=<имя>           — отдать файл (Content-Type по расширению);
  * - GET                        — список имён;
  * - DELETE                     — очистить хранилище (после разбора очереди).
  */
@@ -32,12 +32,18 @@ export default async (req: Request) => {
       const { blobs } = await store.list();
       return json(blobs.map((b) => b.key));
     }
-    const buf = await store.get(safeName(name), { type: 'arrayBuffer' });
+    const key = safeName(name);
+    const buf = await store.get(key, { type: 'arrayBuffer' });
     if (!buf) return json({ error: 'not found' }, 404);
+    const type = key.endsWith('.jpg') || key.endsWith('.jpeg')
+      ? 'image/jpeg'
+      : key.endsWith('.png')
+        ? 'image/png'
+        : 'audio/mpeg';
     return new Response(buf, {
       headers: {
-        'Content-Type': 'audio/mpeg',
-        'Content-Disposition': `attachment; filename="${safeName(name)}"`,
+        'Content-Type': type,
+        'Content-Disposition': `attachment; filename="${key}"`,
       },
     });
   }

@@ -4,7 +4,7 @@ import { useUI } from '../store/ui';
 import { useAuth } from '../store/auth';
 import { useCart, cartCount } from '../store/cart';
 import { bus } from '../lib/bus';
-import { HF_CREDITS } from '../data/siteinfo';
+import { SPEND_METERS } from '../data/siteinfo';
 
 export function Header() {
   const { t } = useI18n();
@@ -29,10 +29,11 @@ export function Header() {
           <NavLink to="/account" data-hint="nav-account">{t('common.nav.account')}</NavLink>
           <NavLink to="/tv">{t('common.nav.tv')}</NavLink>
           <NavLink to="/admin" className="uf-nav-admin">{t('common.nav.admin')}</NavLink>
-          {/* расход кредитов Higgsfield на проект: «служебная дверь», как админка —
-              видна при наведении; данные из биллинга, обновляются с релизами */}
+          {/* накопительный датчик расхода на проект (Higgsfield + HeyGen + Claude Code):
+              «служебная дверь», как админка — виден при наведении; полная
+              расшифровка — в Админке → Инфо */}
           <NavLink to="/admin" className="uf-nav-admin uf-nav-tokens mono" title={t('common.tokens.title')}>
-            ⛽ {HF_CREDITS.spent}
+            ⛽ HF {SPEND_METERS[0].spent} · CC {SPEND_METERS[2].spent}
           </NavLink>
         </nav>
 
