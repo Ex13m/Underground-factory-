@@ -74,6 +74,23 @@ export function ContentTab() {
   const [identBusy, setIdentBusy] = useState(false);
   const [identNote, setIdentNote] = useState<string | null>(null);
 
+  /** сохранить «свою тачку» в общий гараж завода (каталог UF_API):
+      дальше она выбирается из списка везде — рилсы, каталог, фильтры */
+  const saveCustomCar = () => {
+    if (!isCustomCar || !customCarName.trim()) return null;
+    const id = `custom-${customCarName.trim().toLowerCase().replace(/[^\wа-яё]+/gi, '-').replace(/^-+|-+$/g, '')}`;
+    if (api.listCars().some((c) => c.id === id)) return id; // уже в гараже
+    const [make, ...rest] = customCarName.trim().split(/\s+/);
+    api.addCar({
+      id,
+      make: make ?? 'CUSTOM',
+      model: rest.join(' ') || customCarName.trim(),
+      years: '',
+      img: customPhoto ? `data:image/jpeg;base64,${customPhoto}` : '',
+    });
+    return id;
+  };
+
   /** опознать тачку по фото (Gemini vision, ключ из арт-редактора) */
   const identify = async () => {
     const key = readGenKeys().gemini;
@@ -280,7 +297,11 @@ export function ContentTab() {
       .then((r) => {
         setSent(r.ok ? 'ok' : 'err');
         setResult(r.ok ? 'ok' : 'err');
-        if (r.ok) setEditKey(null);
+        if (r.ok) {
+          setEditKey(null);
+          // «своя тачка» уезжает в общий гараж завода — дальше просто выбираешь её из списка
+          saveCustomCar();
+        }
         loadQueue();
       })
       .catch(() => {
