@@ -6,7 +6,13 @@ import type { LocalText } from '../lib/types';
  * большой генерации (остаток кредитов Higgsfield — вручную, с датой замера).
  */
 
-export const HF_CREDITS = { value: '≈1300', measuredAt: '2026-07-09', plan: 'Ultimate' };
+export const HF_CREDITS = {
+  value: '≈1270',
+  /** реально израсходовано на проект с 2026-07-08 (сумма spend из биллинга Higgsfield) */
+  spent: '≈770',
+  measuredAt: '2026-07-09',
+  plan: 'Ultimate',
+};
 
 export interface InfoSection {
   title: LocalText;

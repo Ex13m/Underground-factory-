@@ -20,6 +20,7 @@ export default {
     'admin.info.changelog': 'полная история изменений',
     'admin.info.models': 'МОДЕЛИ ГЕНЕРАЦИИ',
     'admin.info.credits': 'остаток кредитов',
+    'admin.info.spent': 'израсходовано на проект',
     'admin.info.measured': 'замер',
 
     'admin.lock.title': 'КОДОВЫЙ ЗАМОК',
@@ -208,6 +209,7 @@ export default {
     'admin.info.changelog': 'full change history',
     'admin.info.models': 'GENERATION MODELS',
     'admin.info.credits': 'credits left',
+    'admin.info.spent': 'spent on the project',
     'admin.info.measured': 'measured',
 
     'admin.lock.title': 'CODE LOCK',

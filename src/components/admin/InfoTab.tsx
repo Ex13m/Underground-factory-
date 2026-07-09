@@ -64,6 +64,7 @@ export function InfoTab() {
           <span className="tape">HIGGSFIELD</span>
           <span className="tech-label">
             {t('admin.info.credits')}: <b style={{ color: 'var(--blood)' }}>{HF_CREDITS.value}</b>
+            {' '}▸ {t('admin.info.spent')}: <b>{HF_CREDITS.spent}</b>
             {' '}({HF_CREDITS.plan}, {t('admin.info.measured')} {HF_CREDITS.measuredAt})
           </span>
         </div>
