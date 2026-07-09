@@ -7,8 +7,7 @@ import type { LocalText } from '../lib/types';
  * что реально поменялось с прошлого релиза (коротко, по-русски и по-английски).
  */
 export const UPDATE_NOTES: LocalText[] = [
-  { ru: 'ПРОМОКОД PITSTOP26 ▸ −15% КАЖДОМУ', en: 'PROMO CODE PITSTOP26 ▸ −15% FOR EVERYONE' },
-  { ru: 'UF RADIO ▸ АВТОМАСТЕРИНГ: ЭХО, ОБЪЁМ, РОВНЫЙ LUFS', en: 'UF RADIO ▸ AUTO-MASTER: ECHO, WIDTH, EVEN LUFS' },
-  { ru: 'ЦЕХ РИЛСОВ ЗАПУЩЕН ▸ ПЕРВЫЙ ВЫПУСК НА ПОЛКЕ', en: 'REEL SHOP IS LIVE ▸ FIRST DROP ON THE SHELF' },
-  { ru: 'UF RADIO ▸ 11 ФИНАЛЬНЫХ ТРЕКОВ БЕЗ НАРЕЗОК', en: 'UF RADIO ▸ 11 FINAL TRACKS, NO ROUGH CUTS' },
+  { ru: 'ПИТ-БОСС ВОДИТ ПО ЦЕХУ ▸ СКАЖИ «ОТКРОЙ КОРЗИНУ»', en: 'PIT BOSS GUIDES YOU ▸ SAY "OPEN THE CART"' },
+  { ru: 'КОД FIGABOSS2026 ▸ −15% КАЖДОМУ', en: 'CODE FIGABOSS2026 ▸ −15% FOR EVERYONE' },
+  { ru: 'НОВЫЙ КУРСОР-ТАХОМЕТР ▸ РАЗГОНИ СТРЕЛКУ МЫШКОЙ', en: 'NEW TACHO CURSOR ▸ REV THE NEEDLE WITH YOUR MOUSE' },
 ];

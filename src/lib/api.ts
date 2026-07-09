@@ -27,6 +27,7 @@ const LS = {
  */
 const BUILTIN_PROMOS: Promo[] = [
   { code: 'PITSTOP26', pct: 15, source: 'admin' },
+  { code: 'FIGABOSS2026', pct: 15, source: 'admin' },
 ];
 
 /** Заявка админа на генерацию медиа через Higgsfield (исполняет Claude в терминале). */

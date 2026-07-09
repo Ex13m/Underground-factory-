@@ -43,6 +43,13 @@ export default {
     'content.q.ok': 'ЗАЯВКА В ОЧЕРЕДИ ▸ исполнит Claude в терминале, рилс появится на полке',
     'content.q.err': 'ОЧЕРЕДЬ НЕДОСТУПНА ▸ попробуй позже',
 
+    'content.queue.title': 'В ОЧЕРЕДИ: {n}',
+    'content.queue.empty': 'очередь пуста — цех простаивает',
+    'content.queue.open': 'Открыть в форме и отредактировать',
+    'content.queue.remove': 'Снять с очереди',
+    'content.order.update': 'ОБНОВИТЬ ЗАЯВКУ',
+    'content.order.newone': 'НОВАЯ',
+
     'content.confirm.title': 'ПРОВЕРЬ ЗАЯВКУ ▸ ЧТО УЙДЁТ В ОЧЕРЕДЬ',
     'content.confirm.what': 'Это точное содержимое заявки: план-скелет и сырой бриф (JSON), который получит Claude. Отправка — только после твоего «в очередь».',
     'content.confirm.send': '▸ В ОЧЕРЕДЬ',
@@ -117,6 +124,13 @@ export default {
     'content.q.sending': 'TICKET ▸ SENDING…',
     'content.q.ok': 'TICKET QUEUED ▸ Claude executes it in the terminal, the reel lands on the shelf',
     'content.q.err': 'QUEUE UNAVAILABLE ▸ try again later',
+
+    'content.queue.title': 'QUEUED: {n}',
+    'content.queue.empty': 'queue is empty — the shop is idle',
+    'content.queue.open': 'Open in the form and edit',
+    'content.queue.remove': 'Remove from the queue',
+    'content.order.update': 'UPDATE TICKET',
+    'content.order.newone': 'NEW',
 
     'content.confirm.title': 'REVIEW THE TICKET ▸ WHAT GOES TO THE QUEUE',
     'content.confirm.what': 'This is the exact ticket content: the plan skeleton and the raw brief (JSON) Claude will receive. Nothing is sent until you hit "to the queue".',

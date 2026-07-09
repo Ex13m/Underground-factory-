@@ -78,6 +78,13 @@ export default async (req: Request) => {
   }
 
   if (req.method === 'DELETE') {
+    // ?key=<key> — снять одну заявку (лента очереди в админке); без key — очистить всё
+    const key = new URL(req.url).searchParams.get('key');
+    if (key) {
+      const rest = (await read()).filter((x) => x.key !== key);
+      await store.set('tickets', JSON.stringify(rest));
+      return json({ ok: true, count: rest.length });
+    }
     await store.set('tickets', '[]');
     return json({ ok: true });
   }

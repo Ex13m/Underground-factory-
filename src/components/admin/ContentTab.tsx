@@ -9,7 +9,7 @@
  * public/media/reels/ и прописывает в src/data/reels.ts — полка внизу.
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useI18n } from '../../lib/i18n';
 import { SEED_CARS, SEED_PRODUCTS } from '../../data/seed';
 import { allTracks } from '../../lib/radioTracks';
@@ -44,6 +44,55 @@ export function ContentTab() {
   const [pending, setPending] = useState<{ ticket: Record<string, unknown>; pretty: string } | null>(null);
   /** всплывающий итог после «В очередь» / отмены */
   const [result, setResult] = useState<'ok' | 'err' | 'cancel' | null>(null);
+  /** лента очереди: рилс-заявки, ждущие исполнения (до 10 в линию) */
+  const [queue, setQueue] = useState<Array<{ key: string; brief: Record<string, unknown> }>>([]);
+  /** key заявки, открытой на редактирование (форма заполнена её брифом) */
+  const [editKey, setEditKey] = useState<string | null>(null);
+
+  const loadQueue = () => {
+    fetch('/api/queue')
+      .then((r) => (r.ok ? r.json() : []))
+      .then((list) => {
+        if (!Array.isArray(list)) return;
+        const reels = list
+          .filter((x) => x?.kind === 'reel')
+          .slice(0, 10)
+          .map((x) => {
+            let brief: Record<string, unknown> = {};
+            try { brief = JSON.parse(String(x.prompt)); } catch { /* сырой промпт */ }
+            return { key: String(x.key), brief };
+          });
+        setQueue(reels);
+      })
+      .catch(() => {});
+  };
+  useEffect(loadQueue, []);
+
+  /** открыть заявку из ленты: бриф — в форму, дальше можно «Обновить» */
+  const openTicket = (item: { key: string; brief: Record<string, unknown> }) => {
+    const b = item.brief;
+    if (typeof b.carId === 'string' && SEED_CARS.some((c) => c.id === b.carId)) pickCar(b.carId);
+    setProductId(typeof b.productId === 'string' && b.productId !== 'full-kit' ? b.productId : '');
+    if (b.scenario === 'beforeafter' || b.scenario === 'action' || b.scenario === 'custom') setScenario(b.scenario);
+    if (b.scene === 'nightrace' || b.scene === 'drift' || b.scene === 'chase') setScene(b.scene);
+    setCustomPrompt(typeof b.customPrompt === 'string' ? b.customPrompt : '');
+    if (typeof b.music === 'string') setMusic(b.music);
+    if (b.textMode === 'slogans' || b.textMode === 'specs' || b.textMode === 'custom') setTextMode(b.textMode);
+    setCustomText(typeof b.text === 'string' ? b.text : '');
+    if (typeof b.cta === 'string') setCtaEdit(b.cta);
+    if (b.duration === 15 || b.duration === 30) setDuration(b.duration);
+    setEditKey(item.key);
+  };
+
+  /** снять заявку из очереди */
+  const removeTicket = (key: string) => {
+    fetch(`/api/queue?key=${encodeURIComponent(key)}`, { method: 'DELETE' })
+      .then(() => {
+        if (editKey === key) setEditKey(null);
+        loadQueue();
+      })
+      .catch(() => {});
+  };
 
   const tracks = useMemo(() => allTracks(), []);
   const car = SEED_CARS.find((c) => c.id === carId) ?? SEED_CARS[0];
@@ -115,7 +164,8 @@ export function ContentTab() {
       duration,
     };
     const ticket = {
-      key: `reel:${carId}:${Date.now()}`,
+      // редактирование: тот же key — очередь заменит заявку, а не создаст новую
+      key: editKey ?? `reel:${carId}:${Date.now()}`,
       kind: 'reel',
       prompt: JSON.stringify(brief),
       width: 720,
@@ -139,6 +189,8 @@ export function ContentTab() {
       .then((r) => {
         setSent(r.ok ? 'ok' : 'err');
         setResult(r.ok ? 'ok' : 'err');
+        if (r.ok) setEditKey(null);
+        loadQueue();
       })
       .catch(() => {
         setSent('err');
@@ -159,6 +211,29 @@ export function ContentTab() {
           <span className="tech-label">{t('content.format')}</span>
         </div>
         <p className="adm-note">{t('content.note')}</p>
+
+        {/* лента очереди: что ждёт исполнения, до 10 в линию; открыть → форма, ✕ → снять */}
+        <div className="cnt-queue-row">
+          <span className="tech-label">{t('content.queue.title', { n: queue.length })}</span>
+          <div className="cnt-queue">
+            {queue.length === 0 && <span className="cnt-queue-empty">{t('content.queue.empty')}</span>}
+            {queue.map((q) => {
+              const c = SEED_CARS.find((x) => x.id === q.brief.carId);
+              const label = c ? `${c.make} ${c.model}` : String(q.brief.carId ?? '?');
+              const active = editKey === q.key;
+              return (
+                <span key={q.key} className={`cnt-queue-chip${active ? ' on' : ''}`}>
+                  <button className="cnt-queue-open" onClick={() => openTicket(q)} title={t('content.queue.open')}>
+                    {label} ▸ {t(`content.scenario.${q.brief.scenario ?? 'action'}`)}
+                  </button>
+                  <button className="cnt-queue-x" onClick={() => removeTicket(q.key)} title={t('content.queue.remove')}>
+                    ✕
+                  </button>
+                </span>
+              );
+            })}
+          </div>
+        </div>
 
         <div className="cnt-grid">
           {/* ===== форма заказа ===== */}
@@ -274,8 +349,13 @@ export function ContentTab() {
 
             <div className="cnt-actions">
               <button className="btn" onClick={order} disabled={sent === 'sending'} data-testid="cnt-order">
-                {t('content.order')}
+                {editKey ? t('content.order.update') : t('content.order')}
               </button>
+              {editKey && (
+                <button className="btn ghost" onClick={() => setEditKey(null)}>
+                  {t('content.order.newone')}
+                </button>
+              )}
               {sent && (
                 <span className={`cnt-q-status${sent === 'err' ? ' err' : ''}`}>
                   {sent === 'sending' && t('content.q.sending')}

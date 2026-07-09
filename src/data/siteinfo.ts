@@ -7,9 +7,9 @@ import type { LocalText } from '../lib/types';
  */
 
 export const HF_CREDITS = {
-  value: '≈1270',
+  value: '≈1225',
   /** реально израсходовано на проект с 2026-07-08 (сумма spend из биллинга Higgsfield) */
-  spent: '≈770',
+  spent: '≈815',
   measuredAt: '2026-07-09',
   plan: 'Ultimate',
 };

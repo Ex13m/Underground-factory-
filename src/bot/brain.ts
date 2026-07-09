@@ -116,14 +116,33 @@ export function markPing() {
 
 // ---- распознавание намерений ----
 
-export type Intent = 'discount' | 'material' | 'heat' | 'hello' | 'hits' | 'fallback';
+export type Intent =
+  | 'discount'
+  | 'material'
+  | 'heat'
+  | 'hello'
+  | 'hits'
+  | 'open-cart'
+  | 'open-tv'
+  | 'open-garage'
+  | 'open-account'
+  | 'open-admin'
+  | 'open-home'
+  | 'fallback';
 
-/** порядок важен: скидка перекрывает всё, температура — раньше материала */
+/** порядок важен: скидка перекрывает всё, температура — раньше материала,
+    навигация («открой…») — раньше общих тем */
 const INTENTS: Array<[Intent, RegExp]> = [
   ['discount', /скидк|скидо|дорог|дешевл|дешёв|промокод|промик|торг|discount|expensive|cheaper|cheap|promo|coupon|deal/i],
+  ['open-cart', /корзин|cart|basket/i],
+  ['open-tv', /видеосалон|видик|телек|эфир|\bтв\b|\btv\b|cctv|салон/i],
+  ['open-garage', /гараж|garage/i],
+  ['open-account', /кабинет|аккаунт|профил|заказ(ы|ов)|избранн|account|profile|orders|favou?rites/i],
+  ['open-admin', /админ|admin/i],
+  ['open-home', /главн|домой|на старт|home|main page/i],
   ['heat', /термо|жар|градус|температур|плав|нагрев|выхлоп|heat|temperature|melt|degrees|exhaust|thermal/i],
   ['material', /карбон|композит|абс|пластик|стекло|материал|завод|легенд|carbon|composite|abs|plastic|fibre|fiber|material|factory|legend/i],
-  ['hits', /хит|каталог|покаж|ассортимент|топ\b|товар|hits?\b|catalog|catalogue|show|best|top\b/i],
+  ['hits', /хит|каталог|покаж|ассортимент|обвес|товар|деталь|запчаст|топ\b|hits?\b|catalog|catalogue|show|best|kit|parts?\b|top\b/i],
   ['hello', /привет|здоров|здравств|дратути|салют|добрый (день|вечер|утро)|hello|\bhi\b|\bhey\b|\byo\b|sup\b/i],
 ];
 

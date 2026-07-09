@@ -134,3 +134,48 @@
   gap: 14px;
   align-items: flex-start;
 }
+
+/* ---- лента очереди рилсов: до 10 заявок в одну линию ---- */
+.cnt-queue-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 10px 0 14px;
+  min-width: 0;
+}
+.cnt-queue {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  white-space: nowrap;
+  padding-bottom: 4px;
+  min-width: 0;
+  flex: 1;
+}
+.cnt-queue-empty { color: var(--steel); font-size: 12px; }
+.cnt-queue-chip {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid rgba(236, 234, 229, 0.25);
+  background: rgba(0, 0, 0, 0.35);
+  flex: 0 0 auto;
+}
+.cnt-queue-chip.on { border-color: var(--blood); box-shadow: 0 0 8px rgba(224, 27, 34, 0.35); }
+.cnt-queue-open {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  padding: 6px 10px;
+  color: var(--paper);
+  cursor: pointer;
+}
+.cnt-queue-open:hover { color: var(--blood); }
+.cnt-queue-x {
+  padding: 6px 8px;
+  color: var(--steel);
+  border-left: 1px solid rgba(236, 234, 229, 0.18);
+  cursor: pointer;
+}
+.cnt-queue-x:hover { color: var(--blood); }
+
+/* счётчик токенов в шапке */
+.uf-nav-tokens { font-size: 11px; letter-spacing: 0.06em; }

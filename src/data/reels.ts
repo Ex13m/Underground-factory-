@@ -16,6 +16,14 @@ export interface Reel {
 
 export const REELS: Reel[] = [
   {
+    // E36 + зеркала APEX VIEW: погоня — уход от преследования, отражение фар
+    // в карбоновом зеркале, макро твила, финал в укрытии. Титры-характеристики,
+    // CTA FIGABOSS2026. 6 клипов kling 9:16, 12 склеек, ~45 кредитов HF.
+    file: '/media/reels/reel-e36-mirrors-chase.mp4',
+    title: { ru: 'BMW E36 ▸ ЗЕРКАЛА APEX VIEW ▸ ПОГОНЯ', en: 'BMW E36 ▸ APEX VIEW MIRRORS ▸ CHASE' },
+    createdAt: '2026-07-09',
+  },
+  {
     // Supra A80 + полный кит: хук-экшн → сток → глитч-трансформация → деталь →
     // тоннель → финал с CTA (PITSTOP26). 6 клипов kling 9:16, ~45 кредитов HF.
     file: '/media/reels/reel-supra-fullkit-nightrace.mp4',

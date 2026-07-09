@@ -333,6 +333,31 @@ export function Bot() {
       case 'hits':
         goCatalog();
         break;
+      // навигация голосом продажника: открываем раздел и дожимаем репликой
+      case 'open-cart':
+        window.location.hash = '#/cart';
+        pushBot({ key: 'bot.nav.cart', actions: [{ labelKey: 'bot.qa.discount', run: doEscalate }] });
+        break;
+      case 'open-tv':
+        window.location.hash = '#/tv';
+        pushBot({ key: 'bot.nav.tv' });
+        break;
+      case 'open-garage':
+        window.location.hash = '#/account';
+        pushBot({ key: 'bot.nav.garage' });
+        break;
+      case 'open-account':
+        window.location.hash = '#/account';
+        pushBot({ key: 'bot.nav.account' });
+        break;
+      case 'open-admin':
+        window.location.hash = '#/admin';
+        pushBot({ key: 'bot.nav.admin' });
+        break;
+      case 'open-home':
+        window.location.hash = '#/';
+        pushBot({ key: 'bot.nav.home', actions: defaultActions() });
+        break;
       default: {
         // непонятый вопрос: запоминаем и предлагаем передать владельцу
         lastUnansweredRef.current = text;

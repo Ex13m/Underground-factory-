@@ -121,10 +121,17 @@ export function MicroPlayer() {
     if (!fadingRef.current && aRef.current && bRef.current) curEl().volume = master();
   }, [volume, muted]);
 
-  /** применить настройки мастеринга и per-track gain ко всем цепочкам */
+  /** применить настройки мастеринга и per-track gain ко всем цепочкам.
+      Гейны — плавной рампой (~0.4 с), а не скачком: замер LUFS/RMS может
+      прилететь посреди трека, и громкость не должна дёргаться. */
   const applyMasterToChains = () => {
     const st = useRadio.getState();
     const m = st.master;
+    const ctx = ctxRef.current;
+    const ramp = (p: AudioParam, v: number) => {
+      if (ctx) p.setTargetAtTime(v, ctx.currentTime, 0.15);
+      else p.value = v;
+    };
     chainsRef.current.forEach((ch, i) => {
       if (!ch) return;
       if (m.enabled) {
@@ -132,22 +139,22 @@ export function MicroPlayer() {
         ch.bass.gain.value = m.bassDb;
         ch.mid.gain.value = m.midDb;
         ch.treble.gain.value = m.trebleDb;
-        ch.wet.gain.value = Math.max(0, Math.min(0.4, m.reverbWet ?? 0));
-        ch.side.gain.value = Math.max(1, Math.min(2, m.width ?? 1));
+        ramp(ch.wet.gain, Math.max(0, Math.min(0.4, m.reverbWet ?? 0)));
+        ramp(ch.side.gain, Math.max(1, Math.min(2, m.width ?? 1)));
         ch.comp.threshold.value = Math.max(-100, Math.min(0, m.compThreshold));
         ch.comp.ratio.value = Math.max(1, Math.min(20, m.compRatio));
         ch.comp.knee.value = 6;
         ch.comp.attack.value = 0.008;
-        ch.comp.release.value = 0.25;
-        // лимитер: почти кирпич у потолка, гасит пики без слышимой накачки
+        ch.comp.release.value = 0.35; // медленнее отпускает — меньше «дыхания»
+        // лимитер: страж пиков; release не слишком короткий, иначе качает громкость
         ch.limiter.threshold.value = (m.limiter ?? false) ? -1.5 : 0;
-        ch.limiter.ratio.value = (m.limiter ?? false) ? 20 : 1;
-        ch.limiter.knee.value = 0;
-        ch.limiter.attack.value = 0.002;
-        ch.limiter.release.value = 0.1;
-        ch.out.gain.value = dbToLin(m.gain);
+        ch.limiter.ratio.value = (m.limiter ?? false) ? 12 : 1;
+        ch.limiter.knee.value = 1;
+        ch.limiter.attack.value = 0.003;
+        ch.limiter.release.value = 0.25;
+        ramp(ch.out.gain, dbToLin(m.gain));
         const id = elTrackRef.current[i]?.id;
-        ch.trackGain.gain.value = dbToLin(id !== undefined ? st.trackGain[id] ?? 0 : 0);
+        ramp(ch.trackGain.gain, dbToLin(id !== undefined ? st.trackGain[id] ?? 0 : 0));
       } else {
         // выключен — цепочка полностью нейтральна
         ch.lowcut.frequency.value = 5;
