@@ -7,6 +7,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { useI18n } from '../../lib/i18n';
+import { generateImage } from '../../lib/imagegen';
 import { Img } from '../../lib/media';
 import { getOverride, onMediaChanged, setOverride } from '../../lib/mediaStore';
 import { GRADE_META, GRADE_ORDER } from '../../lib/types';
@@ -38,6 +39,27 @@ const QUICK_DEFAULTS: Record<MaterialGrade, { weightGrams: number; heatC: number
     material: { ru: 'АБС + грунт под покраску', en: 'ABS + paint-ready primer' },
   },
 };
+
+/** Blob → base64 JPEG ≤1280px (для /api/track: лимит функции 4.5 МБ). */
+async function blobToJpegBase64(blob: Blob, max = 1280): Promise<string> {
+  const url = URL.createObjectURL(blob);
+  try {
+    const img = await new Promise<HTMLImageElement>((res, rej) => {
+      const i = new Image();
+      i.onload = () => res(i);
+      i.onerror = rej;
+      i.src = url;
+    });
+    const k = Math.min(1, max / Math.max(img.width, img.height));
+    const cv = document.createElement('canvas');
+    cv.width = Math.round(img.width * k);
+    cv.height = Math.round(img.height * k);
+    cv.getContext('2d')!.drawImage(img, 0, 0, cv.width, cv.height);
+    return cv.toDataURL('image/jpeg', 0.85).split(',')[1];
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
 
 /** Перерисовка при изменениях mediaStore (появление/замена STL). */
 function useMediaVersion() {
@@ -134,6 +156,14 @@ function PartRow({ car, p }: { car: CarModel; p: Product }) {
   const { t, lt } = useI18n();
   const meta = GRADE_META[p.rarity];
   const stl = getOverride(`${p.id}-stl`);
+  const seedKey = p.media[0]?.seed ?? p.id;
+
+  // арт-блок детали: промпт «что это» + генерация картинки в стиле сайта +
+  // фото файлом; по новой картинке автоматически уходит заявка на заставку
+  const [artOpen, setArtOpen] = useState(false);
+  const [prompt, setPrompt] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
 
   const unlink = () => api.updateProduct(p.id, { fits: p.fits.filter((id) => id !== car.id) });
 
@@ -143,9 +173,70 @@ function PartRow({ car, p }: { car: CarModel; p: Product }) {
     e.target.value = ''; // повторный выбор того же файла тоже сработает
   };
 
+  /** заявка на заставку-оживление детали по картинке (референс в /api/track) */
+  const orderLive = async (image: Blob) => {
+    try {
+      const ref = `partref-${p.id}.jpg`;
+      const dataBase64 = await blobToJpegBase64(image);
+      const up = await fetch('/api/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: ref, dataBase64 }),
+      });
+      if (!up.ok) throw new Error(String(up.status));
+      const q = await fetch('/api/queue', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          key: `part-live:${p.id}`,
+          kind: 'video',
+          prompt: `заставка-оживление детали «${lt(p.name)}» (${p.sku}): ${prompt.trim() || 'деталь парит в воздухе, медленный облёт, ночной цех'} ▸ image-to-video от референса /api/track?name=${ref}`,
+          width: 1280,
+          height: 720,
+          createdAt: Date.now(),
+        }),
+      });
+      if (!q.ok) throw new Error(String(q.status));
+      setNote(t('admin.tree.liveQueued'));
+    } catch {
+      setNote(t('admin.tree.liveErr'));
+    }
+  };
+
+  const onPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setBusy(true);
+    await setOverride(seedKey, 'image', file, { prompt: prompt.trim() || file.name, provider: 'upload' });
+    await orderLive(file);
+    setBusy(false);
+  };
+
+  /** генерация картинки детали по промпту — всегда в стиле сайта */
+  const genArt = async () => {
+    if (busy) return;
+    setBusy(true);
+    setNote(null);
+    try {
+      const blob = await generateImage({
+        prompt: `${lt(p.name)} (${lt(meta.label)}). ${prompt.trim() || 'предметка: деталь в воздухе на тёмном фоне'}`,
+        width: 800,
+        height: 600,
+        useStyle: true, // фирменный стиль сайта
+        provider: 'pollinations',
+      });
+      await setOverride(seedKey, 'image', blob, { prompt: prompt.trim(), provider: 'pollinations' });
+      await orderLive(blob);
+    } catch {
+      setNote(t('admin.tree.genErr'));
+    }
+    setBusy(false);
+  };
+
   return (
     <div className="adm-tree-part">
-      <Img className="adm-thumb" src={p.media[0]?.url} seed={p.media[0]?.seed ?? p.id} alt={lt(p.name)} />
+      <Img className="adm-thumb" src={p.media[0]?.url} seed={seedKey} alt={lt(p.name)} />
       <span className="adm-tree-sku">{p.sku}</span>
       <span className="adm-tree-main">
         <span className="adm-tree-name">{lt(p.name)}</span>
@@ -159,6 +250,14 @@ function PartRow({ car, p }: { car: CarModel; p: Product }) {
         {p.price}
       </span>
       <div className="adm-actions">
+        <button
+          type="button"
+          className="adm-mini-btn"
+          style={artOpen ? { background: 'var(--blood)', borderColor: 'var(--blood)', color: '#fff' } : undefined}
+          onClick={() => setArtOpen((o) => !o)}
+        >
+          {t('admin.tree.art')}
+        </button>
         <label className="adm-mini-btn">
           {stl ? t('admin.tree.stlHave') : t('admin.tree.stl')}
           <input type="file" accept=".stl" hidden onChange={onStl} />
@@ -167,6 +266,25 @@ function PartRow({ car, p }: { car: CarModel; p: Product }) {
           {t('admin.tree.unlink')}
         </button>
       </div>
+
+      {artOpen && (
+        <div className="adm-tree-art">
+          <input
+            className="field"
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder={t('admin.tree.promptPh')}
+          />
+          <button type="button" className="adm-mini-btn" onClick={() => void genArt()} disabled={busy}>
+            {busy ? t('admin.tree.genBusy') : t('admin.tree.gen')}
+          </button>
+          <label className="adm-mini-btn">
+            {t('admin.tree.photo')}
+            <input type="file" accept="image/*" hidden onChange={onPhoto} />
+          </label>
+          {note && <span className="tech-label">{note}</span>}
+        </div>
+      )}
     </div>
   );
 }

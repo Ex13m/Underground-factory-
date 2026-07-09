@@ -450,3 +450,15 @@ label.adm-mini-btn { display: inline-flex; align-items: center; cursor: pointer;
   .adm-quick-row { grid-template-columns: 1fr; align-items: stretch; }
   .adm-tree-attach { flex-wrap: wrap; }
 }
+
+/* арт-блок детали в дереве: промпт + генерация + фото */
+.adm-tree-art {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 8px 0 4px;
+}
+.adm-tree-art .field { flex: 1 1 260px; min-width: 200px; }
+.adm-tree-art { width: 100%; flex-basis: 100%; }
