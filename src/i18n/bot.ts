@@ -9,6 +9,10 @@ export default {
     'bot.typing': 'Пит-босс печатает…',
 
     'bot.greet.first': 'Тссс. Пит-босс на связи. Ты попал на подпольный завод: днём — OEM-запчасти, ночью — обвесы, о которых молчат каталоги. Чего надо — говори быстро, частоту пасут.',
+    'bot.greet.back1': 'Снова на частоте? Значит, зацепило. Пока ты думал, полпартии карбона уже разобрали быстрые ребята. Выбить тебе код, пока дают?',
+    'bot.greet.back2': 'О, знакомый позывной. Свежая партия из автоклава ещё тёплая — такое уходит до анонса. Глянешь, пока горячее?',
+    'bot.greet.back3': 'Вернулся — уважаю. Сток на тачке долго не живёт, сам знаешь. Пробеги по хитам, а по цене я прикрою.',
+    'bot.greet.back4': 'Эфир чистый, говорю быстро: сегодня могу шепнуть код до −15%. Завтра — не обещаю, у директора настроение как погода.',
 
     'bot.qa.what': 'Что за завод?',
     'bot.qa.hits': 'Покажи хиты',
@@ -61,6 +65,10 @@ export default {
     'bot.typing': 'The pit boss is typing…',
 
     'bot.greet.first': 'Psst. Pit boss here. You found the underground factory: OEM parts by day, body kits the catalogs stay silent about by night. Talk fast — this frequency is being watched.',
+    'bot.greet.back1': 'Back on the frequency? So it hooked you. While you were thinking, the fast guys took half the carbon batch. Want me to squeeze out a code while they still allow it?',
+    'bot.greet.back2': 'Oh, a familiar callsign. Fresh batch out of the autoclave, still warm — this kind sells out before the announcement. Take a look while it is hot?',
+    'bot.greet.back3': 'You came back — respect. Stock plastic never lives long on a proper ride, you know it. Run through the hits, I will cover you on the price.',
+    'bot.greet.back4': 'The air is clean, so I talk fast: today I can whisper a code up to −15%. Tomorrow — no promises, the director\'s mood shifts like the weather.',
 
     'bot.qa.what': 'What factory?',
     'bot.qa.hits': 'Show the hits',

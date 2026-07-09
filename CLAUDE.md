@@ -69,6 +69,13 @@ main) — зеркалить перестать. Прод: https://incandescent-
 Заявки с `kind: 'scrap-video'` (кнопка «БРАК» в Админке → «Эфир») — это брак:
 удалить файл из `key` (путь вида /media/hero/*.mp4) из репозитория и вычистить
 его из `HERO_VIDEOS` (seed.ts) и `TV_CLIPS` (tv.ts).
+Прочие kind заявок: `trim-video`/`trim-audio` — обрезать файл ffmpeg-ом до
+[start, end]; `add-track` — скачать mp3 из GET /api/track?name= и положить в
+public/media/music + playlist.ts; `stems-audio` — разложить трек на стемы;
+`reel` — собрать рилс 9:16 по JSON из prompt СТРОГО по `BRANDBOOK.md`
+(хук от кульминации → биты → CTA, клипы Higgsfield 720×1280, сборка ffmpeg
+с музыкой и глитч-титрами, звук оставить aac 128k), файл в public/media/reels/,
+запись в src/data/reels.ts (полка в Админке → Контент).
 Все mp4 перед коммитом жать: `ffmpeg -an -c:v libx264 -preset slow -crf 25
 -movflags +faststart -pix_fmt yuv420p` (видео на сайте всегда muted).
 

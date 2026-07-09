@@ -72,6 +72,7 @@ export function Home() {
   const [matModal, setMatModal] = useState<MaterialGrade | null>(null);
   // эфир: админ мог выключить часть роликов (вкладка ЭФИР); пусто не бывает — fallback на полный список
   const offAir = useOnAir((s) => s.off);
+  const trims = useOnAir((s) => s.trims);
   const heroSources = useMemo(() => filterOnAir(HERO_VIDEOS, offAir), [offAir]);
 
   const hits = useMemo(() => products.filter((p) => p.hit), [products]);
@@ -88,7 +89,7 @@ export function Home() {
     <div className="page" ref={pageRef}>
       {/* ============ HERO ============ */}
       <section className="uf-hero">
-        <VideoBg sources={heroSources} seed="hero" />
+        <VideoBg sources={heroSources} seed="hero" trims={trims} />
         <div className="uf-hero-overlay" aria-hidden />
 
         {/* stitch HUD: уголки, координаты, статус системы */}

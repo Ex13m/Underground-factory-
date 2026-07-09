@@ -128,8 +128,20 @@ export function Img({
  * Фоновое видео: список источников — это ПЛЕЙЛИСТ (монтаж эпизодов):
  * ролики играют по очереди и зацикливаются по кругу; битый источник
  * выбывает из ротации. Если живых не осталось — арт-фолбэк.
+ * trims — виртуальная обрезка (админка → ЭФИР → видеоредактор): путь → {start,end} сек;
+ * ролик с обрезкой стартует со start и «заканчивается» на end (переход к следующему).
  */
-export function VideoBg({ sources, seed, className }: { sources: string[]; seed: string; className?: string }) {
+export function VideoBg({
+  sources,
+  seed,
+  className,
+  trims,
+}: {
+  sources: string[];
+  seed: string;
+  className?: string;
+  trims?: Record<string, { start: number; end: number }>;
+}) {
   // монтаж каждый раз в НОВОМ случайном порядке (перетасовка Фишера—Йетса):
   // и первый ролик, и вся последовательность отличаются от загрузки к загрузке
   const order = useMemo(() => {
@@ -187,6 +199,9 @@ export function VideoBg({ sources, seed, className }: { sources: string[]; seed:
     );
   }
   const cur = dead.has(idx) ? nextAlive(idx) : idx;
+  // виртуальная обрезка текущего ролика (валидная — end строго после start)
+  const rawTrim = trims?.[order[cur]];
+  const trim = rawTrim && rawTrim.end > rawTrim.start ? rawTrim : undefined;
   return (
     <video
       key={order[cur]}
@@ -197,6 +212,22 @@ export function VideoBg({ sources, seed, className }: { sources: string[]; seed:
       // один живой ролик — обычный loop; несколько — монтаж по кругу
       loop={alive.length === 1}
       playsInline
+      onLoadedMetadata={(e) => {
+        // обрезанный ролик стартует с начала отрезка
+        if (trim && trim.start > 0) e.currentTarget.currentTime = trim.start;
+      }}
+      onTimeUpdate={(e) => {
+        if (!trim) return;
+        const tCur = e.currentTarget.currentTime;
+        if (tCur >= trim.end) {
+          // достигли конца отрезка — как будто ролик закончился
+          if (alive.length === 1) e.currentTarget.currentTime = trim.start;
+          else setIdx(nextAlive(cur));
+        } else if (tCur < trim.start) {
+          // native loop отмотал в 0 — возвращаемся в начало отрезка
+          e.currentTarget.currentTime = trim.start;
+        }
+      }}
       onEnded={() => setIdx(nextAlive(cur))}
       onError={() => {
         setDead((d) => new Set(d).add(cur));

@@ -15,9 +15,13 @@ import {
   escalate,
   markGreeted,
   markPing,
+  markSessionGreeted,
   matchIntent,
+  pickBackGreeting,
   wasGreeted,
+  wasSessionGreeted,
 } from './brain';
+import { PitBotAvatar } from './PitBot';
 import '../styles/bot.css';
 
 interface BotAction {
@@ -38,26 +42,6 @@ interface Msg {
 }
 
 let msgSeq = 0;
-
-/** Логотип-рация: фирменный ящик запчастей с красной сигнальной полосой. */
-function BoxLogo() {
-  return (
-    <svg width="34" height="34" viewBox="0 0 40 40" aria-hidden focusable="false">
-      {/* корпус ящика */}
-      <path d="M7 15 L20 9 L33 15 L33 31 L20 37 L7 31 Z" fill="#b9a084" stroke="#0a0a09" strokeWidth="1.4" strokeLinejoin="round" />
-      {/* левая грань — темнее */}
-      <path d="M7 15 L20 21 L20 37 L7 31 Z" fill="#9c825f" stroke="#0a0a09" strokeWidth="1.4" strokeLinejoin="round" />
-      {/* открытые клапаны */}
-      <path d="M7 15 L12 8 L20 9 Z" fill="#cbb391" stroke="#0a0a09" strokeWidth="1.2" strokeLinejoin="round" />
-      <path d="M33 15 L28 8 L20 9 Z" fill="#c0a27c" stroke="#0a0a09" strokeWidth="1.2" strokeLinejoin="round" />
-      {/* красная сигнальная полоса */}
-      <path d="M19 9.4 L21.6 9.4 L21.6 21.8 L20.3 21.2 L19 21.8 Z" fill="#e01b22" />
-      <path d="M19 21.8 L20.3 21.2 L21.6 21.8 L21.6 36.4 L20.3 37 L19 36.4 Z" fill="#e01b22" opacity="0.85" />
-      {/* трафаретные метки */}
-      <path d="M25 25 h5 M25 27.5 h5" stroke="#0a0a09" strokeWidth="1" opacity="0.55" />
-    </svg>
-  );
-}
 
 /** Кликабельный чип промокода: копирование в буфер + галочка-фидбек. */
 function PromoChip({ code, pct }: { code: string; pct: number }) {
@@ -197,18 +181,23 @@ export function Bot() {
   useEffect(() => {
     const offs: Array<() => void> = [];
 
-    // a) первый заход — приветствие через 6 секунд
-    if (!wasGreeted()) {
+    // a) приветствие раз за визит, через 6 секунд:
+    //    самый первый раз — легенда завода, дальше — продающий заход на сленге
+    if (!wasSessionGreeted()) {
       const tm = window.setTimeout(() => {
-        if (wasGreeted()) return;
-        markGreeted();
+        if (wasSessionGreeted()) return;
+        markSessionGreeted();
         markPing();
+        const first = !wasGreeted();
+        if (first) markGreeted();
         pushBot({
-          key: 'bot.greet.first',
+          key: first ? 'bot.greet.first' : pickBackGreeting(),
           actions: [
-            { labelKey: 'bot.qa.what', run: () => pushBot({ key: 'bot.reply.what' }) },
+            ...(first
+              ? [{ labelKey: 'bot.qa.what', run: () => pushBot({ key: 'bot.reply.what' }) }]
+              : []),
             { labelKey: 'bot.qa.hits', run: goCatalog },
-            { labelKey: 'bot.qa.feedback', run: askFeedback },
+            { labelKey: 'bot.qa.discount', run: doEscalate },
             { labelKey: 'bot.qa.dnd', run: doDnd },
           ],
         });
@@ -382,7 +371,7 @@ export function Bot() {
           title={t('bot.fab')}
           data-testid="bot-fab"
         >
-          <BoxLogo />
+          <PitBotAvatar />
           {unread > 0 && <span className="uf-bot-badge">{unread}</span>}
         </button>
       )}

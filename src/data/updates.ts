@@ -7,7 +7,7 @@ import type { LocalText } from '../lib/types';
  * что реально поменялось с прошлого релиза (коротко, по-русски и по-английски).
  */
 export const UPDATE_NOTES: LocalText[] = [
-  { ru: 'ВИДЕО ПОЛЕГЧАЛО В 5 РАЗ ▸ САЙТ ЛЕТАЕТ', en: 'VIDEO 5X LIGHTER ▸ SITE FLIES' },
-  { ru: 'АДМИНКА ▸ ВКЛАДКА «ЭФИР»: КУРАТОР РОЛИКОВ', en: 'ADMIN ▸ ON AIR TAB: CLIP CURATOR' },
-  { ru: 'БРАК — ГАЛОЧКОЙ, УДАЛЕНИЕ — АВТОМАТОМ', en: 'SCRAP WITH A CLICK, DELETION AUTOMATED' },
+  { ru: 'ПИТ-БОСС ОЖИЛ ▸ ПОВОДИ МЫШКОЙ — ОН ПОМАШЕТ', en: 'PIT BOSS IS ALIVE ▸ MOVE THE MOUSE — HE WAVES' },
+  { ru: 'UF RADIO ▸ МАСТЕРИНГ HI-FI И РОВНАЯ ГРОМКОСТЬ', en: 'UF RADIO ▸ HI-FI MASTERING, EVEN LOUDNESS' },
+  { ru: 'ЦЕХА АДМИНКИ ▸ ВИДЕОРЕДАКТОР, РАДИО, РИЛСЫ', en: 'ADMIN SHOPS ▸ VIDEO EDITOR, RADIO, REELS' },
 ];

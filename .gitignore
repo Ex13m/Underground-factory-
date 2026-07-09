@@ -4,3 +4,6 @@ stitch-export/
 stitch_single_file_data_hub*.zip
 # исходная папка с треками в корне (в git идёт public/media/music)
 /music/
+
+# чужие обучающие материалы (skill-паки) - не для публичного репозитория
+/CF skill/

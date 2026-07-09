@@ -12,8 +12,10 @@ import admin from '../i18n/admin';
 import bot from '../i18n/bot';
 import hints from '../i18n/hints';
 import artEditor from '../i18n/artEditor';
+import radio from '../i18n/radio';
+import content from '../i18n/content';
 
-const namespaces = [common, home, catalog, product, cart, account, admin, bot, hints, artEditor];
+const namespaces = [common, home, catalog, product, cart, account, admin, bot, hints, artEditor, radio, content];
 
 const dict: Record<Lang, Record<string, string>> = { ru: {}, en: {} };
 for (const ns of namespaces) {

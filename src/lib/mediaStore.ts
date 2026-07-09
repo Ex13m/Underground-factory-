@@ -5,13 +5,15 @@
  * он уникален на объект и одинаков для одной картинки во всех местах сайта.
  * STL-модели деталей хранятся с kind='model' по ключу `${productId}-stl` —
  * задел под точную генерацию по геометрии.
+ * Аудио радио (mp3 из Админки → РАДИО) — kind='audio' по ключу `audio:<имя>`
+ * (см. lib/radioTracks.ts).
  */
 
 const DB_NAME = 'uf-media';
 const STORE = 'overrides';
 const EVT = 'uf:media-changed';
 
-export type MediaKind = 'image' | 'video' | 'model';
+export type MediaKind = 'image' | 'video' | 'model' | 'audio';
 
 export interface MediaOverride {
   key: string;

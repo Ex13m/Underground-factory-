@@ -8,8 +8,12 @@ import { api } from '../lib/api';
 import { bus } from '../lib/bus';
 
 const LS_GREETED = 'uf:bot:greeted';
+const SS_GREETED = 'uf:bot:sgreet';
 const LS_HAGGLE = 'uf:bot:haggle';
 const LS_LAST_PING = 'uf:bot:last-ping';
+
+/** сколько вариантов возвращного приветствия в словаре (bot.greet.backN) */
+export const GREET_BACK_COUNT = 4;
 
 /** минимальный интервал между проактивными вылазками */
 export const PING_INTERVAL_MS = 45_000;
@@ -50,6 +54,28 @@ export function wasGreeted(): boolean {
 
 export function markGreeted() {
   lsSet(LS_GREETED, '1');
+}
+
+/** приветствие показывается раз за визит (sessionStorage), а не раз навсегда */
+export function wasSessionGreeted(): boolean {
+  try {
+    return sessionStorage.getItem(SS_GREETED) === '1';
+  } catch {
+    return true; // приватный режим — лучше промолчать, чем спамить
+  }
+}
+
+export function markSessionGreeted() {
+  try {
+    sessionStorage.setItem(SS_GREETED, '1');
+  } catch {
+    /* приватный режим */
+  }
+}
+
+/** ключ возвращного приветствия — случайный продающий заход */
+export function pickBackGreeting(): string {
+  return `bot.greet.back${1 + Math.floor(Math.random() * GREET_BACK_COUNT)}`;
 }
 
 // ---- эскалация скидки ----

@@ -9,11 +9,20 @@ import { getStore } from '@netlify/blobs';
 
 interface Ticket {
   key: string;
-  /** scrap-video — пометка «брак» из админки (вкладка ЭФИР): ролик удалить из репозитория */
-  kind: 'image' | 'video' | 'scrap-video';
+  /**
+   * scrap-video — пометка «брак» из админки (вкладка ЭФИР): ролик удалить из репозитория;
+   * trim-video — физически обрезать ролик до отрезка [start, end] (видеоредактор ЭФИРа);
+   * add-track — загруженный mp3 забрать из /api/track и добавить в public/media/music;
+   * trim-audio — обрезать трек насовсем; stems-audio — разложить на стемы (вкладка РАДИО);
+   * reel — заказ рилса контент-завода (вкладка КОНТЕНТ): в prompt — JSON с параметрами.
+   */
+  kind: 'image' | 'video' | 'scrap-video' | 'trim-video' | 'add-track' | 'trim-audio' | 'stems-audio' | 'reel';
   prompt: string;
   width: number;
   height: number;
+  /** только для trim-video/trim-audio: границы отрезка в секундах */
+  start?: number;
+  end?: number;
   createdAt: number;
 }
 
@@ -49,10 +58,19 @@ export default async (req: Request) => {
     const list = (await read()).filter((x) => x.key !== t.key).slice(-49);
     list.push({
       key: String(t.key).slice(0, 200),
-      kind: t.kind === 'video' || t.kind === 'scrap-video' ? t.kind : 'image',
+      kind:
+        t.kind === 'video' || t.kind === 'scrap-video' || t.kind === 'trim-video' ||
+        t.kind === 'add-track' || t.kind === 'trim-audio' || t.kind === 'stems-audio' ||
+        t.kind === 'reel'
+          ? t.kind
+          : 'image',
       prompt: String(t.prompt).slice(0, 4000),
       width: Number(t.width) || 800,
       height: Number(t.height) || 500,
+      // для обрезки (видео и аудио) пропускаем числовые границы отрезка
+      ...(t.kind === 'trim-video' || t.kind === 'trim-audio'
+        ? { start: Number(t.start) || 0, end: Number(t.end) || 0 }
+        : {}),
       createdAt: Date.now(),
     });
     await store.set('tickets', JSON.stringify(list));

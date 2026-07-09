@@ -22,6 +22,7 @@ export function TvSalon() {
   const [cam, setCam] = useState(0);
   // эфир: выключенные в админке ролики не показываем; пусто не бывает — fallback на полный список
   const offAir = useOnAir((s) => s.off);
+  const trims = useOnAir((s) => s.trims);
   const clips = useMemo(() => filterOnAir(TV_CLIPS, offAir), [offAir]);
 
   // живой таймкод + смена «камеры» каждые ~6 секунд
@@ -48,7 +49,7 @@ export function TvSalon() {
 
   return (
     <div className="tv" data-testid="tv-salon">
-      <VideoBg sources={clips} seed="tv-salon" className="tv-video" />
+      <VideoBg sources={clips} seed="tv-salon" className="tv-video" trims={trims} />
       <div className="tv-scanlines" aria-hidden />
       <div className="tv-vignette" aria-hidden />
 

@@ -356,3 +356,12 @@ body.calm .uf-hint {
 .uf-hint-never:hover {
   color: var(--blood);
 }
+
+/* ---- ПИТ-БОТ: живой карбоновый маскот на кнопке-рации ---- */
+.uf-pitbot {
+  overflow: visible; /* руки машут за пределами рамки */
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
+}
+.uf-bot-fab:hover .uf-pitbot {
+  filter: drop-shadow(0 0 8px rgba(224, 27, 34, 0.45));
+}

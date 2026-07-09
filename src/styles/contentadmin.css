@@ -1,0 +1,101 @@
+/* ============================================================
+   КОНТЕНТ — цех рилсов (Админка → вкладка «Контент»).
+   Форма заказа рилса 9:16, предпросмотр план-скелета, полка готовых.
+   Подключается только из components/admin/ContentTab.tsx.
+   ============================================================ */
+
+/* ---------- сетка: форма + предпросмотр ---------- */
+.cnt-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 22px;
+  margin-top: 14px;
+}
+
+/* ---------- форма ---------- */
+.cnt-form { display: flex; flex-direction: column; gap: 10px; }
+.cnt-row {
+  display: grid;
+  grid-template-columns: 118px 1fr;
+  align-items: center;
+  gap: 10px;
+}
+.cnt-label {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--steel);
+}
+.cnt-textarea { resize: vertical; min-height: 56px; line-height: 1.5; }
+.cnt-durations { display: flex; gap: 8px; }
+.adm-mini-btn.cnt-on { background: var(--blood); border-color: var(--blood); color: #fff; }
+.cnt-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
+.cnt-q-status { font-family: var(--font-mono); font-size: 11px; color: var(--success); }
+.cnt-q-status.err { color: var(--blood); }
+
+/* ---------- предпросмотр план-скелета ---------- */
+.cnt-preview {
+  border: 1px dashed rgba(236, 234, 229, 0.3);
+  padding: 16px;
+  align-self: start;
+}
+.cnt-preview-head { margin-bottom: 12px; }
+.cnt-plan { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.cnt-plan-line {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px dashed rgba(236, 234, 229, 0.15);
+}
+.cnt-plan-line:last-child { border-bottom: none; }
+.cnt-plan-tag {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+  letter-spacing: 0.1em; color: var(--blood);
+  white-space: nowrap;
+}
+.cnt-plan-text { font-size: 13px; line-height: 1.5; color: var(--paper-dim); }
+.cnt-plan-meta { font-size: 11px; color: var(--steel); margin: 10px 0 0; line-height: 1.6; }
+.cnt-plan-rule {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em;
+  color: var(--hazard); margin: 8px 0 0; line-height: 1.6;
+}
+
+/* ---------- полка готовых рилсов ---------- */
+.cnt-empty {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em;
+  color: var(--steel);
+  border: 1px dashed rgba(236, 234, 229, 0.25);
+  padding: 26px 18px;
+  text-align: center;
+  margin-top: 12px;
+}
+.cnt-reels {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+  margin-top: 14px;
+}
+.cnt-reel-card {
+  border: 1px solid rgba(236, 234, 229, 0.18);
+  padding: 8px;
+  display: flex; flex-direction: column; gap: 8px;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  background: rgba(0, 0, 0, 0.25);
+}
+.cnt-reel-card video {
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  object-fit: cover;
+  background: #000;
+  display: block;
+}
+.cnt-reel-title { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; }
+.cnt-reel-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.cnt-reel-date { font-size: 10px; color: var(--steel); }
+
+@media (max-width: 860px) {
+  .cnt-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 520px) {
+  .cnt-row { grid-template-columns: 1fr; gap: 4px; }
+}

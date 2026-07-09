@@ -303,6 +303,141 @@ label.adm-mini-btn { display: inline-flex; align-items: center; cursor: pointer;
 .adm-onair-status.err { color: var(--blood); }
 .adm-mini-btn.danger.on { background: var(--blood); border-color: var(--blood); color: #fff; }
 
+/* ---------- видеоредактор ЭФИРа (модалка поверх всего) ---------- */
+.adm-vedit-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9500; /* поверх бота (8000), арт-редактора (8800); ниже только курсор-FX */
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(5, 5, 5, 0.88);
+  backdrop-filter: blur(3px);
+}
+.adm-vedit {
+  width: min(1180px, 96vw);
+  max-height: 94vh;
+  overflow-y: auto;
+  padding: 14px 16px 16px;
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+.adm-vedit-head { display: flex; align-items: center; gap: 12px; }
+.adm-vedit-file {
+  font-size: 12px;
+  color: var(--paper-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.adm-vedit-x {
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid rgba(236, 234, 229, 0.3);
+  color: var(--paper);
+  font-size: 16px;
+  line-height: 1;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.adm-vedit-x:hover { border-color: var(--blood); color: var(--blood); }
+.adm-vedit-video {
+  width: 100%;
+  max-height: 58vh;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  background: #000;
+  display: block;
+  border: 1px solid rgba(236, 234, 229, 0.18);
+}
+.adm-vedit-transport { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.adm-vedit-time { margin-left: auto; font-size: 12px; color: var(--paper-dim); }
+
+/* таймлайн: полоса + два наложенных range (кликается только «шляпка») */
+.adm-vedit-timeline { position: relative; height: 36px; }
+.adm-vedit-strip {
+  position: absolute;
+  left: 0; right: 0; top: 12px; bottom: 12px;
+  background: rgba(236, 234, 229, 0.12);
+  border: 1px solid rgba(236, 234, 229, 0.18);
+}
+.adm-vedit-region {
+  position: absolute; top: -1px; bottom: -1px;
+  background: rgba(224, 27, 34, 0.4);
+  border-left: 1px solid var(--blood);
+  border-right: 1px solid var(--blood);
+}
+.adm-vedit-playhead {
+  position: absolute; top: -6px; bottom: -6px;
+  width: 2px;
+  background: var(--paper);
+  box-shadow: 0 0 6px rgba(236, 234, 229, 0.7);
+  pointer-events: none;
+}
+.adm-vedit-range {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  pointer-events: none; /* тянутся только «шляпки» — так два ползунка живут в одной полосе */
+}
+.adm-vedit-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: auto;
+  width: 12px;
+  height: 26px;
+  background: var(--paper);
+  border: 1px solid #000;
+  clip-path: polygon(0 0, 100% 0, 100% 78%, 50% 100%, 0 78%);
+  cursor: ew-resize;
+}
+.adm-vedit-range::-moz-range-thumb {
+  pointer-events: auto;
+  width: 12px;
+  height: 26px;
+  border-radius: 0;
+  background: var(--paper);
+  border: 1px solid #000;
+  clip-path: polygon(0 0, 100% 0, 100% 78%, 50% 100%, 0 78%);
+  cursor: ew-resize;
+}
+.adm-vedit-range::-moz-range-track { background: transparent; }
+.adm-vedit-range:disabled::-webkit-slider-thumb { opacity: 0.3; cursor: not-allowed; }
+.adm-vedit-marks {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--paper-dim);
+}
+
+.adm-vedit-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(236, 234, 229, 0.2);
+}
+.adm-vedit-forever { margin-left: auto; }
+.adm-vedit-info { font-family: var(--font-mono); font-size: 11px; color: var(--hazard); }
+.adm-vedit-bottom {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(236, 234, 229, 0.2);
+}
+.adm-vedit-badge { color: var(--hazard); }
+
 /* ---------- responsive ---------- */
 @media (max-width: 760px) {
   .adm-grid { grid-template-columns: 1fr; }
