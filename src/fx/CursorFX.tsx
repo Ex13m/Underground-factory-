@@ -1,8 +1,9 @@
 /**
  * UNDERGROUND FACTORY — CursorFX.
- * Курсор: открытое перекрестие в точке клика + маленький флажок 🏁 вбок
- * (верхний canvas, z 9600) и дрифт-машинка-преследователь (нижний canvas,
- * z 8900, под .noise=9000).
+ * Курсор — тахометр: стрелка отклоняется от скорости мыши, в покое дрожит
+ * на холостых; красная точка клика в центре циферблата. Хамелеон: на светлом
+ * фоне инвертируется (тёмные штрихи, светлое гало). Верхний canvas z 9600,
+ * дрифт-машинка-преследователь — нижний canvas z 8900 (под .noise=9000).
  *
  * Полностью выключается при: useUI.calm, (pointer: coarse), prefers-reduced-motion.
  * Один rAF-цикл, пауза при скрытой вкладке, cleanup при unmount.
@@ -22,7 +23,7 @@ import {
   REAR_TRACK_Y,
   SPRITE_SCALE,
   drawCarSprite,
-  drawFlag,
+  drawGauge,
 } from './sprites';
 import '../styles/fx.css';
 
@@ -81,9 +82,30 @@ export function CursorFX() {
     window.addEventListener('resize', resize);
 
     // --- мышь
-    const mouse = { x: W / 2, y: H / 2, seen: false, aim: false, lastMove: performance.now() };
+    const mouse = { x: W / 2, y: H / 2, seen: false, aim: false, light: false, lastMove: performance.now() };
+
+    /** светлый ли фон под точкой: идём вверх до первого непрозрачного
+        background-color и меряем яркость (текст/спаны обычно прозрачны) */
+    const bgIsLight = (el: Element | null): boolean => {
+      let node: Element | null = el;
+      for (let depth = 0; node && depth < 12; depth++) {
+        const bg = getComputedStyle(node).backgroundColor;
+        const m = bg.match(/rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:[,/\s]+([\d.]+))?\s*\)/);
+        if (m) {
+          const a = m[4] === undefined ? 1 : parseFloat(m[4]);
+          if (a > 0.4) {
+            return 0.2126 * +m[1] + 0.7152 * +m[2] + 0.0722 * +m[3] > 150;
+          }
+        }
+        node = node.parentElement;
+      }
+      return false; // не нашли фон — сайт тёмный по умолчанию
+    };
     let hitPending = false;
+    let distAcc = 0; // путь мыши с прошлого кадра → скорость для тахометра
+    let speedSmooth = 0;
     const onMove = (e: MouseEvent) => {
+      distAcc += Math.hypot(e.clientX - mouse.x, e.clientY - mouse.y);
       mouse.x = e.clientX;
       mouse.y = e.clientY;
       mouse.seen = true;
@@ -122,11 +144,12 @@ export function CursorFX() {
       last = now;
       const t = now / 1000;
 
-      // hit-test интерактивных элементов (состояние 'aim')
+      // hit-test интерактивных элементов (состояние 'aim') + яркость фона
       if (hitPending) {
         hitPending = false;
         const el = document.elementFromPoint(mouse.x, mouse.y);
         mouse.aim = !!(el && el.closest(INTERACTIVE));
+        mouse.light = bgIsLight(el);
       }
 
       // цель машинки = сам курсор; до первого движения мыши — центр экрана
@@ -220,7 +243,13 @@ export function CursorFX() {
       // ---- верхний слой: перекрестие + флажок вместо курсора
       fc.clearRect(0, 0, W, H);
       if (mouse.seen) {
-        drawFlag(fc, mouse.x, mouse.y, t, mouse.aim);
+        // тахометр: мгновенная скорость мыши → плавная стрелка
+        // (разгон быстрый, сброс медленнее — как обороты)
+        const inst = Math.min(1, distAcc / dt / 2200);
+        distAcc = 0;
+        const k = inst > speedSmooth ? 10 : 4;
+        speedSmooth += (inst - speedSmooth) * Math.min(1, dt * k);
+        drawGauge(fc, mouse.x, mouse.y, t, speedSmooth, mouse.aim, mouse.light);
       }
     };
     raf = requestAnimationFrame(frame);

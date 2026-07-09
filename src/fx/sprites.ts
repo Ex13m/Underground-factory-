@@ -134,33 +134,127 @@ const POLE_TOP_DY = -26;
  * древке вбок от точки. В состоянии aim перекрестие сжимается и краснеет,
  * флажок машет сильнее.
  */
+/**
+ * Курсор-тахометр: открытая дуга 270° с рисками и красной зоной, стрелка
+ * отклоняется от скорости мыши (speed 0..1), в покое слегка подрагивает.
+ * Точка клика — красная точка в центре, из неё растёт стрелка.
+ * onLight — хамелеон: на светлом фоне тёмные штрихи со светлым гало.
+ */
+export function drawGauge(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  t: number,
+  speed: number,
+  aim: boolean,
+  onLight = false,
+): void {
+  const halo = onLight ? 'rgba(236, 234, 229, 0.95)' : 'rgba(10, 10, 9, 0.9)';
+  const ink = onLight ? '#0a0a09' : PAPER;
+  const R = 12;
+  const START = Math.PI * 0.75; // 135° — низ-лево
+  const SWEEP = Math.PI * 1.5; // 270° до низ-право
+
+  // дрожь стрелки: лёгкая всегда, заметнее на холостых
+  const tremor =
+    Math.sin(t * 17) * 0.015 +
+    Math.sin(t * 7.3) * 0.012 +
+    (1 - Math.min(1, speed * 3)) * Math.sin(t * 29) * 0.02;
+  const frac = Math.max(0, Math.min(1, speed));
+  const needleA = START + SWEEP * frac + tremor;
+
+  const arc = (r: number, a0: number, a1: number, style: string, w: number, alpha: number) => {
+    ctx.strokeStyle = style;
+    ctx.lineWidth = w;
+    ctx.globalAlpha = alpha;
+    ctx.beginPath();
+    ctx.arc(x, y, r, a0, a1);
+    ctx.stroke();
+  };
+
+  // обод: гало-подложка + основной штрих; красная зона — последняя четверть
+  arc(R, START, START + SWEEP, halo, 4, 0.85);
+  arc(R, START, START + SWEEP * 0.75, aim ? BLOOD : ink, 1.6, 0.95);
+  arc(R, START + SWEEP * 0.75, START + SWEEP, BLOOD, 2.2, 0.95);
+
+  // риски (7 шт по дуге)
+  ctx.lineWidth = 1.2;
+  for (let i = 0; i <= 6; i++) {
+    const a = START + (SWEEP * i) / 6;
+    const cos = Math.cos(a);
+    const sin = Math.sin(a);
+    ctx.strokeStyle = halo;
+    ctx.lineWidth = 2.6;
+    ctx.globalAlpha = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(x + cos * (R - 3.5), y + sin * (R - 3.5));
+    ctx.lineTo(x + cos * (R - 0.5), y + sin * (R - 0.5));
+    ctx.stroke();
+    ctx.strokeStyle = i >= 5 ? BLOOD : ink;
+    ctx.lineWidth = 1.2;
+    ctx.globalAlpha = 0.95;
+    ctx.stroke();
+  }
+
+  // стрелка: гало-подложка + красная игла с противовесом
+  const nx = x + Math.cos(needleA) * (R - 2.5);
+  const ny = y + Math.sin(needleA) * (R - 2.5);
+  const bx = x - Math.cos(needleA) * 3;
+  const by = y - Math.sin(needleA) * 3;
+  ctx.strokeStyle = halo;
+  ctx.lineWidth = 3.4;
+  ctx.globalAlpha = 0.85;
+  ctx.beginPath();
+  ctx.moveTo(bx, by);
+  ctx.lineTo(nx, ny);
+  ctx.stroke();
+  ctx.strokeStyle = BLOOD;
+  ctx.lineWidth = 1.6;
+  ctx.globalAlpha = 1;
+  ctx.stroke();
+
+  // точка клика: контрастное кольцо + красный центр
+  ctx.fillStyle = halo;
+  ctx.beginPath();
+  ctx.arc(x, y, 2.6, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = BLOOD;
+  ctx.beginPath();
+  ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+}
+
 export function drawFlag(
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,
   t: number,
   aim: boolean,
+  onLight = false,
 ): void {
   // --- перекрестие с зазором: 4 штриха вокруг пустого центра + точка.
-  // Двойной штрих: сначала тёмная подложка (читаемость на светлых панелях),
-  // сверху — светлый/красный.
+  // Двойной штрих: подложка контрастного тона + основной цвет сверху.
+  // На светлом фоне (onLight) курсор инвертируется: тёмные штрихи, светлое гало.
   const gap = aim ? 2.5 : 3.5;
   const len = aim ? 4 : 5.5;
+  const halo = onLight ? 'rgba(236, 234, 229, 0.95)' : 'rgba(10, 10, 9, 0.9)';
+  const ink = onLight ? '#0a0a09' : PAPER;
   ctx.beginPath();
   for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
     ctx.moveTo(x + dx * gap, y + dy * gap);
     ctx.lineTo(x + dx * (gap + len), y + dy * (gap + len));
   }
-  ctx.strokeStyle = 'rgba(10, 10, 9, 0.9)';
+  ctx.strokeStyle = halo;
   ctx.lineWidth = 3.5;
   ctx.globalAlpha = 0.9;
   ctx.stroke();
-  ctx.strokeStyle = aim ? BLOOD : PAPER;
+  ctx.strokeStyle = aim ? BLOOD : ink;
   ctx.lineWidth = 1.5;
   ctx.globalAlpha = 0.95;
   ctx.stroke();
-  // точка: тёмное кольцо + красный центр
-  ctx.fillStyle = 'rgba(10, 10, 9, 0.9)';
+  // точка: контрастное кольцо + красный центр
+  ctx.fillStyle = halo;
   ctx.beginPath();
   ctx.arc(x, y, 2.4, 0, Math.PI * 2);
   ctx.fill();
