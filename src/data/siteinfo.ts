@@ -6,7 +6,7 @@ import type { LocalText } from '../lib/types';
  * большой генерации (остаток кредитов Higgsfield — вручную, с датой замера).
  */
 
-export const HF_CREDITS = { value: '≈222', measuredAt: '2026-07-09', plan: 'Ultimate' };
+export const HF_CREDITS = { value: '≈1300', measuredAt: '2026-07-09', plan: 'Ultimate' };
 
 export interface InfoSection {
   title: LocalText;

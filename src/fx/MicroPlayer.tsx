@@ -9,10 +9,11 @@
  *   первым стартует store.first (по умолчанию boost-b.mp3);
  * - trims: трек играет только отрезок [start, end] — старт с start,
  *   кроссфейд у end;
- * - мастеринг (Web Audio, на лету): MediaElementSource → lowshelf 120 Гц →
- *   peaking 1 кГц → highshelf 8 кГц → DynamicsCompressor → per-track gain →
- *   выходной gain → destination. Настройки из store.master; выключен —
- *   цепочка нейтральна (гейны 0 дБ, компрессор 0/1);
+ * - мастеринг (Web Audio, на лету): MediaElementSource → срез гула 28 Гц →
+ *   EQ (120 Гц / 1 кГц / 8 кГц) → параллельная реверберация (эхо) →
+ *   стерео-объём (M/S width) → компрессор → брик-лимитер (перегрузы) →
+ *   per-track gain → выходной gain → destination. Настройки из store.master;
+ *   выключен — цепочка нейтральна;
  * - псевдо-LUFS: при первом проигрывании трека меряем средний RMS через
  *   AnalyserNode (~5 с) и сохраняем per-track gain к целевому уровню
  *   (store.trackGain) — треки звучат ровно.
@@ -30,12 +31,32 @@ const TARGET_RMS = 0.125;
 
 interface Chain {
   analyser: AnalyserNode;
+  lowcut: BiquadFilterNode;
   bass: BiquadFilterNode;
   mid: BiquadFilterNode;
   treble: BiquadFilterNode;
+  /** параллельная реверберация: сколько эха подмешиваем */
+  wet: GainNode;
+  /** стерео-объём: усиление side-канала (M/S), 1 = как есть */
+  side: GainNode;
   comp: DynamicsCompressorNode;
+  /** брик-лимитер против перегрузов (жёсткий компрессор на выходе) */
+  limiter: DynamicsCompressorNode;
   trackGain: GainNode;
   out: GainNode;
+}
+
+/** импульс реверберации: стерео-шум с экспоненциальным затуханием (~1.6 с) */
+function makeImpulse(ctx: AudioContext): AudioBuffer {
+  const len = Math.floor(ctx.sampleRate * 1.6);
+  const buf = ctx.createBuffer(2, len, ctx.sampleRate);
+  for (let c = 0; c < 2; c++) {
+    const data = buf.getChannelData(c);
+    for (let i = 0; i < len; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.4);
+    }
+  }
+  return buf;
 }
 
 function shuffle(list: RadioTrack[]): RadioTrack[] {
@@ -106,25 +127,39 @@ export function MicroPlayer() {
     chainsRef.current.forEach((ch, i) => {
       if (!ch) return;
       if (m.enabled) {
+        ch.lowcut.frequency.value = (m.lowcut ?? false) ? 28 : 5; // 5 Гц ≈ прозрачно
         ch.bass.gain.value = m.bassDb;
         ch.mid.gain.value = m.midDb;
         ch.treble.gain.value = m.trebleDb;
+        ch.wet.gain.value = Math.max(0, Math.min(0.4, m.reverbWet ?? 0));
+        ch.side.gain.value = Math.max(1, Math.min(2, m.width ?? 1));
         ch.comp.threshold.value = Math.max(-100, Math.min(0, m.compThreshold));
         ch.comp.ratio.value = Math.max(1, Math.min(20, m.compRatio));
         ch.comp.knee.value = 6;
         ch.comp.attack.value = 0.008;
         ch.comp.release.value = 0.25;
+        // лимитер: почти кирпич у потолка, гасит пики без слышимой накачки
+        ch.limiter.threshold.value = (m.limiter ?? false) ? -1.5 : 0;
+        ch.limiter.ratio.value = (m.limiter ?? false) ? 20 : 1;
+        ch.limiter.knee.value = 0;
+        ch.limiter.attack.value = 0.002;
+        ch.limiter.release.value = 0.1;
         ch.out.gain.value = dbToLin(m.gain);
         const id = elTrackRef.current[i]?.id;
         ch.trackGain.gain.value = dbToLin(id !== undefined ? st.trackGain[id] ?? 0 : 0);
       } else {
         // выключен — цепочка полностью нейтральна
+        ch.lowcut.frequency.value = 5;
         ch.bass.gain.value = 0;
         ch.mid.gain.value = 0;
         ch.treble.gain.value = 0;
+        ch.wet.gain.value = 0;
+        ch.side.gain.value = 1;
         ch.comp.threshold.value = 0;
         ch.comp.ratio.value = 1;
         ch.comp.knee.value = 0;
+        ch.limiter.threshold.value = 0;
+        ch.limiter.ratio.value = 1;
         ch.out.gain.value = 1;
         ch.trackGain.gain.value = 1;
       }
@@ -139,11 +174,16 @@ export function MicroPlayer() {
     if (!AC) return;
     try {
       const ctx = new AC();
+      const impulse = makeImpulse(ctx);
       [aRef.current, bRef.current].forEach((el, i) => {
         if (!el) return;
         const src = ctx.createMediaElementSource(el);
         const analyser = ctx.createAnalyser();
         analyser.fftSize = 2048;
+        const lowcut = ctx.createBiquadFilter();
+        lowcut.type = 'highpass';
+        lowcut.frequency.value = 5;
+        lowcut.Q.value = 0.7;
         const bass = ctx.createBiquadFilter();
         bass.type = 'lowshelf';
         bass.frequency.value = 120;
@@ -154,18 +194,59 @@ export function MicroPlayer() {
         const treble = ctx.createBiquadFilter();
         treble.type = 'highshelf';
         treble.frequency.value = 8000;
+        // параллельное эхо: dry идёт напрямую, wet — через свёртку
+        const verb = ctx.createConvolver();
+        verb.buffer = impulse;
+        const wet = ctx.createGain();
+        wet.gain.value = 0;
+        const mixed = ctx.createGain();
+        // стерео-объём (M/S): L' = mid + w·side, R' = mid − w·side
+        const split = ctx.createChannelSplitter(2);
+        const invR = ctx.createGain();
+        invR.gain.value = -1;
+        const midG = ctx.createGain();
+        midG.gain.value = 0.5;
+        const sideRaw = ctx.createGain();
+        sideRaw.gain.value = 0.5;
+        const side = ctx.createGain();
+        side.gain.value = 1;
+        const invSide = ctx.createGain();
+        invSide.gain.value = -1;
+        const merge = ctx.createChannelMerger(2);
         const comp = ctx.createDynamicsCompressor();
+        const limiter = ctx.createDynamicsCompressor();
+        limiter.threshold.value = 0;
+        limiter.ratio.value = 1;
         const trackGain = ctx.createGain();
         const out = ctx.createGain();
+
         src.connect(analyser); // отвод на замер RMS, в звуковой путь не входит
-        src.connect(bass);
+        src.connect(lowcut);
+        lowcut.connect(bass);
         bass.connect(mid);
         mid.connect(treble);
-        treble.connect(comp);
-        comp.connect(trackGain);
+        treble.connect(mixed); // dry
+        treble.connect(verb);
+        verb.connect(wet);
+        wet.connect(mixed); // + эхо
+        mixed.connect(split);
+        split.connect(midG, 0); // L
+        split.connect(midG, 1); // R → mid = (L+R)/2
+        split.connect(sideRaw, 0); // L
+        split.connect(invR, 1);
+        invR.connect(sideRaw); // side = (L−R)/2
+        sideRaw.connect(side);
+        midG.connect(merge, 0, 0);
+        side.connect(merge, 0, 0); // L' = mid + w·side
+        midG.connect(merge, 0, 1);
+        side.connect(invSide);
+        invSide.connect(merge, 0, 1); // R' = mid − w·side
+        merge.connect(comp);
+        comp.connect(limiter);
+        limiter.connect(trackGain);
         trackGain.connect(out);
         out.connect(ctx.destination);
-        chainsRef.current[i] = { analyser, bass, mid, treble, comp, trackGain, out };
+        chainsRef.current[i] = { analyser, lowcut, bass, mid, treble, wet, side, comp, limiter, trackGain, out };
       });
       ctxRef.current = ctx;
       applyMasterToChains();

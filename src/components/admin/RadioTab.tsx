@@ -292,6 +292,13 @@ function MasterPanel() {
 
   const presets: Array<Exclude<MasterPreset, 'manual'>> = ['hifi', 'club', 'radio'];
 
+  /** АВТОМАСТЕРИНГ: единый стандарт эфира одним нажатием —
+      пресет «авто» (эхо, объём, лимитер, срез гула) + выравнивание LUFS */
+  const autoMaster = () => {
+    applyPreset('auto');
+    void levelAll();
+  };
+
   return (
     <div className={`panel rivets radm-master${master.enabled ? '' : ' off'}`} style={{ padding: 18 }}>
       <div className="radm-master-head">
@@ -300,6 +307,15 @@ function MasterPanel() {
           <input type="checkbox" checked={master.enabled} onChange={(e) => setMaster({ enabled: e.target.checked })} />
           {t('radio.master.on')}
         </label>
+        <button
+          className="btn"
+          onClick={autoMaster}
+          disabled={!!leveling}
+          style={master.preset === 'auto' ? { background: 'var(--blood)', borderColor: 'var(--blood)', color: '#fff' } : undefined}
+          data-testid="radio-automaster"
+        >
+          {leveling ? t('radio.master.leveling', { p: leveling }) : t('radio.master.auto')}
+        </button>
         <div className="radm-presets" style={{ marginLeft: 'auto' }}>
           <span className="tech-label">{t('radio.master.preset')} ▸</span>
           {presets.map((p) => (
@@ -329,6 +345,18 @@ function MasterPanel() {
         {slider(t('radio.master.thresh'), master.compThreshold, -60, 0, 1, (v) => manual({ compThreshold: v }))}
         {slider(t('radio.master.ratio'), master.compRatio, 1, 12, 0.5, (v) => manual({ compRatio: v }), ':1')}
         {slider(t('radio.master.gain'), master.gain, -12, 12, 0.5, (v) => manual({ gain: v }))}
+        {slider(t('radio.master.echo'), master.reverbWet ?? 0, 0, 0.4, 0.02, (v) => manual({ reverbWet: v }), '')}
+        {slider(t('radio.master.width'), master.width ?? 1, 1, 2, 0.05, (v) => manual({ width: v }), '×')}
+      </div>
+      <div className="radm-lufs" style={{ borderTop: 'none', marginTop: 4, paddingTop: 0 }}>
+        <label className="adm-check">
+          <input type="checkbox" checked={master.limiter ?? false} onChange={(e) => manual({ limiter: e.target.checked })} />
+          {t('radio.master.limiter')}
+        </label>
+        <label className="adm-check">
+          <input type="checkbox" checked={master.lowcut ?? false} onChange={(e) => manual({ lowcut: e.target.checked })} />
+          {t('radio.master.lowcut')}
+        </label>
       </div>
 
       {/* авто-мастеринг под LUFS: честный замер BS.1770 + поправка на трек */}
@@ -355,6 +383,8 @@ export function RadioTab() {
   const first = useRadio((s) => s.first);
   const setOnAir = useRadio((s) => s.setOnAir);
   const setFirst = useRadio((s) => s.setFirst);
+  const trims = useRadio((s) => s.trims);
+  const trackLufs = useRadio((s) => s.trackLufs);
 
   const [tick, setTick] = useState(0);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -493,6 +523,17 @@ export function RadioTab() {
                           </span>
                         ) : (
                           <span className="adm-badge dim">{t('radio.status.seed')}</span>
+                        )}
+                        {/* маркеры цеха: отмастерен (LUFS замерен и выровнен) / изменён (обрезка) */}
+                        {trackLufs[tr.id] !== undefined && (
+                          <span className="adm-badge hit" title={`${trackLufs[tr.id].toFixed(1)} LUFS`}>
+                            {t('radio.mark.mastered')}
+                          </span>
+                        )}
+                        {trims[tr.id] && (
+                          <span className="adm-badge" title={`${trims[tr.id].start}s–${trims[tr.id].end}s`}>
+                            ✂ {t('radio.mark.edited')}
+                          </span>
                         )}
                       </div>
                     </td>

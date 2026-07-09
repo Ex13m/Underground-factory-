@@ -12,7 +12,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type MasterPreset = 'hifi' | 'club' | 'radio' | 'manual';
+export type MasterPreset = 'auto' | 'hifi' | 'club' | 'radio' | 'manual';
 
 export interface MasterSettings {
   enabled: boolean;
@@ -26,6 +26,14 @@ export interface MasterSettings {
   compRatio: number;
   /** целевая интегральная громкость эфира, LUFS (−14 — стандарт стриминга) */
   targetLufs: number;
+  /** доля реверберации (эхо), 0..0.4 */
+  reverbWet: number;
+  /** стерео-объём: 1 — как есть, до 2 — шире */
+  width: number;
+  /** брик-лимитер на выходе — гасит перегрузы */
+  limiter: boolean;
+  /** срез инфранизкого гула (~28 Гц) — грязь и рокот вон */
+  lowcut: boolean;
 }
 
 export interface TrimRange {
@@ -38,12 +46,14 @@ export const DEFAULT_FIRST = 'boost-b.mp3';
 
 /** пресеты мастеринга (без enabled/preset/targetLufs — цель LUFS пресетами не трогаем) */
 export const MASTER_PRESETS: Record<Exclude<MasterPreset, 'manual'>, Omit<MasterSettings, 'enabled' | 'preset' | 'targetLufs'>> = {
+  // единый стандарт эфира: больше эха и объёма, лимитер, срез гула
+  auto: { gain: 0.5, bassDb: 2.5, midDb: 0.5, trebleDb: 2, compThreshold: -20, compRatio: 4, reverbWet: 0.14, width: 1.35, limiter: true, lowcut: true },
   // лёгкая полировка: чуть низа и воздуха, мягкий компрессор
-  hifi: { gain: 0, bassDb: 2, midDb: 0, trebleDb: 1.5, compThreshold: -24, compRatio: 3 },
+  hifi: { gain: 0, bassDb: 2, midDb: 0, trebleDb: 1.5, compThreshold: -24, compRatio: 3, reverbWet: 0.08, width: 1.15, limiter: true, lowcut: true },
   // клуб: жирный низ, яркий верх, плотнее и громче
-  club: { gain: 1, bassDb: 5, midDb: 0, trebleDb: 2, compThreshold: -18, compRatio: 4 },
+  club: { gain: 1, bassDb: 5, midDb: 0, trebleDb: 2, compThreshold: -18, compRatio: 4, reverbWet: 0.12, width: 1.3, limiter: true, lowcut: true },
   // FM-радио: выпуклая середина, плотный компрессор
-  radio: { gain: 0, bassDb: 1, midDb: 2, trebleDb: 0, compThreshold: -30, compRatio: 6 },
+  radio: { gain: 0, bassDb: 1, midDb: 2, trebleDb: 0, compThreshold: -30, compRatio: 6, reverbWet: 0.05, width: 1.1, limiter: true, lowcut: true },
 };
 
 interface RadioState {

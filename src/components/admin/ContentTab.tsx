@@ -40,6 +40,10 @@ export function ContentTab() {
   const [ctaEdit, setCtaEdit] = useState<string | null>(null);
   const [duration, setDuration] = useState<Duration>(30);
   const [sent, setSent] = useState<SendState | null>(null);
+  /** заявка, ожидающая подтверждения в модалке предпросмотра (null — модалка закрыта) */
+  const [pending, setPending] = useState<{ ticket: Record<string, unknown>; pretty: string } | null>(null);
+  /** всплывающий итог после «В очередь» / отмены */
+  const [result, setResult] = useState<'ok' | 'err' | 'cancel' | null>(null);
 
   const tracks = useMemo(() => allTracks(), []);
   const car = SEED_CARS.find((c) => c.id === carId) ?? SEED_CARS[0];
@@ -95,9 +99,9 @@ export function ContentTab() {
     return rows;
   }, [scenario, carName, kitName, sceneName, customPrompt, cta, t]);
 
-  // заявка в серверную очередь: kind:'reel', key уникальный (очередь дедупит по key)
+  // шаг 1: собрать заявку и показать её в модалке предпросмотра — админ видит,
+  // что именно уйдёт в очередь, ДО отправки
   const order = () => {
-    setSent('sending');
     const brief = {
       carId,
       productId: productId || 'full-kit',
@@ -118,13 +122,33 @@ export function ContentTab() {
       height: 1280,
       createdAt: Date.now(),
     };
+    setPending({ ticket, pretty: JSON.stringify(brief, null, 2) });
+  };
+
+  // шаг 2: подтверждение из модалки — только теперь POST в очередь
+  const confirmSend = () => {
+    if (!pending) return;
+    const body = JSON.stringify(pending.ticket);
+    setPending(null);
+    setSent('sending');
     fetch('/api/queue', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(ticket),
+      body,
     })
-      .then((r) => setSent(r.ok ? 'ok' : 'err'))
-      .catch(() => setSent('err'));
+      .then((r) => {
+        setSent(r.ok ? 'ok' : 'err');
+        setResult(r.ok ? 'ok' : 'err');
+      })
+      .catch(() => {
+        setSent('err');
+        setResult('err');
+      });
+  };
+
+  const cancelSend = () => {
+    setPending(null);
+    setResult('cancel');
   };
 
   return (
@@ -308,6 +332,51 @@ export function ContentTab() {
           </div>
         )}
       </div>
+
+      {/* ===== модалка предпросмотра заявки: видно, ЧТО уйдёт в очередь ===== */}
+      {pending && (
+        <div className="uf-auth-overlay" onClick={cancelSend}>
+          <div className="panel rivets cnt-confirm" onClick={(e) => e.stopPropagation()}>
+            <div className="artedit-head" style={{ cursor: 'default' }}>
+              <span className="tech-label">{t('content.confirm.title')}</span>
+              <button className="artedit-x" onClick={cancelSend}>✕</button>
+            </div>
+            <p className="adm-note">{t('content.confirm.what')}</p>
+            <ol className="cnt-plan">
+              {plan.map((row, i) => (
+                <li key={i} className="cnt-plan-line">
+                  <span className="cnt-plan-tag">{row.tag}</span>
+                  <span className="cnt-plan-text">{row.text}</span>
+                </li>
+              ))}
+            </ol>
+            <pre className="cnt-confirm-json mono" data-testid="cnt-confirm-json">{pending.pretty}</pre>
+            <div className="cnt-confirm-actions">
+              <button className="btn" onClick={confirmSend} data-testid="cnt-confirm-send">
+                {t('content.confirm.send')}
+              </button>
+              <button className="btn ghost" onClick={cancelSend}>
+                {t('content.confirm.cancel')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== всплывающий итог после отправки/отмены ===== */}
+      {result && (
+        <div className="uf-auth-overlay" onClick={() => setResult(null)}>
+          <div className="panel rivets cnt-result" onClick={(e) => e.stopPropagation()}>
+            <span className={`tape ${result === 'ok' ? 'dark' : 'hazard'}`}>
+              {t(`content.result.${result}.title`)}
+            </span>
+            <p>{t(`content.result.${result}.text`)}</p>
+            <button className="btn" onClick={() => setResult(null)} data-testid="cnt-result-close">
+              {t('content.result.close')}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

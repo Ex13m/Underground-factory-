@@ -14,4 +14,12 @@ export interface Reel {
   createdAt: string;
 }
 
-export const REELS: Reel[] = [];
+export const REELS: Reel[] = [
+  {
+    // Supra A80 + полный кит: хук-экшн → сток → глитч-трансформация → деталь →
+    // тоннель → финал с CTA (PITSTOP26). 6 клипов kling 9:16, ~45 кредитов HF.
+    file: '/media/reels/reel-supra-fullkit-nightrace.mp4',
+    title: { ru: 'SUPRA A80 ▸ ПОЛНЫЙ КИТ ▸ НОЧНАЯ ГОНКА', en: 'SUPRA A80 ▸ FULL KIT ▸ NIGHT RACE' },
+    createdAt: '2026-07-09',
+  },
+];

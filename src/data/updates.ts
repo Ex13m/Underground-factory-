@@ -7,7 +7,7 @@ import type { LocalText } from '../lib/types';
  * что реально поменялось с прошлого релиза (коротко, по-русски и по-английски).
  */
 export const UPDATE_NOTES: LocalText[] = [
-  { ru: 'ПИТ-БОСС ОЖИЛ ▸ ПОВОДИ МЫШКОЙ — ОН ПОМАШЕТ', en: 'PIT BOSS IS ALIVE ▸ MOVE THE MOUSE — HE WAVES' },
-  { ru: 'UF RADIO ▸ МАСТЕРИНГ HI-FI И РОВНАЯ ГРОМКОСТЬ', en: 'UF RADIO ▸ HI-FI MASTERING, EVEN LOUDNESS' },
-  { ru: 'ЦЕХА АДМИНКИ ▸ ВИДЕОРЕДАКТОР, РАДИО, РИЛСЫ', en: 'ADMIN SHOPS ▸ VIDEO EDITOR, RADIO, REELS' },
+  { ru: 'ПРОМОКОД PITSTOP26 ▸ −15% КАЖДОМУ', en: 'PROMO CODE PITSTOP26 ▸ −15% FOR EVERYONE' },
+  { ru: 'UF RADIO ▸ АВТОМАСТЕРИНГ: ЭХО, ОБЪЁМ, РОВНЫЙ LUFS', en: 'UF RADIO ▸ AUTO-MASTER: ECHO, WIDTH, EVEN LUFS' },
+  { ru: 'ЦЕХ РИЛСОВ ЗАПУЩЕН ▸ ПЕРВЫЙ ВЫПУСК НА ПОЛКЕ', en: 'REEL SHOP IS LIVE ▸ FIRST DROP ON THE SHELF' },
 ];

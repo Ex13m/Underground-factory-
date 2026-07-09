@@ -20,6 +20,15 @@ const LS = {
   genQueue: 'uf:genqueue',
 };
 
+/**
+ * Постоянные маркетинговые промокоды (рилсы/соцсети): работают у любого
+ * посетителя сразу, без регистрации в его браузере. Коды в контенте
+ * (CTA рилсов) должны существовать здесь — реклама не врёт.
+ */
+const BUILTIN_PROMOS: Promo[] = [
+  { code: 'PITSTOP26', pct: 15, source: 'admin' },
+];
+
 /** Заявка админа на генерацию медиа через Higgsfield (исполняет Claude в терминале). */
 export interface GenRequestTicket {
   /** ключ медиа-объекта (= seed) — куда применить результат */
@@ -183,7 +192,11 @@ export const api = {
   },
 
   validatePromo(code: string): Promo | undefined {
-    return read<Promo[]>(LS.promos, []).find((p) => p.code.toUpperCase() === code.toUpperCase());
+    const c = code.toUpperCase();
+    return (
+      read<Promo[]>(LS.promos, []).find((p) => p.code.toUpperCase() === c) ??
+      BUILTIN_PROMOS.find((p) => p.code === c)
+    );
   },
 
   // ---- integration: bulk exchange ----
