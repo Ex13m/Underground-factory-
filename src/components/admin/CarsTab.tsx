@@ -31,6 +31,28 @@ export function CarsTab() {
   /** модели выбранной марки — подсказки в поле модели */
   const modelsOfMake = cars.filter((c) => c.make === make).map((c) => c.model);
 
+  /** заявки на видео-заставки, отправленные в этой сессии (для пометки «в очереди») */
+  const [liveQueued, setLiveQueued] = useState<Record<string, boolean>>({});
+
+  /** заказать видео-заставку тачки: заявка в очередь, исполняет Claude
+      (image-to-video от текущего фото тачки) */
+  const orderLive = (carId: string, carName: string) => {
+    fetch('/api/queue', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        key: `car-live-${carId}`,
+        kind: 'video',
+        prompt: `видео-заставка (оживление) тачки ${carName}: image-to-video от её текущего фото — машина стоит, лёгкий кинематографичный облёт камеры, ночной цех, дым, блики; кладётся в /media/cars/${carId}/live.mp4`,
+        width: 1280,
+        height: 720,
+        createdAt: Date.now(),
+      }),
+    })
+      .then((r) => { if (r.ok) setLiveQueued((s) => ({ ...s, [carId]: true })); })
+      .catch(() => {});
+  };
+
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const errs: Record<string, boolean> = {
@@ -82,7 +104,10 @@ export function CarsTab() {
               </tr>
             </thead>
             <tbody>
-              {cars.map((c) => (
+              {cars.map((c) => {
+                // видео-заставка: есть у тачки (сид) или загружена оверрайдом
+                const hasLive = !!c.video || !!getOverride(`car-live-${c.id}`);
+                return (
                 <tr key={c.id}>
                   <td>
                     <Img className="adm-thumb" src={c.img || undefined} seed={`car-${c.id}`} alt={`${c.make} ${c.model}`} />
@@ -92,6 +117,17 @@ export function CarsTab() {
                   <td>{c.years}</td>
                   <td>
                     <div className="adm-actions">
+                      {hasLive ? (
+                        <span className="adm-badge hit" title={c.video ?? ''}>{t('admin.cars.liveHave')}</span>
+                      ) : liveQueued[c.id] ? (
+                        <span className="adm-badge" style={{ color: 'var(--hazard, #e0a51b)', borderColor: 'var(--hazard, #e0a51b)' }}>
+                          {t('admin.cars.liveQueued')}
+                        </span>
+                      ) : (
+                        <button className="adm-mini-btn" onClick={() => orderLive(c.id, `${c.make} ${c.model}`)}>
+                          {t('admin.cars.live')}
+                        </button>
+                      )}
                       <button
                         className="adm-mini-btn"
                         onClick={() =>
@@ -119,7 +155,8 @@ export function CarsTab() {
                     </div>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

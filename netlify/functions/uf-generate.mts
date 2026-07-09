@@ -38,7 +38,13 @@ const MODELS: Record<string, string> = {
   free: 'black-forest-labs/flux-schnell',
   nano: 'google/nano-banana',
   gpt: 'openai/gpt-image-1',
+  recraft: 'recraft-ai/recraft-v3',
+  fluxpro: 'black-forest-labs/flux-1.1-pro',
+  seedream: 'bytedance/seedream-4',
 };
+
+/** vision-модели для «Опознать по фото» (первая доступная на ключе) */
+const DESCRIBE_MODELS = ['openai/gpt-4o-mini', 'openai/gpt-4o'];
 
 export default async (req: Request) => {
   const token = req.headers.get('x-replicate-key')?.trim() || process.env.REPLICATE_API_TOKEN;
@@ -61,28 +67,72 @@ export default async (req: Request) => {
     return Response.json({ error: 'NO_SERVER_KEY' }, { status: 501 });
   }
 
-  let body: { prompt?: string; width?: number; height?: number; model?: string };
+  let body: {
+    prompt?: string;
+    width?: number;
+    height?: number;
+    model?: string;
+    /** референсы (data URI jpeg) — для моделей с image-входом */
+    references?: string[];
+    /** режим «Опознать по фото»: вернуть JSON {name, passport} по картинке */
+    describe?: string;
+  };
   try {
     body = await req.json();
   } catch {
     return Response.json({ error: 'bad json' }, { status: 400 });
   }
+
+  // ---- «Опознать по фото»: vision-модель описывает тачку ----
+  if (body.describe) {
+    const ask =
+      'Identify the car in the photo. Reply STRICTLY with one JSON object, no explanations: ' +
+      '{"name":"Make Model (generation or years)","passport":"короткий паспорт машины ПО-РУССКИ в дерзком стиле андеграунд-гаража: цвет, кузов, диски, характерные детали — одна-две фразы"}';
+    for (const m of DESCRIBE_MODELS) {
+      const dr = await fetch(`https://api.replicate.com/v1/models/${m}/predictions`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Prefer: 'wait' },
+        body: JSON.stringify({ input: { prompt: ask, image_input: [body.describe] } }),
+      });
+      const dd = await dr.json().catch(() => ({}));
+      if (dr.status === 404 || dr.status === 422) continue; // модель недоступна — следующая
+      const text = Array.isArray(dd?.output) ? dd.output.join('') : String(dd?.output ?? '');
+      const jm = text.match(/\{[\s\S]*\}/);
+      if (dr.ok && jm) return Response.json(JSON.parse(jm[0]));
+      return Response.json({ error: dd?.detail ?? dd?.error ?? `replicate ${dr.status}` }, { status: 502 });
+    }
+    return Response.json({ error: 'no vision model available on this key' }, { status: 502 });
+  }
+
   const prompt = (body.prompt ?? '').slice(0, 4000);
   if (!prompt.trim()) return Response.json({ error: 'empty prompt' }, { status: 400 });
 
   const modelKey = body.model && MODELS[body.model] ? body.model : 'free';
   const model = MODELS[modelKey];
+  const aspect = pickAspect(body.width ?? 4, body.height ?? 3);
+  // референсы: data URI, максимум 3 (Replicate принимает data URI в файловых полях)
+  const refs = (body.references ?? []).filter((r) => typeof r === 'string' && r.startsWith('data:image/')).slice(0, 3);
+
   const input: Record<string, unknown> =
     modelKey === 'gpt'
-      ? { prompt, size: gptSize(body.width ?? 4, body.height ?? 3), quality: 'medium' }
+      ? { prompt, size: gptSize(body.width ?? 4, body.height ?? 3), quality: 'medium', ...(refs.length ? { input_images: refs } : {}) }
       : modelKey === 'nano'
-        ? { prompt, aspect_ratio: pickAspect(body.width ?? 4, body.height ?? 3), output_format: 'jpg' }
-        : {
-            prompt,
-            aspect_ratio: pickAspect(body.width ?? 4, body.height ?? 3),
-            output_format: 'jpg',
-            output_quality: 85,
-          };
+        ? { prompt, aspect_ratio: aspect, output_format: 'jpg', ...(refs.length ? { image_input: refs } : {}) }
+        : modelKey === 'seedream'
+          ? { prompt, aspect_ratio: aspect, ...(refs.length ? { image_input: refs } : {}) }
+          : modelKey === 'fluxpro'
+            ? { prompt, aspect_ratio: aspect, output_format: 'jpg', ...(refs.length ? { image_prompt: refs[0] } : {}) }
+            : modelKey === 'recraft'
+              ? {
+                  prompt,
+                  size:
+                    (body.width ?? 4) / Math.max(1, body.height ?? 3) > 1.15
+                      ? '1820x1024'
+                      : (body.width ?? 4) / Math.max(1, body.height ?? 3) < 0.87
+                        ? '1024x1820'
+                        : '1024x1024',
+                }
+              : { prompt, aspect_ratio: aspect, output_format: 'jpg', output_quality: 85 };
 
   // Prefer: wait — Replicate держит соединение до готовности
   const r = await fetch(`https://api.replicate.com/v1/models/${model}/predictions`, {

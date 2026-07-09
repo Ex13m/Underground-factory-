@@ -5,7 +5,17 @@
  * прототип, слой заменяется на серверный прокси без изменения интерфейса.
  */
 
-export type GenProvider = 'pollinations' | 'openai' | 'gemini';
+export type GenProvider = 'pollinations' | 'openai' | 'gemini' | 'recraft' | 'fluxpro' | 'seedream';
+
+/** кнопки моделей в арт-редакторе: id провайдера → модель серверной функции */
+export const PROVIDER_MODELS: Array<{ id: GenProvider; label: string; model: string; paid: boolean }> = [
+  { id: 'pollinations', label: 'БЕСПЛАТНО', model: 'free', paid: false },
+  { id: 'openai', label: 'GPT IMAGE', model: 'gpt', paid: true },
+  { id: 'gemini', label: 'NANO BANANA', model: 'nano', paid: true },
+  { id: 'recraft', label: 'RECRAFT', model: 'recraft', paid: true },
+  { id: 'fluxpro', label: 'FLUX PRO', model: 'fluxpro', paid: true },
+  { id: 'seedream', label: 'SEEDREAM', model: 'seedream', paid: true },
+];
 
 export interface GenKeys {
   openai?: string;
