@@ -45,7 +45,7 @@ export default {
 
     'content.car.custom': '★ СВОЯ ТАЧКА (фото)',
     'content.car.customName': 'Своя тачка',
-    'content.car.customPh': 'например: Nissan 350Z 2007',
+    'content.car.customPh': 'можно пусто — завод опознает тачку по фото сам',
     'content.car.photo': 'Фото тачки',
     'content.cta.roll': 'Случайный заход от ПИТ-БОССА',
     'content.cta.pool1': 'Код на скидку — у ПИТ-БОССА в рации',
@@ -147,7 +147,7 @@ export default {
 
     'content.car.custom': '★ MY OWN CAR (photo)',
     'content.car.customName': 'My own car',
-    'content.car.customPh': 'e.g. Nissan 350Z 2007',
+    'content.car.customPh': 'may be empty — the factory identifies the car from the photo',
     'content.car.photo': 'Car photo',
     'content.cta.roll': 'Random pitch from the PIT BOSS',
     'content.cta.pool1': 'Discount code — on the PIT BOSS radio',
