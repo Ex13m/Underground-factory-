@@ -46,6 +46,9 @@ export function BootIntro() {
     if (phase !== 'run') return;
     sessionStorage.setItem('uf:booted', '1');
     document.body.style.overflow = 'hidden';
+    // пока интро на экране — системный курсор виден (fx.css: :not(.boot-on)),
+    // иначе на вступлении нет вообще никакой мышки и SKIP не найти
+    document.documentElement.classList.add('boot-on');
     const t = setInterval(() => {
       setLines((n) => {
         if (n + 1 >= LINES.length) clearInterval(t);
@@ -55,6 +58,7 @@ export function BootIntro() {
     return () => {
       clearInterval(t);
       document.body.style.overflow = '';
+      document.documentElement.classList.remove('boot-on');
     };
   }, [phase]);
 

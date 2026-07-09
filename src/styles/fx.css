@@ -19,9 +19,12 @@
   z-index: 9600;
 }
 
-/* Пока FX активен — системный курсор скрыт везде */
-html.fx-no-cursor,
-html.fx-no-cursor body,
-html.fx-no-cursor * {
+/* Пока FX активен — системный курсор скрыт везде.
+   Исключение: во время интро (html.boot-on) курсор остаётся системным —
+   канвас кастомного курсора лежит ПОД интро (z 9600 < 9800), и иначе
+   на вступлении не видно, куда жать SKIP. */
+html.fx-no-cursor:not(.boot-on),
+html.fx-no-cursor:not(.boot-on) body,
+html.fx-no-cursor:not(.boot-on) * {
   cursor: none !important;
 }
