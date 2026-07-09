@@ -12,7 +12,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useI18n } from '../../lib/i18n';
 import { api } from '../../lib/api';
-import { geminiIdentifyCar, readGenKeys } from '../../lib/imagegen';
+import { readGenKeys } from '../../lib/imagegen';
 import { allTracks } from '../../lib/radioTracks';
 import { REELS } from '../../data/reels';
 import { useReelFlags, reelFlags } from '../../store/reelflags';
@@ -91,18 +91,24 @@ export function ContentTab() {
     return id;
   };
 
-  /** опознать тачку по фото (Gemini vision, ключ из арт-редактора) */
+  /** опознать тачку по фото: vision-модель через Replicate (тот же ключ r8_,
+      что и у генерации — квоты Gemini больше не нужны) */
   const identify = async () => {
-    const key = readGenKeys().gemini;
+    const key = readGenKeys().replicate?.trim();
     if (!key || !customPhoto || identBusy) return;
     setIdentBusy(true);
     setIdentNote(null);
     try {
-      const r = await geminiIdentifyCar(key, customPhoto);
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-replicate-key': key },
+        body: JSON.stringify({ describe: `data:image/jpeg;base64,${customPhoto}` }),
+      });
+      const r = (await res.json()) as { name?: string; passport?: string; error?: string };
+      if (!res.ok || !r.name) throw new Error(r.error ?? 'no name');
       setCustomCarName(r.name);
-      setCustomPassport(r.passport);
-      setIdentNote(null);
-    } catch (e) {
+      setCustomPassport(r.passport ?? '');
+    } catch {
       setIdentNote(t('content.car.identErr'));
     }
     setIdentBusy(false);
@@ -408,8 +414,8 @@ export function ContentTab() {
                         type="button"
                         className="adm-mini-btn"
                         onClick={() => void identify()}
-                        disabled={identBusy || !readGenKeys().gemini}
-                        title={readGenKeys().gemini ? '' : t('content.car.identNoKey')}
+                        disabled={identBusy || !readGenKeys().replicate}
+                        title={readGenKeys().replicate ? '' : t('content.car.identNoKey')}
                       >
                         {identBusy ? t('content.car.identBusy') : t('content.car.ident')}
                       </button>

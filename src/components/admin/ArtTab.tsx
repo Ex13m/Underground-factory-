@@ -129,19 +129,6 @@ export function ArtTab() {
           </button>
         </div>
 
-        {/* отдельный ключ Gemini — только для «Опознать по фото» в рилсах */}
-        <label className="tech-label" htmlFor="art-key-gemini" style={{ marginTop: 12, display: 'block' }}>
-          GEMINI (AIza…) ▸ {t('admin.art.geminiHint')}
-        </label>
-        <input
-          id="art-key-gemini"
-          className="field"
-          type="password"
-          placeholder="AIza…"
-          value={keys.gemini ?? ''}
-          onChange={(e) => saveKey({ gemini: e.target.value.trim() || undefined })}
-          data-testid="art-key-gemini"
-        />
       </div>
 
       <div className="panel rivets">
