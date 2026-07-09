@@ -14,6 +14,7 @@ import { useI18n } from '../../lib/i18n';
 import { useRadio, isOnAir, type MasterPreset, type MasterSettings } from '../../store/radio';
 import { allTracks, AUDIO_PREFIX, type RadioTrack } from '../../lib/radioTracks';
 import { setOverride, onMediaChanged } from '../../lib/mediaStore';
+import { measureLufs, gainForTarget } from '../../lib/loudness';
 import '../../styles/radioadmin.css';
 
 type SendState = 'sending' | 'ok' | 'err';
@@ -231,9 +232,45 @@ function MasterPanel() {
   const master = useRadio((s) => s.master);
   const setMaster = useRadio((s) => s.setMaster);
   const applyPreset = useRadio((s) => s.applyPreset);
+  const trackLufs = useRadio((s) => s.trackLufs);
+  const setTrackLufs = useRadio((s) => s.setTrackLufs);
+  const setTrackGain = useRadio((s) => s.setTrackGain);
+  /** прогресс выравнивания: null — не идёт, иначе «n/m» */
+  const [leveling, setLeveling] = useState<string | null>(null);
+  const [levelDone, setLevelDone] = useState<string | null>(null);
+
+  const targetLufs = master.targetLufs ?? -14;
 
   // движение любого слайдера переводит пресет в «ручной»
   const manual = (patch: Partial<MasterSettings>) => setMaster({ ...patch, preset: 'manual' });
+
+  /** смена цели: пересчитать поправки всем уже замеренным трекам */
+  const retarget = (target: number) => {
+    setMaster({ targetLufs: target });
+    for (const [id, lufs] of Object.entries(useRadio.getState().trackLufs)) {
+      setTrackGain(id, gainForTarget(lufs, target));
+    }
+  };
+
+  /** замер BS.1770 всех треков по очереди + поправка под цель */
+  const levelAll = async () => {
+    if (leveling) return;
+    setLevelDone(null);
+    const tracks = allTracks();
+    let fails = 0;
+    for (let i = 0; i < tracks.length; i++) {
+      setLeveling(`${i + 1}/${tracks.length}`);
+      try {
+        const lufs = trackLufs[tracks[i].id] ?? (await measureLufs(tracks[i].url));
+        setTrackLufs(tracks[i].id, lufs);
+        setTrackGain(tracks[i].id, gainForTarget(lufs, useRadio.getState().master.targetLufs ?? -14));
+      } catch {
+        fails++;
+      }
+    }
+    setLeveling(null);
+    setLevelDone(fails ? t('radio.master.levelerr', { n: fails }) : t('radio.master.leveldone'));
+  };
 
   const slider = (
     label: string,
@@ -292,6 +329,18 @@ function MasterPanel() {
         {slider(t('radio.master.thresh'), master.compThreshold, -60, 0, 1, (v) => manual({ compThreshold: v }))}
         {slider(t('radio.master.ratio'), master.compRatio, 1, 12, 0.5, (v) => manual({ compRatio: v }), ':1')}
         {slider(t('radio.master.gain'), master.gain, -12, 12, 0.5, (v) => manual({ gain: v }))}
+      </div>
+
+      {/* авто-мастеринг под LUFS: честный замер BS.1770 + поправка на трек */}
+      <div className="radm-lufs">
+        {slider(t('radio.master.lufs'), targetLufs, -18, -9, 0.5, retarget, ' LUFS')}
+        <button className="btn dark" onClick={() => void levelAll()} disabled={!!leveling}>
+          {leveling ? t('radio.master.leveling', { p: leveling }) : t('radio.master.level')}
+        </button>
+        {levelDone && <span className="tech-label">{levelDone}</span>}
+        <span className="tech-label radm-lufs-count">
+          {t('radio.master.measured', { n: Object.keys(trackLufs).length })}
+        </span>
       </div>
       <p className="radm-master-note">{t('radio.master.note')}</p>
     </div>

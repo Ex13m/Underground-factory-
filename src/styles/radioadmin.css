@@ -77,3 +77,16 @@
   .radm-upload { margin-left: 0; }
   .radm-slider { grid-template-columns: 72px 1fr 52px; }
 }
+
+/* ---- авто-мастеринг под LUFS ---- */
+.radm-lufs {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(236, 234, 229, 0.18);
+}
+.radm-lufs .radm-slider { min-width: 260px; flex: 0 1 320px; }
+.radm-lufs-count { margin-left: auto; opacity: 0.7; }

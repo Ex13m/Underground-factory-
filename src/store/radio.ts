@@ -24,6 +24,8 @@ export interface MasterSettings {
   trebleDb: number;
   compThreshold: number;
   compRatio: number;
+  /** целевая интегральная громкость эфира, LUFS (−14 — стандарт стриминга) */
+  targetLufs: number;
 }
 
 export interface TrimRange {
@@ -34,8 +36,8 @@ export interface TrimRange {
 /** с этого трека радио стартует, если админ не выбрал другой */
 export const DEFAULT_FIRST = 'boost-b.mp3';
 
-/** пресеты мастеринга (без enabled/preset) */
-export const MASTER_PRESETS: Record<Exclude<MasterPreset, 'manual'>, Omit<MasterSettings, 'enabled' | 'preset'>> = {
+/** пресеты мастеринга (без enabled/preset/targetLufs — цель LUFS пресетами не трогаем) */
+export const MASTER_PRESETS: Record<Exclude<MasterPreset, 'manual'>, Omit<MasterSettings, 'enabled' | 'preset' | 'targetLufs'>> = {
   // лёгкая полировка: чуть низа и воздуха, мягкий компрессор
   hifi: { gain: 0, bassDb: 2, midDb: 0, trebleDb: 1.5, compThreshold: -24, compRatio: 3 },
   // клуб: жирный низ, яркий верх, плотнее и громче
@@ -49,12 +51,15 @@ interface RadioState {
   first: string | null;
   trims: Record<string, TrimRange>;
   trackGain: Record<string, number>;
+  /** замеренная интегральная громкость трека (BS.1770), LUFS */
+  trackLufs: Record<string, number>;
   master: MasterSettings;
   setOnAir: (id: string, on: boolean) => void;
   setFirst: (id: string | null) => void;
   /** null — убрать обрезку */
   setTrim: (id: string, trim: TrimRange | null) => void;
   setTrackGain: (id: string, db: number) => void;
+  setTrackLufs: (id: string, lufs: number) => void;
   setMaster: (patch: Partial<MasterSettings>) => void;
   applyPreset: (p: Exclude<MasterPreset, 'manual'>) => void;
 }
@@ -66,7 +71,8 @@ export const useRadio = create<RadioState>()(
       first: DEFAULT_FIRST,
       trims: {},
       trackGain: {},
-      master: { enabled: true, preset: 'hifi', ...MASTER_PRESETS.hifi },
+      trackLufs: {},
+      master: { enabled: true, preset: 'hifi', targetLufs: -14, ...MASTER_PRESETS.hifi },
       setOnAir: (id, on) => set((s) => ({ onAir: { ...s.onAir, [id]: on } })),
       setFirst: (id) => set({ first: id }),
       setTrim: (id, trim) =>
@@ -77,10 +83,18 @@ export const useRadio = create<RadioState>()(
           return { trims };
         }),
       setTrackGain: (id, db) => set((s) => ({ trackGain: { ...s.trackGain, [id]: db } })),
+      setTrackLufs: (id, lufs) => set((s) => ({ trackLufs: { ...s.trackLufs, [id]: lufs } })),
       setMaster: (patch) => set((s) => ({ master: { ...s.master, ...patch } })),
       applyPreset: (p) => set((s) => ({ master: { ...s.master, preset: p, ...MASTER_PRESETS[p] } })),
     }),
-    { name: 'uf:radio' },
+    {
+      name: 'uf:radio',
+      // сохранённый ранее master без targetLufs не должен затирать дефолт
+      merge: (persisted, current) => {
+        const p = (persisted ?? {}) as Partial<RadioState>;
+        return { ...current, ...p, master: { ...current.master, ...(p.master ?? {}) } };
+      },
+    },
   ),
 );
 
