@@ -7,7 +7,7 @@ import type { LocalText } from '../lib/types';
  * что реально поменялось с прошлого релиза (коротко, по-русски и по-английски).
  */
 export const UPDATE_NOTES: LocalText[] = [
-  { ru: 'UF RADIO ▸ 13 ТРЕКОВ, ДИДЖЕЙСКИЕ ПЕРЕХОДЫ', en: 'UF RADIO ▸ 13 TRACKS, DJ CROSSFADES' },
+  { ru: 'ВИДЕОСАЛОН ▸ ЗАПИСИ С КАМЕР, НОН-СТОП', en: 'CCTV LOUNGE ▸ CAMERA FEEDS, NONSTOP' },
+  { ru: 'UF RADIO ▸ 13 ТРЕКОВ И РОВНЫЕ ПЕРЕХОДЫ', en: 'UF RADIO ▸ 13 TRACKS, SEAMLESS BLENDS' },
   { ru: 'ИНТРО ▸ ФАРЫ БЬЮТ ПРЯМО В ОБЪЕКТИВ', en: 'INTRO ▸ HEADLIGHTS STRAIGHT INTO THE LENS' },
-  { ru: 'МОНТАЖ ▸ +10 АГРЕССИВНЫХ ЭПИЗОДОВ', en: 'MONTAGE ▸ +10 AGGRESSIVE EPISODES' },
 ];

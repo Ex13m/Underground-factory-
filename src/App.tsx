@@ -13,6 +13,7 @@ import { Cart } from './pages/Cart';
 import { Checkout } from './pages/Checkout';
 import { Account } from './pages/Account';
 import { Admin } from './pages/Admin';
+import { TvSalon } from './pages/TvSalon';
 
 import { AuthModal } from './components/AuthModal';
 import { ArtEditor } from './fx/ArtEditor';
@@ -62,6 +63,7 @@ function Shell() {
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/account" element={<Account />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/tv" element={<TvSalon />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
