@@ -7,7 +7,7 @@ import type { LocalText } from '../lib/types';
  * что реально поменялось с прошлого релиза (коротко, по-русски и по-английски).
  */
 export const UPDATE_NOTES: LocalText[] = [
-  { ru: '+30 РОЛИКОВ ▸ МУСТАНГ, ЛАМБО, ГЕЛИК И ЛЕГЕНДЫ ТРЕКА', en: '+30 CLIPS ▸ MUSTANG, LAMBO, G-WAGEN & TRACK LEGENDS' },
-  { ru: 'ЭКШН-ЭФИР ▸ ПОГОНИ, ТРЮКИ, ОПАСНЫЕ МОМЕНТЫ', en: 'ACTION FEED ▸ PURSUITS, STUNTS, CLOSE CALLS' },
-  { ru: 'ПИТ-БОСС ▸ ОБРАТНАЯ СВЯЗЬ ПРЯМО В ЧАТЕ', en: 'PIT BOSS ▸ FEEDBACK RIGHT IN THE CHAT' },
+  { ru: 'ВИДЕО ПОЛЕГЧАЛО В 5 РАЗ ▸ САЙТ ЛЕТАЕТ', en: 'VIDEO 5X LIGHTER ▸ SITE FLIES' },
+  { ru: 'АДМИНКА ▸ ВКЛАДКА «ЭФИР»: КУРАТОР РОЛИКОВ', en: 'ADMIN ▸ ON AIR TAB: CLIP CURATOR' },
+  { ru: 'БРАК — ГАЛОЧКОЙ, УДАЛЕНИЕ — АВТОМАТОМ', en: 'SCRAP WITH A CLICK, DELETION AUTOMATED' },
 ];

@@ -9,7 +9,8 @@ import { getStore } from '@netlify/blobs';
 
 interface Ticket {
   key: string;
-  kind: 'image' | 'video';
+  /** scrap-video — пометка «брак» из админки (вкладка ЭФИР): ролик удалить из репозитория */
+  kind: 'image' | 'video' | 'scrap-video';
   prompt: string;
   width: number;
   height: number;
@@ -48,7 +49,7 @@ export default async (req: Request) => {
     const list = (await read()).filter((x) => x.key !== t.key).slice(-49);
     list.push({
       key: String(t.key).slice(0, 200),
-      kind: t.kind === 'video' ? 'video' : 'image',
+      kind: t.kind === 'video' || t.kind === 'scrap-video' ? t.kind : 'image',
       prompt: String(t.prompt).slice(0, 4000),
       width: Number(t.width) || 800,
       height: Number(t.height) || 500,

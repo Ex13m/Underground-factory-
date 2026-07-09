@@ -58,6 +58,12 @@ oldtown-chase, barrel-dodge, vintage-pack.
 В монтаже главной — 54 (см. HERO_VIDEOS в src/data/seed.ts), в Видеосалоне —
 61 (src/data/tv.ts). Порядок тасуется при каждой загрузке.
 
+Все mp4 пережаты для веба (v0.20.0): H.264 CRF 25, без звука (на сайте всё
+видео muted), moov в начале (faststart). Новые ролики после скачивания жать
+так же: `ffmpeg -i in.mp4 -an -c:v libx264 -preset slow -crf 25 -movflags
++faststart -pix_fmt yuv420p out.mp4`. Куратор эфира — админка → «Эфир»
+(галочки «в эфире», брак уходит в /api/queue как kind: scrap-video).
+
 ## Прочее
 
 - `intro/ignition.mp4` — спецролик интро: машина строго передом,

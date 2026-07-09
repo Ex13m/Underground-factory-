@@ -5,11 +5,12 @@
  * продолжает играть. Выход — Esc или ✕.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../lib/i18n';
 import { VideoBg } from '../lib/media';
 import { TV_CLIPS } from '../data/tv';
+import { useOnAir, filterOnAir } from '../store/onair';
 import '../styles/tv.css';
 
 const CAMS = ['DOCKS', 'GARAGE', 'GATE 4', 'CANAL', 'ROOFTOP', 'YARD', 'TOUGE', 'APRON'];
@@ -19,6 +20,9 @@ export function TvSalon() {
   const navigate = useNavigate();
   const [clock, setClock] = useState('');
   const [cam, setCam] = useState(0);
+  // эфир: выключенные в админке ролики не показываем; пусто не бывает — fallback на полный список
+  const offAir = useOnAir((s) => s.off);
+  const clips = useMemo(() => filterOnAir(TV_CLIPS, offAir), [offAir]);
 
   // живой таймкод + смена «камеры» каждые ~6 секунд
   useEffect(() => {
@@ -44,7 +48,7 @@ export function TvSalon() {
 
   return (
     <div className="tv" data-testid="tv-salon">
-      <VideoBg sources={TV_CLIPS} seed="tv-salon" className="tv-video" />
+      <VideoBg sources={clips} seed="tv-salon" className="tv-video" />
       <div className="tv-scanlines" aria-hidden />
       <div className="tv-vignette" aria-hidden />
 

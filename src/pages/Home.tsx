@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useI18n } from '../lib/i18n';
 import { useCatalog } from '../store/catalog';
 import { useUI } from '../store/ui';
+import { useOnAir, filterOnAir } from '../store/onair';
 import { VideoBg } from '../lib/media';
 import { HERO_VIDEOS } from '../data/seed';
 import { GRADE_ORDER, GRADE_META } from '../lib/types';
@@ -69,6 +70,9 @@ export function Home() {
   const products = useCatalog((s) => s.products);
   const pageRef = useReveal<HTMLDivElement>([products.length]);
   const [matModal, setMatModal] = useState<MaterialGrade | null>(null);
+  // эфир: админ мог выключить часть роликов (вкладка ЭФИР); пусто не бывает — fallback на полный список
+  const offAir = useOnAir((s) => s.off);
+  const heroSources = useMemo(() => filterOnAir(HERO_VIDEOS, offAir), [offAir]);
 
   const hits = useMemo(() => products.filter((p) => p.hit), [products]);
   const lightest = useMemo(
@@ -84,7 +88,7 @@ export function Home() {
     <div className="page" ref={pageRef}>
       {/* ============ HERO ============ */}
       <section className="uf-hero">
-        <VideoBg sources={HERO_VIDEOS} seed="hero" />
+        <VideoBg sources={heroSources} seed="hero" />
         <div className="uf-hero-overlay" aria-hidden />
 
         {/* stitch HUD: уголки, координаты, статус системы */}

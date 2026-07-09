@@ -266,6 +266,43 @@ label.adm-mini-btn { display: inline-flex; align-items: center; cursor: pointer;
 }
 .adm-quick .adm-flash { display: block; margin-top: 10px; }
 
+/* ---------- вкладка ЭФИР: курирование hero-роликов ---------- */
+.adm-onair-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+.adm-onair-card {
+  border: 1px solid rgba(236, 234, 229, 0.18);
+  background: rgba(0, 0, 0, 0.35);
+  padding: 8px;
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  transition: border-color 0.2s;
+}
+.adm-onair-card video {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  display: block;
+  background: #000;
+  transition: opacity 0.2s, filter 0.2s;
+}
+.adm-onair-card.off video { opacity: 0.35; filter: grayscale(0.8); }
+.adm-onair-card.scrap { border-color: var(--blood); }
+.adm-onair-name {
+  font-size: 11px;
+  color: var(--paper-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.adm-onair-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.adm-onair-status { font-family: var(--font-mono); font-size: 11px; color: var(--hazard); }
+.adm-onair-status.err { color: var(--blood); }
+.adm-mini-btn.danger.on { background: var(--blood); border-color: var(--blood); color: #fff; }
+
 /* ---------- responsive ---------- */
 @media (max-width: 760px) {
   .adm-grid { grid-template-columns: 1fr; }

@@ -13,6 +13,7 @@ export default {
     'admin.tab.materials': 'Материалы',
     'admin.tab.exchange': 'Обмен',
     'admin.tab.art': 'Арт',
+    'admin.tab.onair': 'Эфир',
     'admin.tab.info': 'Инфо',
 
     'admin.info.version': 'ВЕРСИЯ САЙТА',
@@ -157,6 +158,18 @@ export default {
     'admin.exch.copy': 'Копировать',
     'admin.exch.copied': 'В буфере',
     'admin.exch.apidoc': 'Открыть API.md',
+
+    'admin.onair.title': 'ЭФИР ▸ HERO-РОЛИКИ',
+    'admin.onair.stats': 'всего {total} // в эфире {on} // брак {scrap}',
+    'admin.onair.note': 'Наведи курсор — ролик оживает. Снял «В эфире» — ролик выпадает из заставки главной и Видеосалона (в этом браузере). «БРАК» снимает с эфира и шлёт заявку на удаление в серверную очередь; повторное нажатие снимает пометку.',
+    'admin.onair.live': 'В эфире',
+    'admin.onair.scrap': 'БРАК',
+    'admin.onair.scrapOn': 'БРАК ✓',
+    'admin.onair.resetAll': 'Сбросить всё ▸ вернуть в эфир',
+    'admin.onair.sending': 'заявка уходит…',
+    'admin.onair.sentOk': 'заявка в очереди ▸ /api/queue',
+    'admin.onair.sentErr': 'сеть молчит — пометка сохранена локально',
+    'admin.onair.marked': 'помечен в брак',
   },
   en: {
     'admin.tape': 'STAFF ONLY // 関係者以外立入禁止',
@@ -171,6 +184,7 @@ export default {
     'admin.tab.materials': 'Materials',
     'admin.tab.exchange': 'Exchange',
     'admin.tab.art': 'Art',
+    'admin.tab.onair': 'On air',
     'admin.tab.info': 'Info',
 
     'admin.info.version': 'SITE VERSION',
@@ -315,5 +329,17 @@ export default {
     'admin.exch.copy': 'Copy',
     'admin.exch.copied': 'Copied',
     'admin.exch.apidoc': 'Open API.md',
+
+    'admin.onair.title': 'ON AIR ▸ HERO CLIPS',
+    'admin.onair.stats': 'total {total} // on air {on} // scrap {scrap}',
+    'admin.onair.note': 'Hover to preview a clip. Uncheck "On air" — the clip drops out of the homepage intro and the Video Salon (in this browser). "SCRAP" takes it off air and sends a deletion ticket to the server queue; press again to remove the mark.',
+    'admin.onair.live': 'On air',
+    'admin.onair.scrap': 'SCRAP',
+    'admin.onair.scrapOn': 'SCRAP ✓',
+    'admin.onair.resetAll': 'Reset all ▸ back on air',
+    'admin.onair.sending': 'sending the ticket…',
+    'admin.onair.sentOk': 'ticket queued ▸ /api/queue',
+    'admin.onair.sentErr': 'network is silent — the mark stays locally',
+    'admin.onair.marked': 'marked as scrap',
   },
 } as { ru: Record<string, string>; en: Record<string, string> };

@@ -26,7 +26,7 @@ export const SITE_INFO: InfoSection[] = [
     items: [
       { ru: 'Higgsfield Cloud API в серверную функцию (ключи HF_API_KEY/HF_API_SECRET в Netlify)', en: 'Higgsfield Cloud API inside the serverless function (HF_API_KEY/HF_API_SECRET env)' },
       { ru: 'Replicate в /api/generate (ключ REPLICATE_API_TOKEN в Netlify) — автономная качественная генерация', en: 'Replicate in /api/generate (REPLICATE_API_TOKEN env) — autonomous quality generation' },
-      { ru: 'Git LFS / внешний хостинг медиа, если репозиторий (~450 МБ видео) станет мешать', en: 'Git LFS / external media hosting if the ~450 MB of video gets in the way' },
+      { ru: 'Переезд видео на внешний CDN (Cloudflare R2) — ждёт аккаунта; после пережатия (все ролики ~76 МБ) не срочно', en: 'Video move to external CDN (Cloudflare R2) — awaiting account; not urgent after recompression (~76 MB total)' },
       { ru: 'Настоящие Stripe и OAuth вместо заглушек (заменой адаптеров, см. API.md)', en: 'Real Stripe and OAuth instead of stubs (adapter swap, see API.md)' },
     ],
   },

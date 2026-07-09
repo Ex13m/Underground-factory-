@@ -1,6 +1,6 @@
 /**
  * ADMIN — служебное помещение UNDERGROUND FACTORY.
- * Вкладки: ЦЕХ / ОБВЕСЫ / ТАЧКИ / ЗАКАЗЫ / ПРОМО / МАТЕРИАЛЫ / ОБМЕН / АРТ.
+ * Вкладки: ЦЕХ / ОБВЕСЫ / ТАЧКИ / ЗАКАЗЫ / ПРОМО / МАТЕРИАЛЫ / ОБМЕН / АРТ / ЭФИР / ИНФО.
  * Всё через api (lib/api.ts); стор каталога обновляется сам (onDataChanged).
  */
 
@@ -15,10 +15,11 @@ import { PromosTab } from '../components/admin/PromosTab';
 import { MaterialsTab } from '../components/admin/MaterialsTab';
 import { ExchangeTab } from '../components/admin/ExchangeTab';
 import { ArtTab } from '../components/admin/ArtTab';
+import { OnAirTab } from '../components/admin/OnAirTab';
 import { InfoTab } from '../components/admin/InfoTab';
 import '../styles/admin.css';
 
-type TabId = 'tree' | 'products' | 'cars' | 'orders' | 'promos' | 'materials' | 'exchange' | 'art' | 'info';
+type TabId = 'tree' | 'products' | 'cars' | 'orders' | 'promos' | 'materials' | 'exchange' | 'art' | 'onair' | 'info';
 
 export function Admin() {
   const { t } = useI18n();
@@ -83,6 +84,7 @@ export function Admin() {
     { id: 'materials', label: t('admin.tab.materials') },
     { id: 'exchange', label: t('admin.tab.exchange') },
     { id: 'art', label: t('admin.tab.art') },
+    { id: 'onair', label: t('admin.tab.onair') },
     { id: 'info', label: t('admin.tab.info') },
   ];
 
@@ -111,6 +113,7 @@ export function Admin() {
         {tab === 'materials' && <MaterialsTab />}
         {tab === 'exchange' && <ExchangeTab />}
         {tab === 'art' && <ArtTab />}
+        {tab === 'onair' && <OnAirTab />}
         {tab === 'info' && <InfoTab />}
       </div>
     </div>
