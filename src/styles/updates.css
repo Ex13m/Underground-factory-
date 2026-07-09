@@ -9,8 +9,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  pointer-events: auto;
-  cursor: pointer;
+  /* КРИТИЧНО: оверлей НЕ перехватывает мышь — иначе 21 секунду не работают
+     hover-элементы шапки (Админка, токены) и клики по сайту */
+  pointer-events: none;
   background: transparent;
 }
 
@@ -21,6 +22,9 @@
   text-shadow: 0 0 22px rgba(224, 27, 34, 0.45), 0 2px 18px rgba(0, 0, 0, 0.8);
   animation: upd-fly 7s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
   will-change: transform, opacity;
+  /* кликабельна только сама строка (пропуск) */
+  pointer-events: auto;
+  cursor: pointer;
 }
 
 @keyframes upd-fly {

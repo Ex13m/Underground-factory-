@@ -17,6 +17,20 @@ export function ArtTab() {
   const [keys, setKeys] = useState(readGenKeys());
   const [overrides, setOverrides] = useState(listOverrides());
   const [queue, setQueue] = useState(api.listGenQueue());
+  const [replStatus, setReplStatus] = useState<'idle' | 'testing' | 'ok' | 'bad'>('idle');
+
+  /** живой тест ключа Replicate через нашу функцию /api/generate?ping */
+  const testReplicate = async () => {
+    const k = readGenKeys().replicate?.trim();
+    if (!k || replStatus === 'testing') return;
+    setReplStatus('testing');
+    try {
+      const res = await fetch('/api/generate?ping=1', { headers: { 'x-replicate-key': k } });
+      setReplStatus(res.ok ? 'ok' : 'bad');
+    } catch {
+      setReplStatus('bad');
+    }
+  };
 
   useEffect(() => onMediaChanged(() => setOverrides(listOverrides())), []);
   useEffect(() => onDataChanged(() => setQueue(api.listGenQueue())), []);
@@ -54,19 +68,70 @@ export function ArtTab() {
         <div className="adm-block-title">
           <span className="tape dark">{t('admin.art.keysTitle')}</span>
         </div>
-        <p className="adm-note">{t('admin.art.keysText')}</p>
-        <label className="tech-label" htmlFor="art-key-openai">GPT IMAGE (OpenAI)</label>
-        <input
-          id="art-key-openai"
-          className="field"
-          type="password"
-          placeholder="sk-…"
-          value={keys.openai ?? ''}
-          onChange={(e) => saveKey({ openai: e.target.value.trim() || undefined })}
-          data-testid="art-key-openai"
-        />
-        <label className="tech-label" htmlFor="art-key-gemini" style={{ marginTop: 10, display: 'block' }}>
-          NANO BANANA 2 (Google Gemini)
+        <p className="adm-note">{t('admin.art.replText')}</p>
+        <label className="tech-label" htmlFor="art-key-replicate">REPLICATE ▸ r8_…</label>
+        <div className="adm-form-actions" style={{ alignItems: 'center' }}>
+          <input
+            id="art-key-replicate"
+            className="field"
+            style={{ flex: 1, minWidth: 220 }}
+            type="password"
+            placeholder="r8_…"
+            value={keys.replicate ?? ''}
+            onChange={(e) => {
+              setReplStatus('idle');
+              saveKey({ replicate: e.target.value.trim() || undefined });
+            }}
+            data-testid="art-key-replicate"
+          />
+          <button
+            className="btn ghost"
+            onClick={() => void testReplicate()}
+            disabled={!keys.replicate || replStatus === 'testing'}
+          >
+            {replStatus === 'testing' ? t('art.key.testing') : t('art.key.test')}
+          </button>
+          <span
+            className="tech-label"
+            style={replStatus === 'ok' ? { color: '#46c85a' } : replStatus === 'bad' ? { color: 'var(--blood)' } : undefined}
+          >
+            {replStatus === 'ok'
+              ? t('art.key.ok')
+              : replStatus === 'bad'
+                ? t('art.key.bad')
+                : keys.replicate
+                  ? t('art.key.saved')
+                  : t('art.key.note')}
+          </span>
+        </div>
+
+        <label className="tech-label" style={{ marginTop: 12, display: 'block' }}>
+          {t('admin.art.defProvider')}
+        </label>
+        <div className="adm-form-actions">
+          <button
+            className={`btn ${(keys.provider ?? 'pollinations') === 'pollinations' ? '' : 'ghost'}`}
+            onClick={() => saveKey({ provider: 'pollinations' as GenProvider })}
+          >
+            {t('art.free')}
+          </button>
+          <button
+            className={`btn ${keys.provider === 'openai' ? '' : 'ghost'}`}
+            onClick={() => saveKey({ provider: 'openai' as GenProvider })}
+          >
+            GPT IMAGE
+          </button>
+          <button
+            className={`btn ${keys.provider === 'gemini' ? '' : 'ghost'}`}
+            onClick={() => saveKey({ provider: 'gemini' as GenProvider })}
+          >
+            NANO BANANA
+          </button>
+        </div>
+
+        {/* отдельный ключ Gemini — только для «Опознать по фото» в рилсах */}
+        <label className="tech-label" htmlFor="art-key-gemini" style={{ marginTop: 12, display: 'block' }}>
+          GEMINI (AIza…) ▸ {t('admin.art.geminiHint')}
         </label>
         <input
           id="art-key-gemini"
@@ -77,23 +142,6 @@ export function ArtTab() {
           onChange={(e) => saveKey({ gemini: e.target.value.trim() || undefined })}
           data-testid="art-key-gemini"
         />
-        <label className="tech-label" style={{ marginTop: 10, display: 'block' }}>
-          {t('admin.art.defProvider')}
-        </label>
-        <div className="adm-form-actions">
-          <button
-            className={`btn ${keys.provider === 'openai' ? '' : 'ghost'}`}
-            onClick={() => saveKey({ provider: 'openai' as GenProvider })}
-          >
-            GPT IMAGE
-          </button>
-          <button
-            className={`btn ${(keys.provider ?? 'gemini') === 'gemini' ? '' : 'ghost'}`}
-            onClick={() => saveKey({ provider: 'gemini' as GenProvider })}
-          >
-            NANO BANANA 2
-          </button>
-        </div>
       </div>
 
       <div className="panel rivets">

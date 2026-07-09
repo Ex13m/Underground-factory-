@@ -25,8 +25,9 @@ export function UpdatesTicker() {
     if (!UPDATE_NOTES.length) return;
     if (localStorage.getItem(SEEN_LS) === __APP_VERSION__) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    // не перебиваем интро: анонс стартует с небольшой задержкой
-    const t = setTimeout(() => setActive(true), 6500);
+    // не перебиваем интро и первую прогрузку видео: стартуем позже,
+    // чтобы анимации не толкались за кадры на старте
+    const t = setTimeout(() => setActive(true), 9000);
     return () => clearTimeout(t);
   }, [calm]);
 
@@ -44,8 +45,9 @@ export function UpdatesTicker() {
   const note = UPDATE_NOTES[idx];
 
   return (
-    <div className="updates" onClick={finish} title="Клик — пропустить">
-      <div key={idx} className="updates-line stencil" onAnimationEnd={next}>
+    <div className="updates">
+      {/* клик по самой строке — пропустить; остальной экран мышь не перехватывает */}
+      <div key={idx} className="updates-line stencil" onAnimationEnd={next} onClick={finish} title="Клик — пропустить">
         <span className="glitch auto" data-text={lt(note)}>{lt(note)}</span>
       </div>
     </div>
