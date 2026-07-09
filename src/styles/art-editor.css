@@ -25,12 +25,16 @@ body.art-edit .videobg-fallback[data-uf-media] {
 }
 body.art-edit .uf-hero-content { position: relative; z-index: 2; }
 
+/* бейдж режима: сверху по центру, ничего не перекрывает и не ловит клики */
 .artedit-badge {
   position: fixed;
-  left: 14px;
-  bottom: 14px;
+  top: 74px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-1deg);
   z-index: 8800;
   pointer-events: none;
+  opacity: 0.9;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.4);
 }
 
 .artedit-panel {
