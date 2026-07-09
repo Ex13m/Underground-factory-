@@ -54,7 +54,7 @@ const CAR_SCENES = [
  * что за тачка (марка/модель/годы) или деталь, и собирает промпт
  * со случайной сценой — каждый запуск даёт новую версию.
  */
-function autoPrompt(key: string): string | null {
+function autoPrompt(key: string): string {
   const cm = key.match(/^car(?:-live)?-(.+)$/);
   if (cm) {
     const c = api.listCars().find((x) => x.id === cm[1]);
@@ -67,7 +67,9 @@ function autoPrompt(key: string): string | null {
   if (p) {
     return `studio product photograph: ${p.name.en}, ${p.material.en}, floating in mid-air on a matte black background, dramatic blood-red rim lighting, high contrast premium catalog shot, no car, no text`;
   }
-  return null;
+  // неизвестный объект (hero-ролик, декоративный арт…) — универсальный заход
+  // по имени ключа, чтобы кнопки работали с пустым полем на ЛЮБОМ объекте
+  return `underground tuning factory scene: ${key.replace(/[-_]+/g, ' ')}, night cyber-industrial garage, red and black palette, dramatic light, cinematic photo, film grain, no text`;
 }
 
 /** Другие фото того же объекта: остальные медиа обвеса / фото других тачек. */
@@ -198,9 +200,8 @@ export function ArtEditor() {
 
   async function generate() {
     if (!target || busy) return;
-    // пустое поле — авто-промпт по объекту (тачка/деталь), каждый раз новая сцена
+    // пустое поле — авто-промпт по объекту (тачка/деталь/любой ключ)
     const effPrompt = prompt.trim() || autoPrompt(target.key);
-    if (!effPrompt) return;
     setError('');
     setApplied(false);
 
@@ -293,7 +294,6 @@ export function ArtEditor() {
   function orderHiggsfield() {
     if (!target) return;
     const effPrompt = prompt.trim() || autoPrompt(target.key);
-    if (!effPrompt) return;
     const ticket = {
       key: target.key,
       kind: (target.kind === 'video' ? 'video' : 'image') as 'image' | 'video',
