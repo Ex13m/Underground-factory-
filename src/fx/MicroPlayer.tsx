@@ -20,7 +20,15 @@ export function MicroPlayer() {
   const bRef = useRef<HTMLAudioElement>(null);
   /** какой из двух <audio> сейчас ведущий */
   const activeRef = useRef<0 | 1>(0);
-  const orderRef = useRef<Track[]>(shuffle(PLAYLIST));
+  // случайный порядок, но первым всегда открывает BOOST ▸ II
+  const orderRef = useRef<Track[]>(
+    (() => {
+      const s = shuffle(PLAYLIST);
+      const i = s.findIndex((t) => t.url.endsWith('boost-b.mp3'));
+      if (i > 0) s.unshift(s.splice(i, 1)[0]);
+      return s;
+    })(),
+  );
   const posRef = useRef(0);
   const historyRef = useRef<Track[]>([]);
   const fadingRef = useRef(false);

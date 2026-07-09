@@ -2,4 +2,5 @@ node_modules/
 dist/
 stitch-export/
 stitch_single_file_data_hub*.zip
-music/
+# исходная папка с треками в корне (в git идёт public/media/music)
+/music/
