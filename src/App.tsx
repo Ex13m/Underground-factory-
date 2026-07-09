@@ -17,6 +17,7 @@ import { Admin } from './pages/Admin';
 import { AuthModal } from './components/AuthModal';
 import { ArtEditor } from './fx/ArtEditor';
 import { UpdatesTicker } from './fx/UpdatesTicker';
+import { MicroPlayer } from './fx/MicroPlayer';
 import { CursorFX } from './fx/CursorFX';
 import { BootIntro } from './fx/BootIntro';
 import { Bot } from './bot/Bot';
@@ -68,6 +69,7 @@ function Shell() {
       <AuthModal />
       <ArtEditor />
       <UpdatesTicker />
+      <MicroPlayer />
       <BootIntro />
       <CursorFX />
       <Bot />

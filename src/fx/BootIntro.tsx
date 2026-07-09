@@ -11,12 +11,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { useUI } from '../store/ui';
 import '../styles/boot.css';
 
-// ролик зажигания; когда Higgsfield доступен — заменить на спецролик
-// «машина строго передом, камера наезжает, фары бьют в кадр»
-// по пути /media/intro/ignition.mp4
-const INTRO_VIDEO = '/media/cars/nissan-silvia-s15/live.mp4';
-/** секунда ролика, на которой фары уже горят — резкая вспышка и переход */
-const OUT_AT_SEC = 3.0;
+// спецролик зажигания: машина строго передом, камера наезжает,
+// на середине фары бьют прямо в объектив
+const INTRO_VIDEO = '/media/intro/ignition.mp4';
+/** секунда ролика, на которой фары бьют в кадр — резкая вспышка и переход */
+const OUT_AT_SEC = 3.2;
 const OUT_MS = 1100;
 
 const LINES = [

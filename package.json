@@ -1,7 +1,7 @@
 {
   "name": "underground-factory",
   "private": true,
-  "version": "0.14.0",
+  "version": "0.15.0",
   "type": "module",
   "description": "UNDERGROUND FACTORY — the lightest body kits on the planet. Carbon, composite and ABS tuning e-shop prototype.",
   "scripts": {

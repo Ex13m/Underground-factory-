@@ -283,4 +283,15 @@ export const HERO_VIDEOS = [
   '/media/hero/hero-tandem.mp4',
   '/media/hero/hero-drag.mp4',
   '/media/hero/hero-lada-barrel.mp4',
+  // агрессивная серия: slow-mo прыжки, снос препятствий, стены и фуры
+  '/media/hero/hero-jump-overpass.mp4',
+  '/media/hero/hero-barrels.mp4',
+  '/media/hero/hero-boxes.mp4',
+  '/media/hero/hero-railroad.mp4',
+  '/media/hero/hero-canal-wall.mp4',
+  '/media/hero/hero-water-spray.mp4',
+  '/media/hero/hero-gate.mp4',
+  '/media/hero/hero-tandem-clip.mp4',
+  '/media/hero/hero-dock-jump.mp4',
+  '/media/hero/hero-trucks-180.mp4',
 ];

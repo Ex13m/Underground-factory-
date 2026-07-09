@@ -1,0 +1,59 @@
+/* Микро-плеер: HUD-плашка внизу слева, стиль сайта */
+
+.ufplayer {
+  position: fixed;
+  left: 14px;
+  bottom: 14px;
+  z-index: 7800; /* под ботом и арт-редактором */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  background: rgba(17, 17, 16, 0.92);
+  border: 1px solid var(--surface-var);
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  backdrop-filter: blur(6px);
+}
+.ufplayer.on { border-color: var(--blood); box-shadow: 0 0 14px rgba(224, 27, 34, 0.25); }
+
+.ufplayer-btn {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--paper);
+  padding: 3px 6px;
+  border: 1px solid rgba(236, 234, 229, 0.25);
+  transition: all 0.15s;
+}
+.ufplayer-btn:hover { border-color: var(--blood); color: #fff; background: rgba(224, 27, 34, 0.2); }
+.ufplayer-btn:disabled { opacity: 0.35; }
+
+.ufplayer-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--paper-dim);
+  max-width: 130px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.ufplayer.on .ufplayer-title { color: var(--blood); }
+
+/* мини-эквалайзер */
+.ufplayer-eq { display: flex; align-items: flex-end; gap: 2px; height: 12px; }
+.ufplayer-eq i { width: 2.5px; height: 3px; background: var(--steel); }
+.ufplayer.on .ufplayer-eq i { background: var(--blood); animation: eq-bounce 0.7s ease-in-out infinite; }
+.ufplayer.on .ufplayer-eq i:nth-child(2) { animation-duration: 0.5s; animation-delay: 0.1s; }
+.ufplayer.on .ufplayer-eq i:nth-child(3) { animation-duration: 0.9s; animation-delay: 0.2s; }
+.ufplayer.on .ufplayer-eq i:nth-child(4) { animation-duration: 0.6s; animation-delay: 0.05s; }
+@keyframes eq-bounce { 0%, 100% { height: 3px; } 50% { height: 12px; } }
+body.calm .ufplayer.on .ufplayer-eq i { animation: none; height: 6px; }
+
+/* бейдж арт-редактора уезжает выше, чтобы не толкаться с плеером */
+body.art-edit .artedit-badge { bottom: 58px; }
+
+@media (max-width: 640px) {
+  .ufplayer { left: 8px; bottom: 8px; }
+  .ufplayer-title { max-width: 80px; }
+}

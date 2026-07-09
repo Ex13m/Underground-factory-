@@ -6,7 +6,7 @@ import type { LocalText } from '../lib/types';
  * большой генерации (остаток кредитов Higgsfield — вручную, с датой замера).
  */
 
-export const HF_CREDITS = { value: '≈60', measuredAt: '2026-07-09', plan: 'Ultimate' };
+export const HF_CREDITS = { value: '≈455', measuredAt: '2026-07-09', plan: 'Ultimate' };
 
 export interface InfoSection {
   title: LocalText;
@@ -17,9 +17,8 @@ export const SITE_INFO: InfoSection[] = [
   {
     title: { ru: 'В работе', en: 'In progress' },
     items: [
-      { ru: 'Спецролик интро: машина строго передом, включение света = вспышка-переход (ждёт Higgsfield)', en: 'Intro hero clip: car dead-on, lights-on = flash transition (awaiting Higgsfield)' },
-      { ru: '10 агрессивных hero-эпизодов: slow-mo прыжки с эстакад, снос бочек в дрифте (ждёт Higgsfield)', en: '10 aggressive hero episodes: slow-mo overpass jumps, barrel strikes mid-drift (awaiting Higgsfield)' },
-      { ru: 'Исполнение заявок из серверной очереди /api/queue (в т.ч. LADA)', en: 'Serving tickets from the /api/queue server queue (incl. the LADA one)' },
+      { ru: 'Исполнение заявок из серверной очереди /api/queue («Заказать ▸ Higgsfield»)', en: 'Serving tickets from the /api/queue server queue ("Order ▸ Higgsfield")' },
+      { ru: 'Микро-плеер: доводка по отзывам (кроссфейды, плейлист)', en: 'Micro player: polish per feedback (crossfades, playlist)' },
     ],
   },
   {
