@@ -11,7 +11,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useI18n } from '../../lib/i18n';
-import { useRadio, isOnAir, type MasterPreset, type MasterSettings } from '../../store/radio';
+import { useRadio, isOnAir, DEFAULT_FIRST, type MasterPreset, type MasterSettings } from '../../store/radio';
 import { allTracks, AUDIO_PREFIX, type RadioTrack } from '../../lib/radioTracks';
 import { setOverride, onMediaChanged } from '../../lib/mediaStore';
 import { measureLufs, gainForTarget } from '../../lib/loudness';
@@ -457,7 +457,7 @@ export function RadioTab() {
   };
 
   const onAirCount = tracks.filter((tr) => isOnAir(onAir, tr.id)).length;
-  const firstId = first ?? 'boost-b.mp3';
+  const firstId = first ?? DEFAULT_FIRST;
 
   return (
     <div className="adm-section">

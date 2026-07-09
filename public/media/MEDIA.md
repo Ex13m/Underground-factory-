@@ -68,4 +68,8 @@ oldtown-chase, barrel-dodge, vintage-pack.
 
 - `intro/ignition.mp4` — спецролик интро: машина строго передом,
   фары бьют в объектив (~3,2 с — триггер вспышки в BootIntro).
-- `music/*.mp3` — 13 треков UF RADIO (плейлист: src/data/playlist.ts).
+- `music/*.mp3` — 11 треков UF RADIO (плейлист: src/data/playlist.ts):
+  blacktop, boost, dyno, launch-control, night-shift, nitrous-a/b, oversteer,
+  redline, tunnel, widebody. Источник — WAV владельца (корневая папка music/,
+  в git не входит), конвертация `ffmpeg -c:a libmp3lame -q:a 2`.
+- `reels/*.mp4` — готовые рилсы контент-завода (полка: Админка → Контент).

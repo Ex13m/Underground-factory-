@@ -1,8 +1,8 @@
 /**
  * РАДИО — состояние музыкального цеха (Админка → РАДИО + fx/MicroPlayer).
- * id трека = имя файла ('boost-b.mp3') для сида или имя загруженного файла.
+ * id трека = имя файла ('boost.mp3') для сида или имя загруженного файла.
  * - onAir     — трек в плейлисте радио (отсутствие записи = в эфире);
- * - first     — какой трек открывает эфир (по умолчанию boost-b.mp3);
+ * - first     — какой трек открывает эфир (по умолчанию boost.mp3);
  * - trims     — локальная обрезка {start,end} в секундах (радио её уважает);
  * - trackGain — авто-выравнивание громкости, дБ (псевдо-LUFS, меряет плеер);
  * - master    — мастеринг-цепочка Web Audio (EQ 3 полосы → компрессор → выход).
@@ -42,7 +42,7 @@ export interface TrimRange {
 }
 
 /** с этого трека радио стартует, если админ не выбрал другой */
-export const DEFAULT_FIRST = 'boost-b.mp3';
+export const DEFAULT_FIRST = 'boost.mp3';
 
 /** пресеты мастеринга (без enabled/preset/targetLufs — цель LUFS пресетами не трогаем) */
 export const MASTER_PRESETS: Record<Exclude<MasterPreset, 'manual'>, Omit<MasterSettings, 'enabled' | 'preset' | 'targetLufs'>> = {

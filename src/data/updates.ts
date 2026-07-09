@@ -10,4 +10,5 @@ export const UPDATE_NOTES: LocalText[] = [
   { ru: 'ПРОМОКОД PITSTOP26 ▸ −15% КАЖДОМУ', en: 'PROMO CODE PITSTOP26 ▸ −15% FOR EVERYONE' },
   { ru: 'UF RADIO ▸ АВТОМАСТЕРИНГ: ЭХО, ОБЪЁМ, РОВНЫЙ LUFS', en: 'UF RADIO ▸ AUTO-MASTER: ECHO, WIDTH, EVEN LUFS' },
   { ru: 'ЦЕХ РИЛСОВ ЗАПУЩЕН ▸ ПЕРВЫЙ ВЫПУСК НА ПОЛКЕ', en: 'REEL SHOP IS LIVE ▸ FIRST DROP ON THE SHELF' },
+  { ru: 'UF RADIO ▸ 11 ФИНАЛЬНЫХ ТРЕКОВ БЕЗ НАРЕЗОК', en: 'UF RADIO ▸ 11 FINAL TRACKS, NO ROUGH CUTS' },
 ];
