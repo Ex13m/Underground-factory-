@@ -98,41 +98,40 @@ export function MicroPlayer() {
     rafRef.current = requestAnimationFrame(step);
   };
 
+  /** запуск: ставит первый трек (BOOST ▸ II) и играет; успех — только
+      когда звук реально пошёл (промис play() разрешился) */
   const start = () => {
-    if (startedRef.current) return true;
     const a = aRef.current;
-    if (!a) return false;
-    const first = orderRef.current[0];
-    a.src = first.url;
-    a.volume = master();
-    const p = a.play();
-    startedRef.current = true;
-    setTitle(first.title);
-    setPlaying(true);
-    p?.catch(() => {
-      // браузер заблокировал автозвук — ждём первый жест
-      startedRef.current = false;
-      setPlaying(false);
-      setTitle('UF RADIO');
-    });
-    return true;
+    if (!a || startedRef.current) return;
+    if (!a.src) {
+      const first = orderRef.current[0];
+      a.src = first.url;
+      a.volume = master();
+      setTitle(first.title);
+    }
+    a.play()
+      .then(() => {
+        startedRef.current = true;
+        setPlaying(true);
+      })
+      .catch(() => { /* заблокировано — попробуем на следующем жесте */ });
   };
 
-  // автостарт: сразу + на первом жесте, если сразу не дали
+  // автостарт: пробуем сразу; дальше ДОБИВАЕМСЯ запуска на каждом жесте,
+  // пока звук не пошёл (после ручной паузы юзера больше не навязываемся)
+  const userPausedRef = useRef(false);
   useEffect(() => {
     start();
     const onGesture = () => {
-      if (!startedRef.current) start();
-      if (startedRef.current) {
-        window.removeEventListener('pointerdown', onGesture);
-        window.removeEventListener('keydown', onGesture);
-      }
+      if (!startedRef.current && !userPausedRef.current) start();
     };
-    window.addEventListener('pointerdown', onGesture);
-    window.addEventListener('keydown', onGesture);
+    window.addEventListener('pointerdown', onGesture, true);
+    window.addEventListener('keydown', onGesture, true);
+    window.addEventListener('touchstart', onGesture, true);
     return () => {
-      window.removeEventListener('pointerdown', onGesture);
-      window.removeEventListener('keydown', onGesture);
+      window.removeEventListener('pointerdown', onGesture, true);
+      window.removeEventListener('keydown', onGesture, true);
+      window.removeEventListener('touchstart', onGesture, true);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -158,10 +157,12 @@ export function MicroPlayer() {
       return;
     }
     if (playing) {
+      userPausedRef.current = true; // юзер сам выключил — не навязываемся
       curEl().pause();
       nxtEl().pause();
       setPlaying(false);
     } else {
+      userPausedRef.current = false;
       curEl().play().catch(() => {});
       setPlaying(true);
     }
