@@ -80,7 +80,10 @@ public/media/music + playlist.ts; `stems-audio` — разложить трек 
 `scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280`; титры
 Impact с прыжками размера + красно-синие глитч-вспышки и полосы помех
 (образец — scratchpad reel/filter6.txt прошлых сессий, паттерн в git-истории);
-разделитель в титрах `//` (глиф ▸ в Impact ненадёжен). Если в брифе
+разделитель в титрах `//` (глиф ▸ в Impact ненадёжен). ЗАПРЕТ: кадры 16:9
+внутри вертикальной рамки (letterbox/полосы/лежачая сцена) — брак, клип
+перегенерить; в промптах всегда «tall vertical composition, camera strictly
+upright, no letterboxing, no black bars». Если в брифе
 customCar.photoRef — забрать фото GET /api/track?name=<ref> и генерить клипы
 image-to-video (kling, medias role start_image) от этого фото. Если имя тачки
 пустое или 'CUSTOM' — РАСПОЗНАТЬ машину по фото самостоятельно (марка, модель,
