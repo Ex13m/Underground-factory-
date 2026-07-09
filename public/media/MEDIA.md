@@ -38,17 +38,25 @@ media/
 - **lada-2107** — wing-lada (abs);
   также: splitter-rx7, lip-ae86, mirrors-aero
 
-## Hero-эпизоды (16:9 / 720p / 5 с) — 30 роликов
+## Hero-эпизоды (16:9 / 720p / 5 с) — 61 ролик
 
 Базовые: drift, burnout, race, tandem, drag, garage.
 По тачкам: s15-street, s15-dock, supra-hwy, supra-round, rx7-touge,
 rx7-flames, ae86-hill, ae86-ramp, e36-dock, ek9-rain, r34-tunnel,
 r34-apron, lada-snow, lada-barrel.
 Агрессивная серия: jump-overpass, dock-jump, barrels, boxes, railroad,
-canal-wall, water-spray, gate, tandem-clip, trucks-180.
+canal-wall, water-spray, gate, tandem-clip, trucks-180, ev-drag-crash.
+Легенды (v0.19.0): mustang-burnout, lambo-tunnel, gwagen-port-drift,
+porsche-fog-touge, f40-desert-night, muscle-launch-rain, gtr-kerbs-dawn,
+lemans-classic, mclaren-neon-rain, rally-night-jump.
+Экшн-серия (v0.19.0): police-pursuit, train-crossing, barrier-sparks,
+garage-spiral, canyon-duel, snow-pass, airfield-topspeed, drawbridge-jump,
+rain-dashcam, container-slalom, sandstorm-run, tunnel-weave,
+bridge-crosswind, tire-blowout, cockpit-redline, drag-trio, dunes-trophy,
+oldtown-chase, barrel-dodge, vintage-pack.
 
-В монтаже главной — 23 (см. HERO_VIDEOS в src/data/seed.ts), в Видеосалоне —
-все 30 (src/data/tv.ts). Порядок тасуется при каждой загрузке.
+В монтаже главной — 54 (см. HERO_VIDEOS в src/data/seed.ts), в Видеосалоне —
+61 (src/data/tv.ts). Порядок тасуется при каждой загрузке.
 
 ## Прочее
 

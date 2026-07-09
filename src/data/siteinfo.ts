@@ -6,7 +6,7 @@ import type { LocalText } from '../lib/types';
  * большой генерации (остаток кредитов Higgsfield — вручную, с датой замера).
  */
 
-export const HF_CREDITS = { value: '≈455', measuredAt: '2026-07-09', plan: 'Ultimate' };
+export const HF_CREDITS = { value: '≈222', measuredAt: '2026-07-09', plan: 'Ultimate' };
 
 export interface InfoSection {
   title: LocalText;
@@ -26,7 +26,7 @@ export const SITE_INFO: InfoSection[] = [
     items: [
       { ru: 'Higgsfield Cloud API в серверную функцию (ключи HF_API_KEY/HF_API_SECRET в Netlify)', en: 'Higgsfield Cloud API inside the serverless function (HF_API_KEY/HF_API_SECRET env)' },
       { ru: 'Replicate в /api/generate (ключ REPLICATE_API_TOKEN в Netlify) — автономная качественная генерация', en: 'Replicate in /api/generate (REPLICATE_API_TOKEN env) — autonomous quality generation' },
-      { ru: 'Git LFS / внешний хостинг медиа, если репозиторий (~190 МБ видео) станет мешать', en: 'Git LFS / external media hosting if the ~190 MB of video gets in the way' },
+      { ru: 'Git LFS / внешний хостинг медиа, если репозиторий (~450 МБ видео) станет мешать', en: 'Git LFS / external media hosting if the ~450 MB of video gets in the way' },
       { ru: 'Настоящие Stripe и OAuth вместо заглушек (заменой адаптеров, см. API.md)', en: 'Real Stripe and OAuth instead of stubs (adapter swap, see API.md)' },
     ],
   },

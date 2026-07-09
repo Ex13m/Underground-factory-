@@ -101,6 +101,10 @@ export function Bot() {
   const busyRef = useRef(false);
   const lingeredRef = useRef<Set<string>>(new Set());
   const fallbackRef = useRef(0);
+  /** режим обратной связи: следующий ввод пользователя уходит на /api/feedback */
+  const awaitFeedbackRef = useRef(false);
+  /** последний непонятый текст — для кнопки «Передать вопрос владельцу» */
+  const lastUnansweredRef = useRef('');
   const feedRef = useRef<HTMLDivElement>(null);
   const timersRef = useRef<number[]>([]);
 
@@ -155,9 +159,38 @@ export function Bot() {
     pushBot({ key: 'bot.reply.dnd' });
   };
 
+  // ---- обратная связь ----
+
+  /** POST на /api/feedback + честный ответ бота про итог доставки. */
+  const sendFeedback = async (message: string) => {
+    try {
+      const res = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message,
+          page: window.location.hash,
+          createdAt: Date.now(),
+        }),
+      });
+      if (!res.ok) throw new Error(`http ${res.status}`);
+      pushBot({ key: 'bot.feedback.sent', actions: defaultActions() });
+    } catch {
+      // локальный dev или обрыв сети — не врём, предлагаем позже
+      pushBot({ key: 'bot.feedback.fail', actions: defaultActions() });
+    }
+  };
+
+  /** Включает режим ожидания: следующий ввод уйдёт владельцу. */
+  const askFeedback = () => {
+    awaitFeedbackRef.current = true;
+    pushBot({ key: 'bot.feedback.ask' });
+  };
+
   const defaultActions = (): BotAction[] => [
     { labelKey: 'bot.qa.hits', run: goCatalog },
     { labelKey: 'bot.qa.discount', run: doEscalate },
+    { labelKey: 'bot.qa.feedback', run: askFeedback },
   ];
 
   // ---- триггеры через bus ----
@@ -175,6 +208,7 @@ export function Bot() {
           actions: [
             { labelKey: 'bot.qa.what', run: () => pushBot({ key: 'bot.reply.what' }) },
             { labelKey: 'bot.qa.hits', run: goCatalog },
+            { labelKey: 'bot.qa.feedback', run: askFeedback },
             { labelKey: 'bot.qa.dnd', run: doDnd },
           ],
         });
@@ -288,6 +322,12 @@ export function Bot() {
     if (!text) return;
     setInput('');
     pushUser(text);
+    // режим обратной связи: этот ввод — сообщение владельцу, интенты не трогаем
+    if (awaitFeedbackRef.current) {
+      awaitFeedbackRef.current = false;
+      void sendFeedback(text);
+      return;
+    }
     switch (matchIntent(text)) {
       case 'discount':
         doEscalate();
@@ -305,8 +345,20 @@ export function Bot() {
         goCatalog();
         break;
       default: {
+        // непонятый вопрос: запоминаем и предлагаем передать владельцу
+        lastUnansweredRef.current = text;
         const i = (fallbackRef.current++ % 3) + 1;
-        pushBot({ key: `bot.fallback.${i}`, actions: defaultActions() });
+        pushBot({ key: `bot.fallback.${i}` });
+        pushBot({
+          key: 'bot.fallback.forward',
+          actions: [
+            {
+              labelKey: 'bot.qa.forward',
+              run: () => { void sendFeedback(`unanswered: ${lastUnansweredRef.current}`); },
+            },
+            ...defaultActions(),
+          ],
+        });
       }
     }
   };

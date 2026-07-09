@@ -18,6 +18,8 @@ export default {
     'bot.qa.discount': 'Дай скидку',
     'bot.qa.tocart': 'В корзину',
     'bot.qa.garage': 'Подобрать под неё',
+    'bot.qa.feedback': '✉ Обратная связь',
+    'bot.qa.forward': 'Передать вопрос владельцу',
 
     'bot.reply.what': 'Легенда короткая: подпольный завод. Днём — OEM-запчасти, ночью — обвесы, о которых молчат каталоги. Карбон, композит, АБС — тот же автоклав, что печёт детали для заводских команд. Только без наценки за шильдик.',
     'bot.reply.heat': 'Термостойкость — святое. АБС держит до 90°C, композит — до 140, карбон живёт и при 200+. Над горячим выхлопом и на летнем треке бери карбон — он не поведётся, даже когда асфальт плывёт.',
@@ -44,6 +46,11 @@ export default {
     'bot.fallback.1': 'Помехи на линии, передачу не разобрал. Могу показать хиты или выбить скидку — это я умею без помех.',
     'bot.fallback.2': 'Такому меня завод не учил. Зато я знаю, где хиты, и умею торговаться до скрипа карбона.',
     'bot.fallback.3': 'Шифруешься? Уважаю. Но проще прямым текстом: «хиты» или «скидка».',
+    'bot.fallback.forward': 'А могу передать твой вопрос владельцу завода — он читает эфир лично и ответит без рации.',
+
+    'bot.feedback.ask': 'Канал на владельца открыт. Пиши сообщение одной передачей — если ждёшь ответа, оставь контакт прямо в тексте.',
+    'bot.feedback.sent': 'Передал в цех, спасибо! Владелец читает всё лично — сигнал дойдёт.',
+    'bot.feedback.fail': 'Помехи: до сервера не дотянулся, передача не ушла. Похоже, канал перебит. Напиши чуть позже — я никуда не денусь.',
   },
   en: {
     'bot.unit': 'UNIT: PIT_BOSS // ONLINE',
@@ -63,6 +70,8 @@ export default {
     'bot.qa.discount': 'Gimme a discount',
     'bot.qa.tocart': 'To cart',
     'bot.qa.garage': 'Fit my ride',
+    'bot.qa.feedback': '✉ Feedback',
+    'bot.qa.forward': 'Forward to the owner',
 
     'bot.reply.what': 'The legend is short: an underground factory. OEM parts by day, body kits the catalogs stay silent about by night. Carbon, composite, ABS — the same autoclave that cures parts for factory teams. Just without the badge tax.',
     'bot.reply.heat': 'Heat resistance is sacred. ABS holds up to 90°C, composite up to 140, carbon lives past 200. Over a hot exhaust or on a summer track day, take carbon — it will not warp even when the tarmac melts.',
@@ -89,5 +98,10 @@ export default {
     'bot.fallback.1': 'Static on the line, could not parse that. I can show you the hits or squeeze out a discount — that I do with zero static.',
     'bot.fallback.2': 'The factory never trained me for that. But I know where the hits are and I haggle until the carbon creaks.',
     'bot.fallback.3': 'Talking in code? Respect. But it is easier straight up: "hits" or "discount".',
+    'bot.fallback.forward': 'Or I can forward your question to the factory owner — he reads the airwaves personally and will answer off the radio.',
+
+    'bot.feedback.ask': 'Channel to the owner is open. Send your message in one transmission — if you expect a reply, leave a contact right in the text.',
+    'bot.feedback.sent': 'Passed it to the shop floor, thanks! The owner reads everything personally — the signal will get through.',
+    'bot.feedback.fail': 'Static: could not reach the server, the transmission did not go through. Looks like the line is cut. Try again a bit later — I am not going anywhere.',
   },
 } as { ru: Record<string, string>; en: Record<string, string> };
