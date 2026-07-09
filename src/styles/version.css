@@ -1,0 +1,45 @@
+/* Сторож версии: плашка обновления + анимированный бейдж версии в шапке */
+
+.ufver-toast {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-color: var(--blood);
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.6);
+  animation: ufver-in 0.35s ease-out;
+}
+.ufver-text {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  letter-spacing: 0.05em;
+}
+@keyframes ufver-in {
+  from { transform: translate(-50%, -16px); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+}
+
+/* бейдж версии в шапке: лёгкое живое мерцание, глитч-подёргивание раз в ~6 с */
+.uf-ver-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--steel);
+  border: 1px solid rgba(236, 234, 229, 0.18);
+  padding: 2px 7px;
+  white-space: nowrap;
+  animation: ufver-badge 6s ease-in-out infinite;
+}
+.uf-ver-badge:hover { color: var(--blood); border-color: var(--blood); }
+@keyframes ufver-badge {
+  0%, 92%, 100% { opacity: 0.75; transform: translateX(0); }
+  93% { opacity: 1; transform: translateX(-1.5px); color: var(--blood); }
+  94.5% { transform: translateX(1.5px); }
+  96% { opacity: 0.9; transform: translateX(0); }
+}
+body.calm .uf-ver-badge { animation: none; }

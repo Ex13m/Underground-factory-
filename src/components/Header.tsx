@@ -38,6 +38,10 @@ export function Header() {
         </nav>
 
         <div className="uf-header-actions">
+          {/* версия сверху: живой бейдж с периодическим глитч-подёргиванием */}
+          <span className="uf-ver-badge" title={`build ${__BUILD_DATE__}`}>
+            v{__APP_VERSION__}
+          </span>
           <button
             className="hdr-btn"
             onClick={() => setLang(lang === 'ru' ? 'en' : 'ru')}

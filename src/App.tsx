@@ -19,6 +19,7 @@ import { AuthModal } from './components/AuthModal';
 import { GdprBanner } from './components/GdprBanner';
 import { ArtEditor } from './fx/ArtEditor';
 import { UpdatesTicker } from './fx/UpdatesTicker';
+import { VersionWatch } from './fx/VersionWatch';
 import { MicroPlayer } from './fx/MicroPlayer';
 import { CursorFX } from './fx/CursorFX';
 import { BootIntro } from './fx/BootIntro';
@@ -72,6 +73,7 @@ function Shell() {
       <AuthModal />
       <ArtEditor />
       <UpdatesTicker />
+      <VersionWatch />
       <MicroPlayer />
       <GdprBanner />
       <BootIntro />
