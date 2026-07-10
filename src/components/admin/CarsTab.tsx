@@ -1,6 +1,9 @@
-/** Вкладка ТАЧКИ: справочник фитмента + добавление custom-моделей. */
+/** Вкладка ТАЧКИ: справочник фитмента + добавление custom-моделей.
+ *  Клик по превью или кнопка «Карточка» — большая модалка тачки с видео,
+ *  как в каталоге. */
 
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { useI18n } from '../../lib/i18n';
 import { Img } from '../../lib/media';
@@ -8,6 +11,8 @@ import { getOverride, moveOverride } from '../../lib/mediaStore';
 import { openArtEditor } from '../../fx/ArtEditor';
 import { useCatalog } from '../../store/catalog';
 import { liveClipOf } from '../../data/livemap';
+import { CarModal } from '../shop/CarModal';
+import type { CarModel } from '../../lib/types';
 import { makeId } from './util';
 
 /** маркер пункта «добавить новую марку» в селекте */
@@ -16,6 +21,9 @@ const NEW_MAKE = '__new__';
 export function CarsTab() {
   const { t } = useI18n();
   const cars = useCatalog((s) => s.cars);
+  const navigate = useNavigate();
+  /** тачка, открытая в большой модалке (как в каталоге) */
+  const [viewCar, setViewCar] = useState<CarModel | null>(null);
 
   // марки — селект из всех, что уже есть на сайте (сид + кастомные);
   // «➕ новая марка» открывает поле ввода, после добавления тачки марка
@@ -102,6 +110,17 @@ export function CarsTab() {
 
   return (
     <div className="adm-section">
+      {/* большая карточка тачки — та же модалка, что в каталоге (видео-шапка) */}
+      {viewCar && (
+        <CarModal
+          car={viewCar}
+          onClose={() => setViewCar(null)}
+          onPickInCatalog={(carId) => {
+            setViewCar(null);
+            navigate(`/catalog?car=${encodeURIComponent(carId)}`);
+          }}
+        />
+      )}
       <div className="panel">
         <div className="adm-block-title">
           <h2 className="stencil">{t('admin.cars.title')}</h2>
@@ -125,13 +144,24 @@ export function CarsTab() {
                 return (
                 <tr key={c.id}>
                   <td>
-                    <Img className="adm-thumb" src={c.img || undefined} seed={`car-${c.id}`} alt={`${c.make} ${c.model}`} />
+                    {/* клик по превью — большая карточка тачки с видео */}
+                    <button
+                      type="button"
+                      className="adm-thumb-btn"
+                      onClick={() => setViewCar(c)}
+                      title={t('admin.cars.open')}
+                    >
+                      <Img className="adm-thumb" src={c.img || undefined} seed={`car-${c.id}`} alt={`${c.make} ${c.model}`} />
+                    </button>
                   </td>
                   <td>{c.make}</td>
                   <td>{c.model}</td>
                   <td>{c.years}</td>
                   <td>
                     <div className="adm-actions">
+                      <button className="adm-mini-btn" onClick={() => setViewCar(c)}>
+                        {t('admin.cars.open')}
+                      </button>
                       {hasLive ? (
                         <span className="adm-badge hit" title={c.video ?? ''}>{t('admin.cars.liveHave')}</span>
                       ) : liveQueued[c.id] ? (

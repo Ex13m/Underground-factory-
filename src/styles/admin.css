@@ -462,3 +462,7 @@ label.adm-mini-btn { display: inline-flex; align-items: center; cursor: pointer;
 }
 .adm-tree-art .field { flex: 1 1 260px; min-width: 200px; }
 .adm-tree-art { width: 100%; flex-basis: 100%; }
+
+/* превью тачки в таблице кликабельно (открывает большую карточку) */
+.adm-thumb-btn { padding: 0; border: 0; background: none; cursor: pointer; display: inline-block; }
+.adm-thumb-btn:hover .adm-thumb { outline: 2px solid var(--blood); }
