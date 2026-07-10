@@ -11,5 +11,6 @@ export const UPDATE_NOTES: LocalText[] = [
   { ru: 'У КАЖДОЙ ТАЧКИ ▸ СВОЯ БИБЛИОТЕКА ГЕНЕРАЦИЙ', en: 'EVERY CAR ▸ ITS OWN GENERATION LIBRARY' },
   { ru: 'НЕЙРОСЕТИ ▸ ВЕЗДЕ ПОСЛЕДНИЕ ВЕРСИИ', en: 'AI MODELS ▸ LATEST VERSIONS EVERYWHERE' },
   { ru: '✨ УЛУЧШАТЕЛЬ ПРОМПТОВ ▸ ТВОЙ ЗАМЫСЕЛ — ЗАКОН', en: '✨ PROMPT BOOSTER ▸ YOUR IDEA IS THE LAW' },
+  { ru: 'ЗАСТАВКИ ГЕНЕРЯТСЯ САМИ ▸ КНОПКА МЕРЦАЕТ — ЦЕХ РАБОТАЕТ', en: 'INTRO CLIPS SELF-GENERATE ▸ BLINKING BUTTON = SHOP AT WORK' },
   { ru: 'КОД FIGABOSS2026 ▸ −15% КАЖДОМУ', en: 'CODE FIGABOSS2026 ▸ −15% FOR EVERYONE' },
 ];

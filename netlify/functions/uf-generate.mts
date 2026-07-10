@@ -61,12 +61,50 @@ const CAR_ANGLES = [
   'from knee height behind the rear wheel, kit in the foreground',
 ];
 
+/** приёмы фотореализма для агента-арт-директора: живые камеры и свет вместо
+    «AI-глянца». Вплетается в carPrompt и enhance. */
+const REALISM_TOOLKIT =
+  `REALISM TOOLKIT (use it, don't quote it): name a real camera and lens with aperture ` +
+  `(e.g. "shot on Canon EOS R5, 35mm f/1.4" or "Hasselblad medium format, 80mm"), pick ONE light situation ` +
+  `(golden hour sun, overcast soft light, mixed sodium/neon practicals at night) and stick to it; ` +
+  `add believable imperfections: subtle motion in background people, dust or dirt on tires and sills, ` +
+  `uneven asphalt, real-world clutter at the edges; candid documentary framing beats staged symmetry; ` +
+  `natural depth of field with honest bokeh; skin of the scene = fine film grain, slight halation; ` +
+  `FORBID: CGI sheen, video-game render, over-smooth paint, HDR halos, oversaturation, floating shadows.`;
+
 export default async (req: Request) => {
   const token = req.headers.get('x-replicate-key')?.trim() || process.env.REPLICATE_API_TOKEN;
 
-  // проверка ключа для кнопки «ТЕСТ»
+  // GET: проверка ключа (?ping=1) и статус/выдача асинхронной генерации (?job=)
   if (req.method === 'GET') {
-    if (!new URL(req.url).searchParams.get('ping')) return new Response('POST or GET ?ping=1', { status: 405 });
+    const q = new URL(req.url).searchParams;
+    const jobId = q.get('job');
+    if (jobId) {
+      // асинхронный конвейер: долгие модели (gpt-image-2 high, видео) не влезают
+      // в таймаут функции — клиент поллит статус и забирает байты отдельно
+      if (!token) return Response.json({ error: 'NO_SERVER_KEY' }, { status: 501 });
+      const pr = await fetch(`https://api.replicate.com/v1/predictions/${jobId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const pd = await pr.json().catch(() => ({}));
+      const out: string | undefined = Array.isArray(pd?.output) ? pd.output[0] : pd?.output;
+      if (q.get('fetch') && pd?.status === 'succeeded' && out) {
+        const f = await fetch(out);
+        if (!f.ok || !f.body) return Response.json({ error: `result fetch ${f.status}` }, { status: 502 });
+        return new Response(f.body, {
+          headers: {
+            'Content-Type': f.headers.get('content-type') ?? 'application/octet-stream',
+            'Cache-Control': 'no-store',
+          },
+        });
+      }
+      return Response.json({
+        status: pd?.status ?? 'unknown',
+        error: pd?.error ? String(pd.error) : undefined,
+        url: typeof out === 'string' ? out : undefined,
+      });
+    }
+    if (!q.get('ping')) return new Response('POST or GET ?ping=1 / ?job=', { status: 405 });
     if (!token) return Response.json({ ok: false, error: 'NO_KEY' }, { status: 501 });
     const acc = await fetch('https://api.replicate.com/v1/account', {
       headers: { Authorization: `Bearer ${token}` },
@@ -97,11 +135,44 @@ export default async (req: Request) => {
         mode 'image' (по умолчанию) — фото-промпт по-английски;
         mode 'scenario' — сценарий рилса, язык пользователя сохраняется */
     enhance?: { prompt: string; car?: string; style?: boolean; mode?: 'image' | 'scenario' };
+    /** асинхронный режим картинок: вернуть {job} сразу, клиент поллит ?job= */
+    async?: boolean | number;
+    /** авто-заставка: image-to-video от главного фото (асинхронно, вернёт {job}) */
+    video?: { image: string; prompt?: string };
   };
   try {
     body = await req.json();
   } catch {
     return Response.json({ error: 'bad json' }, { status: 400 });
+  }
+
+  // ---- авто-заставка: image-to-video от главного фото (асинхронно) ----
+  if (body.video?.image?.startsWith('data:image/')) {
+    const vprompt =
+      (body.video.prompt ?? '').slice(0, 2000) ||
+      'The exact same car from the photo, body and paint unchanged: standing in a dark night tuning workshop, ' +
+      'headlights flick on with a warm flare, thin smoke drifts through blood-red rim light, ' +
+      'slow cinematic camera orbit around the car, honest reflections slide across the paint, ' +
+      'subtle engine idle vibration, moody underground atmosphere, no text';
+    const vCands: Array<{ m: string; input: Record<string, unknown> }> = [
+      { m: 'kwaivgi/kling-v3-video', input: { prompt: vprompt, start_image: body.video.image, duration: 5, mode: 'standard', aspect_ratio: '16:9' } },
+      { m: 'lightricks/ltx-2-fast', input: { prompt: vprompt, image: body.video.image, duration: 6 } },
+    ];
+    let lastErr: unknown = null;
+    let lastStatus = 0;
+    for (const c of vCands) {
+      const vr = await fetch(`https://api.replicate.com/v1/models/${c.m}/predictions`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input: c.input }),
+      });
+      const vd = await vr.json().catch(() => ({}));
+      if ((vr.status === 201 || vr.ok) && vd?.id) return Response.json({ job: vd.id, model: c.m });
+      lastErr = vd?.detail ?? vd?.error;
+      lastStatus = vr.status;
+      if (vr.status !== 422 && vr.status !== 404) break;
+    }
+    return Response.json({ error: lastErr ?? `replicate ${lastStatus}` }, { status: 502 });
   }
 
   // ---- улучшатель кастомных промптов: сырой промпт → сильный детальный ----
@@ -126,7 +197,7 @@ export default async (req: Request) => {
           (en.car
             ? `2. The subject is this exact car: "${en.car}" — identify the exact generation and weave its precise body details in (headlights, grille, proportions, wheels) so any model draws the same car.\n`
             : '') +
-          `3. Always: ultra realistic professional photography, shot on a pro camera, true-to-life materials and reflections, no CGI look, no text on the image.\n` +
+          `3. Always: ultra realistic professional photography, true-to-life materials and reflections, no text on the image. ${REALISM_TOOLKIT}\n` +
           (en.style
             ? `4. Subtle color grade only: deep blacks, slightly desaturated dirty-white highlights, an occasional blood-red (#e01b22) accent, fine film grain.\n`
             : '') +
@@ -175,7 +246,7 @@ export default async (req: Request) => {
       `4. CAMERA ANGLE MUST BE: "${CAR_ANGLES[Math.floor(Math.random() * CAR_ANGLES.length)]}" — ` +
       `never the default three-quarter isometric view, and do NOT copy the reference photo's angle ` +
       `(unless the user explicitly asked for a specific angle — then the user wins).\n` +
-      `5. Always: ultra realistic professional photography, shot on a pro camera, true-to-life paint and reflections, no CGI look, no text.\n` +
+      `5. Always: ultra realistic professional photography, true-to-life paint and reflections, no text. ${REALISM_TOOLKIT}\n` +
       (cp.style
         ? `6. Add a subtle color grade only: deep blacks, slightly desaturated dirty-white highlights, an occasional blood-red (#e01b22) accent. Fine film grain.\n`
         : '') +
@@ -262,7 +333,9 @@ export default async (req: Request) => {
     candidates.push({ prompt, aspect_ratio: aspect, output_format: 'jpg', output_quality: 85 });
   }
 
-  // Prefer: wait — Replicate держит соединение до готовности
+  // async-режим: создаём prediction и сразу отдаём {job} — клиент поллит
+  // (долгие модели вроде gpt-image-2 high не влезают в таймаут функции);
+  // sync-режим (Prefer: wait) остаётся для быстрых моделей и совместимости
   let data: any = null;
   let status = 0;
   let url: string | undefined;
@@ -272,19 +345,24 @@ export default async (req: Request) => {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
-        Prefer: 'wait',
+        ...(body.async ? {} : { Prefer: 'wait' }),
       },
       body: JSON.stringify({ input }),
     });
     data = await r.json().catch(() => ({}));
     status = r.status;
+    if (body.async) {
+      if ((r.status === 201 || r.ok) && data?.id) return Response.json({ job: data.id });
+      if (r.status !== 422) break;
+      continue;
+    }
     url = Array.isArray(data?.output) ? data.output[0] : data?.output;
     if (r.ok && url) break;
     // 422 = модель не приняла форму input — пробуем следующий вариант
     if (r.status !== 422) break;
     url = undefined;
   }
-  if (!url) {
+  if (body.async || !url) {
     return Response.json(
       { error: data?.detail ?? data?.error ?? `replicate ${status}` },
       { status: 502 },

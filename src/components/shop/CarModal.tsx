@@ -12,6 +12,7 @@ import { useI18n } from '../../lib/i18n';
 import { useCatalog } from '../../store/catalog';
 import { useCart } from '../../store/cart';
 import { Img, VideoBg } from '../../lib/media';
+import { getOverride } from '../../lib/mediaStore';
 import { liveClipOf } from '../../data/livemap';
 import { useCarGallery } from '../../store/cargallery';
 import type { CarModel, MaterialGrade } from '../../lib/types';
@@ -73,16 +74,23 @@ export function CarModal({
   const galleryAll = useCarGallery((s) => s.photos[car.id] ?? []);
   const live = liveClipOf(car.id, car.video);
   const slides = useMemo(() => {
-    const list: Array<{ kind: 'video' | 'image'; url: string }> = [];
-    if (live) list.push({ kind: 'video', url: live });
-    if (car.img) list.push({ kind: 'image', url: car.img });
-    galleryAll.forEach((p) => {
-      if (p.on && !list.some((s) => s.url === p.url)) list.push({ kind: 'image', url: p.url });
+    // seed у КАЖДОГО фото-слайда свой: Img предпочитает оверрайд по seed,
+    // и с общим seed все слайды показывали одно применённое фото
+    const list: Array<{ kind: 'video' | 'image'; url: string; seed: string }> = [];
+    if (live) list.push({ kind: 'video', url: live, seed: `car-live-${car.id}` });
+    // главный слайд: применённый оверрайд (если есть) — чтобы лайтбокс
+    // показывал то же, что и шапка, а не старое фото из сида
+    const mainUrl = getOverride(`car-${car.id}`)?.url ?? car.img;
+    if (mainUrl) list.push({ kind: 'image', url: mainUrl, seed: `car-${car.id}` });
+    galleryAll.forEach((p, i) => {
+      if (p.on && !list.some((s) => s.url === p.url)) {
+        list.push({ kind: 'image', url: p.url, seed: `car-${car.id}-g${i}` });
+      }
     });
     // совсем нет медиа — одинокий слайд с арт-заглушкой по seed
-    if (!list.length) list.push({ kind: 'image', url: '' });
+    if (!list.length) list.push({ kind: 'image', url: '', seed: `car-${car.id}` });
     return list;
-  }, [live, car.img, galleryAll]);
+  }, [live, car.img, galleryAll, car.id]);
   const [slide, setSlide] = useState(0); // дефолт — видео
   useEffect(() => setSlide(0), [car.id]);
   const cur = slides[Math.min(slide, slides.length - 1)] ?? slides[0];
@@ -129,7 +137,7 @@ export function CarModal({
               onClick={() => cur && setZoom(Math.max(0, imgSlides.indexOf(cur)))}
               aria-label="zoom"
             >
-              <Img src={cur?.url || car.img} seed={`car-${car.id}`} alt={`${car.make} ${car.model}`} />
+              <Img src={cur?.url || car.img} seed={cur?.seed ?? `car-${car.id}`} alt={`${car.make} ${car.model}`} />
             </button>
           )}
           {/* висящие стрелки листания — только когда есть что листать */}

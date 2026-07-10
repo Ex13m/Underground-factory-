@@ -7,7 +7,8 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { useI18n } from '../../lib/i18n';
 import { Img } from '../../lib/media';
-import { getOverride, moveOverride } from '../../lib/mediaStore';
+import { readGenKeys } from '../../lib/imagegen';
+import { getOverride, moveOverride, setOverride } from '../../lib/mediaStore';
 import { openArtEditor } from '../../fx/ArtEditor';
 import { useCatalog } from '../../store/catalog';
 import { liveClipOf } from '../../data/livemap';
@@ -42,6 +43,88 @@ export function CarsTab() {
 
   /** заявки на видео-заставки: реальное состояние очереди сервера + свежие отправки */
   const [liveQueued, setLiveQueued] = useState<Record<string, boolean>>({});
+  /** авто-генерация заставки идёт прямо сейчас (кнопка мерцает) */
+  const [liveBusy, setLiveBusy] = useState<Record<string, boolean>>({});
+  const [liveErr, setLiveErr] = useState<Record<string, string>>({});
+
+  /** фото → компактный dataURL (jpeg ≤1280) для image-to-video */
+  const shrinkPhoto = async (src: string): Promise<string> => {
+    const blob = await fetch(src).then((r) => (r.ok ? r.blob() : Promise.reject(new Error('фото недоступно'))));
+    const url = URL.createObjectURL(blob);
+    try {
+      const img = await new Promise<HTMLImageElement>((res, rej) => {
+        const i = new Image();
+        i.onload = () => res(i);
+        i.onerror = rej;
+        i.src = url;
+      });
+      const k = Math.min(1, 1280 / Math.max(img.width, img.height));
+      const cv = document.createElement('canvas');
+      cv.width = Math.round(img.width * k);
+      cv.height = Math.round(img.height * k);
+      cv.getContext('2d')!.drawImage(img, 0, 0, cv.width, cv.height);
+      return cv.toDataURL('image/jpeg', 0.85);
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  };
+
+  /** АВТО-перегенерация заставки через Replicate: кнопка мерцает до готовности,
+      результат сразу оживает в карточке (видео-оверрайд этого браузера).
+      Нет ключа — откат на старую заявку в очередь (исполнит Claude). */
+  const regenLive = async (c: CarModel) => {
+    const carId = c.id;
+    if (liveBusy[carId]) return;
+    const rKey = readGenKeys().replicate?.trim();
+    const keyHeader: Record<string, string> = rKey ? { 'x-replicate-key': rKey } : {};
+    setLiveBusy((s) => ({ ...s, [carId]: true }));
+    setLiveErr((s) => ({ ...s, [carId]: '' }));
+    try {
+      const src = getOverride(`car-${carId}`)?.url ?? (c.img || undefined);
+      if (!src) throw new Error('у карточки нет фото');
+      const image = await shrinkPhoto(src);
+      const start = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...keyHeader },
+        body: JSON.stringify({ video: { image } }),
+      });
+      const sd = await start.json().catch(() => ({} as { job?: string; error?: string }));
+      if (!start.ok || !sd?.job) throw new Error(String(sd?.error ?? `HTTP ${start.status}`));
+      // поллинг до готовности (видео ~1-5 минут)
+      let resultUrl = '';
+      for (let i = 0; i < 80; i++) {
+        await new Promise((r) => setTimeout(r, 6000));
+        const st = await fetch(`/api/generate?job=${sd.job}`, { headers: keyHeader });
+        const sj = await st.json().catch(() => ({} as { status?: string; error?: string; url?: string }));
+        if (sj?.status === 'succeeded') { resultUrl = sj?.url ?? ''; break; }
+        if (sj?.status === 'failed' || sj?.status === 'canceled') throw new Error(String(sj?.error ?? 'генерация не удалась'));
+      }
+      if (!resultUrl) throw new Error('таймаут генерации');
+      const f = await fetch(`/api/generate?job=${sd.job}&fetch=1`, { headers: keyHeader });
+      if (!f.ok) throw new Error(`result ${f.status}`);
+      const video = await f.blob();
+      await setOverride(`car-live-${carId}`, 'video', video, { prompt: 'заставка ▸ авто Replicate' });
+      // заявка Claude: закоммитить ГОТОВЫЙ ролик в репозиторий для всех посетителей
+      fetch('/api/queue', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          key: `car-live-${carId}`,
+          kind: 'video',
+          prompt: `ГОТОВАЯ заставка (сгенерирована Replicate из браузера, у админа уже играет): скачать ${resultUrl} → пережать → /media/cars/${carId}/live.mp4 + livemap`,
+          width: 1280,
+          height: 720,
+          createdAt: Date.now(),
+        }),
+      }).catch(() => {});
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setLiveErr((s) => ({ ...s, [carId]: msg }));
+      // без ключа автогенерация невозможна — падаем на старую очередь
+      if (msg.includes('NO_SERVER_KEY')) orderLive(carId, `${c.make} ${c.model}`, true);
+    }
+    setLiveBusy((s) => ({ ...s, [carId]: false }));
+  };
   useEffect(() => {
     fetch('/api/queue')
       .then((r) => (r.ok ? r.json() : []))
@@ -195,22 +278,24 @@ export function CarsTab() {
                       {hasLive && (
                         <span className="adm-badge hit" title={c.video ?? ''}>{t('admin.cars.liveHave')}</span>
                       )}
-                      {liveQueued[c.id] ? (
+                      {liveBusy[c.id] ? (
+                        // авто-генерация идёт: кнопка красиво мерцает до готовности
+                        <button className="adm-mini-btn gen-blink" disabled>
+                          {t('admin.cars.liveBusy')}
+                        </button>
+                      ) : liveQueued[c.id] ? (
                         <span className="adm-badge" style={{ color: 'var(--hazard, #e0a51b)', borderColor: 'var(--hazard, #e0a51b)' }}>
                           {t('admin.cars.liveQueued')}
                         </span>
-                      ) : hasLive ? (
-                        // перегенерация: заявка заново, референс — главное фото карточки
+                      ) : (
+                        // авто-генерация через Replicate от главного фото карточки
                         <button
                           className="adm-mini-btn"
-                          title={t('admin.cars.liveRedoHint')}
-                          onClick={() => orderLive(c.id, `${c.make} ${c.model}`, true)}
+                          title={liveErr[c.id] || t('admin.cars.liveRedoHint')}
+                          style={liveErr[c.id] ? { borderColor: 'var(--blood)', color: 'var(--blood)' } : undefined}
+                          onClick={() => void regenLive(c)}
                         >
-                          {t('admin.cars.liveRedo')}
-                        </button>
-                      ) : (
-                        <button className="adm-mini-btn" onClick={() => orderLive(c.id, `${c.make} ${c.model}`)}>
-                          {t('admin.cars.live')}
+                          {hasLive ? t('admin.cars.liveRedo') : t('admin.cars.live')}
                         </button>
                       )}
                       <button

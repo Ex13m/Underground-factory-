@@ -27,7 +27,6 @@ interface CarGalleryState {
   addPhoto: (carId: string, url: string, patch?: Partial<Omit<GalleryPhoto, 'url'>>) => void;
   /** пометки: в альбом (on) / референс (ref) */
   setPhoto: (carId: string, index: number, patch: Partial<Omit<GalleryPhoto, 'url'>>) => void;
-  togglePhoto: (carId: string, index: number, on: boolean) => void;
   removePhoto: (carId: string, index: number) => void;
 }
 
@@ -55,13 +54,6 @@ export const useCarGallery = create<CarGalleryState>()(
           photos: {
             ...s.photos,
             [carId]: (s.photos[carId] ?? []).map((p, i) => (i === index ? { ...p, ...patch } : p)),
-          },
-        })),
-      togglePhoto: (carId, index, on) =>
-        set((s) => ({
-          photos: {
-            ...s.photos,
-            [carId]: (s.photos[carId] ?? []).map((p, i) => (i === index ? { ...p, on } : p)),
           },
         })),
       removePhoto: (carId, index) =>

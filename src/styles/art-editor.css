@@ -170,6 +170,17 @@ body.art-edit .uf-hero-content { position: relative; z-index: 2; }
   border: 1px solid rgba(236, 234, 229, 0.25);
 }
 
+/* кнопка «в работе»: красивое мерцание до завершения генерации */
+.gen-blink {
+  animation: uf-genblink 0.8s ease-in-out infinite alternate;
+  border-color: var(--blood) !important;
+}
+@keyframes uf-genblink {
+  from { box-shadow: 0 0 4px rgba(224, 27, 34, 0.35); opacity: 1; }
+  to { box-shadow: 0 0 16px 4px rgba(224, 27, 34, 0.75); opacity: 0.7; }
+}
+body.calm .gen-blink { animation: none; box-shadow: 0 0 8px rgba(224, 27, 34, 0.5); }
+
 /* улучшатель промптов: иконка ✨ в углу любого поля промпта */
 .prompt-boost-wrap { position: relative; }
 .prompt-boost-wrap .field { width: 100%; box-sizing: border-box; }

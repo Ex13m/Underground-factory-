@@ -293,30 +293,42 @@ export function ArtEditor() {
     writeGenKeys({ provider: p });
   }
 
-  /** одна генерация конкретной моделью: все провайдеры ходят через нашу
-      функцию /api/generate (Replicate), ключ — из поля на сайте (заголовком)
-      или из Netlify env. Ошибка — throw с текстом. */
+  /** одна генерация конкретной моделью — АСИНХРОННО: создаём job на сервере
+      и поллим статус (долгие модели вроде gpt-image-2 high не влезали в
+      таймаут функции — от этого «глючил» GPT). Ошибка — throw с текстом. */
   async function genOne(p: GenProvider, fp: string, references: string[]): Promise<{ blob: Blob | null; url: string }> {
     const tgt = target!;
     const rKey = readGenKeys().replicate?.trim();
+    const keyHeader: Record<string, string> = rKey ? { 'x-replicate-key': rKey } : {};
     const model = PROVIDER_MODELS.find((m) => m.id === p)?.model ?? 'nano';
-    const r = await fetch('/api/generate', {
+    const start = await fetch('/api/generate', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(rKey ? { 'x-replicate-key': rKey } : {}),
-      },
+      headers: { 'Content-Type': 'application/json', ...keyHeader },
       body: JSON.stringify({
-        prompt: fp, width: tgt.width, height: tgt.height, model,
+        prompt: fp, width: tgt.width, height: tgt.height, model, async: 1,
         ...(references.length ? { references } : {}),
       }),
     });
-    if (r.ok && (r.headers.get('content-type') ?? '').startsWith('image/')) {
-      const blob = await r.blob();
-      return { blob, url: URL.createObjectURL(blob) };
+    const sd = await start.json().catch(() => ({} as { job?: string; error?: string }));
+    if (!start.ok || !sd?.job) {
+      throw new Error(sd?.error === 'NO_SERVER_KEY' ? t('art.err.norepl') : String(sd?.error ?? `HTTP ${start.status}`));
     }
-    const data = await r.json().catch(() => ({} as { error?: string }));
-    throw new Error(data?.error === 'NO_SERVER_KEY' ? t('art.err.norepl') : String(data?.error ?? `HTTP ${r.status}`));
+    // поллинг до готовности (до ~4 минут)
+    for (let i = 0; i < 80; i++) {
+      await new Promise((r) => setTimeout(r, 3000));
+      const st = await fetch(`/api/generate?job=${sd.job}`, { headers: keyHeader });
+      const sj = await st.json().catch(() => ({} as { status?: string; error?: string }));
+      if (sj?.status === 'succeeded') {
+        const f = await fetch(`/api/generate?job=${sd.job}&fetch=1`, { headers: keyHeader });
+        if (!f.ok) throw new Error(`result ${f.status}`);
+        const blob = await f.blob();
+        return { blob, url: URL.createObjectURL(blob) };
+      }
+      if (sj?.status === 'failed' || sj?.status === 'canceled') {
+        throw new Error(String(sj?.error ?? 'генерация не удалась'));
+      }
+    }
+    throw new Error('таймаут генерации');
   }
 
   /** арт-агент промптов: для тачки строит детальный промпт на сервере
@@ -344,23 +356,31 @@ export function ArtEditor() {
     return finalPrompt(userPrompt || autoPrompt(tgt.key), useStyle);
   }
 
-  async function generate() {
+  // какая кнопка сейчас «в работе» (мерцает): id модели или 'all'
+  const [running, setRunning] = useState<GenProvider | 'all' | null>(null);
+
+  /** клик по кнопке нейросети = запуск генерации этой моделью
+      (отдельной кнопки «Генерировать» больше нет — заказ владельца) */
+  async function runModel(p: GenProvider) {
     if (!target || busy) return;
+    pickProvider(p);
     setError('');
     setApplied(false);
     setBusy(true);
+    setRunning(p);
     try {
       // тачка → детальный промпт от арт-агента; референсы — фото ЭТОЙ тачки
       const fp = await buildPrompt();
       const references = await collectRefs();
-      const res = await genOne(provider, fp, references);
+      const res = await genOne(p, fp, references);
       clearPreview();
       setPreview(res);
       // результат — в копилку окна результатов (одобрение галочкой → склад)
-      addResult(PROVIDER_MODELS.find((m) => m.id === provider)?.label ?? provider, res);
+      addResult(PROVIDER_MODELS.find((m) => m.id === p)?.label ?? p, res);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }
+    setRunning(null);
     setBusy(false);
   }
 
@@ -409,6 +429,7 @@ export function ArtEditor() {
     setError('');
     setApplied(false);
     setBusy(true);
+    setRunning('all');
     // один детальный промпт (агент) и одни референсы — на все модели сразу
     const fp = await buildPrompt();
     const references = await collectRefs();
@@ -427,6 +448,7 @@ export function ArtEditor() {
       }),
     );
     if (errs.length) setError(errs.join(' · '));
+    setRunning(null);
     setBusy(false);
   }
 
@@ -438,8 +460,9 @@ export function ArtEditor() {
       // URL-режим: сохраняем саму ссылку — легко, автономно, переживает перезагрузку
       setUrlOverride(target.key, preview.url, prompt.trim());
     }
-    // применённое фото тачки — одобрено: остаётся на складе с галочкой «в альбоме»
-    await saveToLib(preview, { on: true });
+    // применённое фото остаётся на складе БЕЗ галочки «в альбоме»: главным
+    // слайдом карточки оно и так показывается через оверрайд — иначе дубль
+    await saveToLib(preview, {});
     clearPreview();
     setApplied(true);
   }
@@ -517,8 +540,8 @@ export function ArtEditor() {
   async function uploadImage(file: File) {
     if (!target) return;
     await setOverride(target.key, 'image', file, { prompt: file.name });
-    // загрузка тачке — тоже на склад, сразу одобренной
-    await saveToLib({ blob: file, url: '' }, { on: true });
+    // загрузка тачке — тоже на склад (без дубля в альбом: главный слайд покажет оверрайд)
+    await saveToLib({ blob: file, url: '' }, {});
     setApplied(true);
   }
 
@@ -613,22 +636,24 @@ export function ArtEditor() {
           </div>
 
           <div className="artedit-row artedit-provider">
-            {/* все модели — через Replicate (один ключ r8_); БЕСПЛАТНО — flux-schnell */}
+            {/* клик по модели = генерация ею; кнопка мерцает до завершения */}
             {PROVIDER_MODELS.map((m) => (
               <button
                 key={m.id}
-                className={`btn sm ${provider === m.id ? '' : 'ghost'}`}
-                onClick={() => pickProvider(m.id)}
-                title="Replicate"
+                className={`btn sm ${provider === m.id ? '' : 'ghost'}${running === m.id ? ' gen-blink' : ''}`}
+                onClick={() => void runModel(m.id)}
+                disabled={busy && running !== m.id}
+                title={t('art.run.hint')}
+                data-testid={`artedit-run-${m.id}`}
               >
                 {m.label}
               </button>
             ))}
-            {/* один промпт — все шесть моделей параллельно */}
+            {/* один промпт — все модели параллельно */}
             <button
-              className="btn sm dark"
+              className={`btn sm dark${running === 'all' ? ' gen-blink' : ''}`}
               onClick={generateAll}
-              disabled={busy}
+              disabled={busy && running !== 'all'}
               title={t('art.all.hint')}
               data-testid="artedit-all"
             >
@@ -785,14 +810,6 @@ export function ArtEditor() {
           )}
 
           <div className="artedit-row">
-            <button
-              className="btn"
-              onClick={generate}
-              disabled={busy || (!prompt.trim() && !autoPrompt(target.key))}
-              data-testid="artedit-generate"
-            >
-              {busy ? t('art.busy') : preview ? t('art.more') : t('art.generate')}
-            </button>
             {preview && (
               <button className="btn primary" onClick={apply} data-testid="artedit-apply">
                 {t('art.apply')}
