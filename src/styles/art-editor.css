@@ -170,6 +170,26 @@ body.art-edit .uf-hero-content { position: relative; z-index: 2; }
   border: 1px solid rgba(236, 234, 229, 0.25);
 }
 
+/* улучшатель промптов: иконка ✨ в углу любого поля промпта */
+.prompt-boost-wrap { position: relative; }
+.prompt-boost-wrap .field { width: 100%; box-sizing: border-box; }
+.prompt-boost {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  z-index: 1;
+  border: 1px solid rgba(236, 234, 229, 0.3);
+  background: rgba(10, 10, 9, 0.8);
+  font-size: 13px;
+  line-height: 1;
+  padding: 4px 6px;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.prompt-boost:hover:not(:disabled) { border-color: var(--blood); transform: scale(1.12); }
+.prompt-boost:disabled { opacity: 0.4; cursor: default; }
+.prompt-boost.err { border-color: var(--blood); }
+
 /* поле API-ключа провайдера */
 .artedit-keyrow { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
 .artedit-keyrow .field { flex: 1; min-width: 0; font-size: 12px; }

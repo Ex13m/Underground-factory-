@@ -10,7 +10,8 @@
  */
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import { idbKV } from '../lib/idbkv';
 
 export interface GalleryPhoto {
   url: string;
@@ -71,6 +72,25 @@ export const useCarGallery = create<CarGalleryState>()(
           },
         })),
     }),
-    { name: 'uf:cargallery' },
+    {
+      name: 'uf:cargallery',
+      // dataURL-фото тяжёлые: localStorage (≈5МБ) выбивало квоту, и склад
+      // «не пополнялся» после перезагрузки — храним в IndexedDB
+      storage: createJSONStorage(() => idbKV),
+      onRehydrateStorage: () => (state) => {
+        // одноразовая миграция старого склада из localStorage
+        try {
+          const old = localStorage.getItem('uf:cargallery');
+          if (old && state) {
+            const parsed = JSON.parse(old) as { state?: { photos?: Record<string, GalleryPhoto[]> } };
+            const photos = parsed?.state?.photos;
+            if (photos && Object.keys(photos).length) {
+              useCarGallery.setState((s) => ({ photos: { ...photos, ...s.photos } }));
+            }
+            localStorage.removeItem('uf:cargallery');
+          }
+        } catch { /* мигрировать нечего */ }
+      },
+    },
   ),
 );

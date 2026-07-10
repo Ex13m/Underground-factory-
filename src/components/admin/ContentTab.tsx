@@ -16,6 +16,7 @@ import { readGenKeys } from '../../lib/imagegen';
 import { allTracks } from '../../lib/radioTracks';
 import { REELS } from '../../data/reels';
 import { useReelFlags, reelFlags } from '../../store/reelflags';
+import { PromptBoost } from '../../fx/PromptBoost';
 import '../../styles/contentadmin.css';
 
 
@@ -460,13 +461,17 @@ export function ContentTab() {
             {scenario === 'custom' && (
               <div className="cnt-row">
                 <span className="cnt-label" />
-                <textarea
-                  className="field cnt-textarea"
-                  rows={3}
-                  value={customPrompt}
-                  placeholder={t('content.customPrompt.ph')}
-                  onChange={(e) => setCustomPrompt(e.target.value)}
-                />
+                <div className="prompt-boost-wrap" style={{ flex: 1 }}>
+                  <textarea
+                    className="field cnt-textarea"
+                    rows={3}
+                    value={customPrompt}
+                    placeholder={t('content.customPrompt.ph')}
+                    onChange={(e) => setCustomPrompt(e.target.value)}
+                  />
+                  {/* улучшатель сценария: обогащает бриф, замысел — закон */}
+                  <PromptBoost value={customPrompt} onChange={setCustomPrompt} mode="scenario" />
+                </div>
               </div>
             )}
 
@@ -492,13 +497,16 @@ export function ContentTab() {
             {textMode === 'custom' && (
               <div className="cnt-row">
                 <span className="cnt-label" />
-                <textarea
-                  className="field cnt-textarea"
-                  rows={2}
-                  value={customText}
-                  placeholder={t('content.customText.ph')}
-                  onChange={(e) => setCustomText(e.target.value)}
-                />
+                <div className="prompt-boost-wrap" style={{ flex: 1 }}>
+                  <textarea
+                    className="field cnt-textarea"
+                    rows={2}
+                    value={customText}
+                    placeholder={t('content.customText.ph')}
+                    onChange={(e) => setCustomText(e.target.value)}
+                  />
+                  <PromptBoost value={customText} onChange={setCustomText} mode="scenario" />
+                </div>
               </div>
             )}
 

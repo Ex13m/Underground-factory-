@@ -49,6 +49,18 @@ const MODELS: Record<string, string> = {
 /** vision-модели для «Опознать по фото» (первая доступная на ключе) */
 const DESCRIBE_MODELS = ['openai/gpt-4o-mini', 'openai/gpt-4o'];
 
+/** банк ракурсов: тачки не должны выходить одной и той же изометрией */
+const CAR_ANGLES = [
+  'low front three-quarter with a wide lens, bumper level',
+  'rear three-quarter from low, taillights prominent',
+  'dead-on front view at bumper height',
+  'true side profile with a panning-shot feel',
+  'high angle looking slightly down over the roofline',
+  'close over the front fender, looking down the body line',
+  'long-lens compression from across the street, foreground passers-by',
+  'from knee height behind the rear wheel, kit in the foreground',
+];
+
 export default async (req: Request) => {
   const token = req.headers.get('x-replicate-key')?.trim() || process.env.REPLICATE_API_TOKEN;
 
@@ -81,11 +93,63 @@ export default async (req: Request) => {
     describe?: string;
     /** арт-агент: собрать детальный промпт под КОНКРЕТНУЮ тачку (консистентность) */
     carPrompt?: { car: string; userPrompt?: string; style?: boolean };
+    /** улучшатель кастомных промптов: сырой промпт → сильный детальный.
+        mode 'image' (по умолчанию) — фото-промпт по-английски;
+        mode 'scenario' — сценарий рилса, язык пользователя сохраняется */
+    enhance?: { prompt: string; car?: string; style?: boolean; mode?: 'image' | 'scenario' };
   };
   try {
     body = await req.json();
   } catch {
     return Response.json({ error: 'bad json' }, { status: 400 });
+  }
+
+  // ---- улучшатель кастомных промптов: сырой промпт → сильный детальный ----
+  // Каждый замысел пользователя — закон: агент только обогащает (композиция,
+  // оптика, свет, материалы, среда), ничего не выкидывая и не подменяя.
+  if (body.enhance?.prompt?.trim()) {
+    const en = body.enhance;
+    const ask =
+      en.mode === 'scenario'
+        ? `You are the creative director of an underground tuning shop. ` +
+          `Rewrite the user's raw short-video (reel) brief into ONE richly detailed scenario IN THE SAME LANGUAGE the user wrote in.\n` +
+          `Rules:\n` +
+          `1. EVERY user intent and detail is LAW — keep them all; only enrich: concrete scenes and beats, camera moves, environment, crowd/era details, mood, pacing.\n` +
+          (en.car ? `2. The hero car is exactly: "${en.car}" — keep it consistent through every scene.\n` : '') +
+          `3. Keep it compact enough for a ~30s reel (5-6 scenes).\n` +
+          `User's raw brief: "${String(en.prompt).slice(0, 1500)}"\n` +
+          `Reply STRICTLY with one JSON object: {"prompt":"..."}`
+        : `You are the art director of an underground tuning shop website. ` +
+          `Rewrite the user's raw image prompt into ONE powerful, richly detailed English image-generation prompt.\n` +
+          `Rules:\n` +
+          `1. EVERY user intent and detail is LAW — keep them all; only enrich: composition, lens and camera angle, light, materials, believable environment details, mood.\n` +
+          (en.car
+            ? `2. The subject is this exact car: "${en.car}" — identify the exact generation and weave its precise body details in (headlights, grille, proportions, wheels) so any model draws the same car.\n`
+            : '') +
+          `3. Always: ultra realistic professional photography, shot on a pro camera, true-to-life materials and reflections, no CGI look, no text on the image.\n` +
+          (en.style
+            ? `4. Subtle color grade only: deep blacks, slightly desaturated dirty-white highlights, an occasional blood-red (#e01b22) accent, fine film grain.\n`
+            : '') +
+          `User's raw prompt: "${String(en.prompt).slice(0, 1500)}"\n` +
+          `Reply STRICTLY with one JSON object: {"prompt":"..."}`;
+    for (const m of DESCRIBE_MODELS) {
+      const er = await fetch(`https://api.replicate.com/v1/models/${m}/predictions`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Prefer: 'wait' },
+        body: JSON.stringify({ input: { prompt: ask } }),
+      });
+      const ed = await er.json().catch(() => ({}));
+      if (er.status === 404 || er.status === 422) continue;
+      const text = Array.isArray(ed?.output) ? ed.output.join('') : String(ed?.output ?? '');
+      const jm = text.match(/\{[\s\S]*\}/);
+      if (er.ok && jm) {
+        try {
+          return Response.json(JSON.parse(jm[0]));
+        } catch { /* кривой JSON — ошибка ниже */ }
+      }
+      return Response.json({ error: ed?.detail ?? ed?.error ?? `replicate ${er.status}` }, { status: 502 });
+    }
+    return Response.json({ error: 'no text model available on this key' }, { status: 502 });
   }
 
   // ---- арт-агент промптов: имя тачки → детальный фото-промпт ----
@@ -108,9 +172,12 @@ export default async (req: Request) => {
           `Pick ONE believable real street location (not a garage), vary it.\n`) +
       `3. If reference photos are used, add one sentence: requested modifications OVERRIDE the reference appearance; ` +
       `the reference is only for the car identity and proportions.\n` +
-      `4. Always: ultra realistic professional photography, shot on a pro camera, true-to-life paint and reflections, no CGI look, no text.\n` +
+      `4. CAMERA ANGLE MUST BE: "${CAR_ANGLES[Math.floor(Math.random() * CAR_ANGLES.length)]}" — ` +
+      `never the default three-quarter isometric view, and do NOT copy the reference photo's angle ` +
+      `(unless the user explicitly asked for a specific angle — then the user wins).\n` +
+      `5. Always: ultra realistic professional photography, shot on a pro camera, true-to-life paint and reflections, no CGI look, no text.\n` +
       (cp.style
-        ? `5. Add a subtle color grade only: deep blacks, slightly desaturated dirty-white highlights, an occasional blood-red (#e01b22) accent. Fine film grain.\n`
+        ? `6. Add a subtle color grade only: deep blacks, slightly desaturated dirty-white highlights, an occasional blood-red (#e01b22) accent. Fine film grain.\n`
         : '') +
       `Reply STRICTLY with one JSON object: {"prompt":"..."}`;
     for (const m of DESCRIBE_MODELS) {

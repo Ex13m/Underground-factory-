@@ -15,6 +15,7 @@ import { bus } from '../lib/bus';
 import { useI18n } from '../lib/i18n';
 import { useUI } from '../store/ui';
 import { useCarGallery } from '../store/cargallery';
+import { PromptBoost } from './PromptBoost';
 import {
   readGenKeys, writeGenKeys, PROVIDER_MODELS, DEFAULT_PROVIDER,
   finalPrompt, type GenProvider,
@@ -54,6 +55,16 @@ const CAR_SCENES = [
   'mountain road pull-off at sunrise, soft haze',
 ];
 
+// банк ракурсов: чтобы тачки не выходили одной и той же изометрией
+const CAR_VIEWS = [
+  'low front three-quarter with a wide lens',
+  'rear three-quarter from low, taillights prominent',
+  'dead-on front view at bumper height',
+  'true side profile with a panning-shot feel',
+  'high angle looking slightly down over the roofline',
+  'close over the front fender, looking down the body line',
+];
+
 /**
  * Авто-промпт по объекту: если поле пустое, генератор сам понимает,
  * что за тачка (марка/модель/годы) или деталь, и собирает промпт
@@ -65,7 +76,8 @@ function autoPrompt(key: string): string {
     const c = api.listCars().find((x) => x.id === cm[1]);
     if (c) {
       const scene = CAR_SCENES[Math.floor(Math.random() * CAR_SCENES.length)];
-      return `Ultra realistic professional automotive photo, pro camera: ${c.make} ${c.model} (${c.years}), tastefully tuned custom version with aftermarket body kit, ${scene}, true-to-life paint and reflections, no text`;
+      const view = CAR_VIEWS[Math.floor(Math.random() * CAR_VIEWS.length)];
+      return `Ultra realistic professional automotive photo, pro camera: ${c.make} ${c.model} (${c.years}), tastefully tuned custom version with aftermarket body kit, ${scene}, camera angle: ${view} (not the default isometric three-quarter), true-to-life paint and reflections, no text`;
     }
   }
   const p = api.listProducts().find((x) => key.startsWith(x.id));
@@ -586,15 +598,19 @@ export function ArtEditor() {
           <label className="tech-label" htmlFor="artedit-prompt">
             {target.kind === 'video' ? t('art.prompt.video') : t('art.prompt')}
           </label>
-          <textarea
-            id="artedit-prompt"
-            className="field artedit-prompt"
-            rows={3}
-            value={prompt}
-            placeholder={t('art.prompt.ph')}
-            onChange={(e) => setPrompt(e.target.value)}
-            data-testid="artedit-prompt"
-          />
+          <div className="prompt-boost-wrap">
+            <textarea
+              id="artedit-prompt"
+              className="field artedit-prompt"
+              rows={3}
+              value={prompt}
+              placeholder={t('art.prompt.ph')}
+              onChange={(e) => setPrompt(e.target.value)}
+              data-testid="artedit-prompt"
+            />
+            {/* улучшатель: агент обогащает промпт, замысел — закон */}
+            <PromptBoost value={prompt} onChange={setPrompt} car={carNameOf(target.key)} style={useStyle} />
+          </div>
 
           <div className="artedit-row artedit-provider">
             {/* все модели — через Replicate (один ключ r8_); БЕСПЛАТНО — flux-schnell */}
