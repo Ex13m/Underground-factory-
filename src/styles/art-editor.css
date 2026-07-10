@@ -118,6 +118,23 @@ body.art-edit .uf-hero-content { position: relative; z-index: 2; }
 }
 .artedit-ref.on { border-color: var(--blood); opacity: 1; }
 .artedit-ref input { position: absolute; top: 4px; left: 4px; z-index: 1; accent-color: var(--blood); }
+/* библиотека тачки: зелёная галочка — референс, красная — в альбом, ✕ — удалить */
+.artedit-ref-green { accent-color: #46c85a !important; }
+.artedit-ref-album { left: 26px !important; accent-color: var(--blood); }
+.artedit-ref-x {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  z-index: 1;
+  border: 0;
+  background: rgba(10, 10, 9, 0.7);
+  color: var(--paper);
+  font-size: 11px;
+  line-height: 1;
+  padding: 3px 5px;
+  cursor: pointer;
+}
+.artedit-ref-x:hover { color: var(--blood); }
 .artedit-ref img { width: 100%; height: 56px; object-fit: cover; display: block; }
 .artedit-ref span {
   display: block;
@@ -187,6 +204,24 @@ body.art-edit .uf-hero-content { position: relative; z-index: 2; }
   font-size: 16px;
   color: var(--paper-dim);
 }
+.artedit-multi-cell img { cursor: pointer; }
+/* ✓/✕ на каждом результате: одобрить в библиотеку / отклонить */
+.artedit-res-ok,
+.artedit-res-no {
+  position: absolute;
+  top: 2px;
+  z-index: 1;
+  border: 0;
+  background: rgba(10, 10, 9, 0.75);
+  font-size: 12px;
+  line-height: 1;
+  padding: 3px 6px;
+  cursor: pointer;
+}
+.artedit-res-ok { left: 2px; color: #46c85a; }
+.artedit-res-no { right: 2px; color: var(--paper); }
+.artedit-res-no:hover { color: var(--blood); }
+.artedit-multi-head .artedit-x { font-size: 10px; letter-spacing: 0.08em; }
 .artedit-multi-cell.busy .artedit-multi-state { animation: artedit-busy 1s steps(3) infinite; }
 @keyframes artedit-busy { 50% { opacity: 0.3; } }
 .artedit-multi-cell.err .artedit-multi-state { color: var(--blood); }

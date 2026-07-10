@@ -123,6 +123,27 @@ export function ArtEditor() {
   const artEdit = useUI((s) => s.artEdit);
   const [target, setTarget] = useState<ArtTarget | null>(null);
   const [refs, setRefs] = useState<RefCand[]>([]);
+  // ---- БИБЛИОТЕКА тачки: постоянный склад генераций объекта ----
+  // carId цели (car-<id> / car-live-<id>, черновики не в счёт)
+  const carId = target?.key.match(/^car(?:-live)?-(?!draft-)(.+)$/)?.[1];
+  const allLibs = useCarGallery((s) => s.photos);
+  const carLib = carId ? allLibs[carId] ?? [] : [];
+  const setPhoto = useCarGallery((s) => s.setPhoto);
+  const removePhoto = useCarGallery((s) => s.removePhoto);
+  /** главное фото карточки — референс по умолчанию */
+  const [mainRef, setMainRef] = useState(true);
+  const mainUrl = carId
+    ? getOverride(`car-${carId}`)?.url ?? api.listCars().find((c) => c.id === carId)?.img
+    : undefined;
+
+  /** каждая удачная генерация/загрузка тачки остаётся на складе (dataURL ≤1280) */
+  async function saveToLib(res: { blob: Blob | null; url: string }, patch?: { on?: boolean; ref?: boolean }) {
+    if (!carId) return;
+    try {
+      const url = res.blob ? await blobToDataUrl(res.blob) : res.url;
+      useCarGallery.getState().addPhoto(carId, url, patch);
+    } catch { /* склад — бонус, генерацию не роняем */ }
+  }
   const [prompt, setPrompt] = useState('');
   const [provider, setProvider] = useState<GenProvider>(() => {
     const p = readGenKeys().provider;
@@ -186,11 +207,16 @@ export function ArtEditor() {
     for (const r of next.refs ?? siblingRefs(next.key)) {
       if (!cands.some((c) => c.url === r.url)) cands.push({ ...r, on: false });
     }
-    setTarget(next);
+    // окно результатов само не очищается — только при смене ОБЪЕКТА
+    // (результаты чужого объекта в новую библиотеку уходить не должны)
+    setTarget((prev) => {
+      if (prev && prev.key !== next.key) clearResults();
+      return next;
+    });
     setRefs(cands);
+    setMainRef(true); // главное фото — референс по умолчанию (консистентность)
     setPrompt(ov?.prompt && ov.kind === 'image' ? ov.prompt : '');
     clearPreview();
-    closeMulti();
     setError('');
     setApplied(false);
   }
@@ -305,26 +331,52 @@ export function ArtEditor() {
       const res = await genOne(provider, fp, references);
       clearPreview();
       setPreview(res);
+      // результат — в копилку окна результатов (одобрение галочкой → склад)
+      addResult(PROVIDER_MODELS.find((m) => m.id === provider)?.label ?? provider, res);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }
     setBusy(false);
   }
 
-  // ---- «во всех моделях сразу»: один промпт → все шесть параллельно ----
-  interface MultiItem {
-    id: GenProvider;
-    label: string;
-    status: 'busy' | 'ok' | 'err';
-    blob?: Blob | null;
-    url?: string;
-  }
-  const [multi, setMulti] = useState<MultiItem[] | null>(null);
-  const closeMulti = () => {
-    setMulti((m) => {
-      m?.forEach((x) => { if (x.blob && x.url) URL.revokeObjectURL(x.url); });
-      return null;
+  // ---- окно РЕЗУЛЬТАТОВ: копит ВСЕ генерации до ручной очистки ----
+  // ✓ — одобрить (уходит на склад/в референсы объекта), ✕ — отклонить (удалить)
+  interface GenResult { rid: number; label: string; blob: Blob | null; url: string }
+  const ridRef = useRef(0);
+  const [results, setResults] = useState<GenResult[]>([]);
+  const [pendingLabels, setPendingLabels] = useState<string[]>([]);
+  const addResult = (label: string, res: { blob: Blob | null; url: string }) =>
+    setResults((rs) => [...rs, { rid: ++ridRef.current, label, ...res }]);
+  const dropResult = (rid: number) =>
+    setResults((rs) => {
+      const it = rs.find((r) => r.rid === rid);
+      if (it?.blob) URL.revokeObjectURL(it.url);
+      return rs.filter((r) => r.rid !== rid);
     });
+  const clearResults = () => {
+    setResults((rs) => {
+      rs.forEach((r) => { if (r.blob) URL.revokeObjectURL(r.url); });
+      return [];
+    });
+  };
+  /** ✓ одобрить: тачке — на склад библиотеки, прочим — в референсы */
+  const approveResult = async (r: GenResult) => {
+    if (carId) {
+      await saveToLib(r, {});
+    } else {
+      try {
+        const url = r.blob ? await blobToDataUrl(r.blob) : r.url;
+        setRefs((rs) =>
+          rs.some((x) => x.url === url) ? rs : [...rs, { url, label: t('art.ref.approved'), on: true }],
+        );
+      } catch { /* не сжалось — пропускаем */ }
+    }
+    dropResult(r.rid);
+  };
+  /** клик по результату — в предпросмотр (дальше обычное «Применить») */
+  const pickResult = (r: GenResult) => {
+    clearPreview();
+    setPreview({ blob: r.blob, url: r.blob ? URL.createObjectURL(r.blob) : r.url });
   };
 
   async function generateAll() {
@@ -332,32 +384,26 @@ export function ArtEditor() {
     setError('');
     setApplied(false);
     setBusy(true);
-    closeMulti();
     // один детальный промпт (агент) и одни референсы — на все модели сразу
     const fp = await buildPrompt();
     const references = await collectRefs();
-    setMulti(PROVIDER_MODELS.map((m) => ({ id: m.id, label: m.label, status: 'busy' as const })));
+    setPendingLabels(PROVIDER_MODELS.map((m) => m.label));
+    const errs: string[] = [];
     await Promise.all(
       PROVIDER_MODELS.map(async (m) => {
         try {
           const res = await genOne(m.id, fp, references);
-          setMulti((s) => s?.map((x) => (x.id === m.id ? { ...x, status: 'ok' as const, ...res } : x)) ?? s);
-        } catch {
-          setMulti((s) => s?.map((x) => (x.id === m.id ? { ...x, status: 'err' as const } : x)) ?? s);
+          addResult(m.label, res);
+        } catch (e) {
+          errs.push(`${m.label}: ${e instanceof Error ? e.message : e}`);
+        } finally {
+          setPendingLabels((s) => s.filter((l) => l !== m.label));
         }
       }),
     );
+    if (errs.length) setError(errs.join(' · '));
     setBusy(false);
   }
-
-  /** выбранный из сетки результат — в предпросмотр (дальше обычное «Применить») */
-  const pickMulti = (it: MultiItem) => {
-    if (it.status !== 'ok' || !it.url) return;
-    pickProvider(it.id); // метаданные и подпись — от реально выбранной модели
-    clearPreview();
-    // свой object URL: сетка живёт отдельно, её URL не трогаем
-    setPreview({ blob: it.blob ?? null, url: it.blob ? URL.createObjectURL(it.blob) : it.url });
-  };
 
   async function apply() {
     if (!target || !preview) return;
@@ -367,14 +413,8 @@ export function ArtEditor() {
       // URL-режим: сохраняем саму ссылку — легко, автономно, переживает перезагрузку
       setUrlOverride(target.key, preview.url, prompt.trim());
     }
-    // фото тачки — в галерею её карточки (листалка в CarModal, галочки в админке)
-    const carMatch = target.key.match(/^car-(?!draft-|live-)(.+)$/);
-    if (carMatch) {
-      try {
-        const url = preview.blob ? await blobToDataUrl(preview.blob) : preview.url;
-        useCarGallery.getState().addPhoto(carMatch[1], url);
-      } catch { /* галерея — бонус, не роняем применение */ }
-    }
+    // применённое фото тачки — одобрено: остаётся на складе с галочкой «в альбоме»
+    await saveToLib(preview, { on: true });
     clearPreview();
     setApplied(true);
   }
@@ -382,6 +422,11 @@ export function ArtEditor() {
   /** одобренную картинку — в референсы: следующие генерации держат тот же образ */
   async function previewToRefs() {
     if (!preview) return;
+    if (carId) {
+      // тачка: кладём на склад с зелёной галочкой «референс»
+      await saveToLib(preview, { ref: true });
+      return;
+    }
     try {
       const url = preview.blob ? await blobToDataUrl(preview.blob) : preview.url;
       setRefs((rs) =>
@@ -390,14 +435,22 @@ export function ArtEditor() {
     } catch { /* не вышло сжать — просто не добавляем */ }
   }
 
-  /** выбранные галочками референсы → компактные data-URI (сервер берёт до 3) */
+  /** референсы генерации → компактные data-URI (сервер берёт до 3).
+      Тачка: главное фото (если включено) + зелёные галочки склада;
+      прочие объекты: отмеченные референсы из списка. */
   async function collectRefs(): Promise<string[]> {
-    const picked = refs.filter((r) => r.on).slice(0, 3);
+    const picked: string[] = [];
+    if (carId) {
+      if (mainRef && mainUrl) picked.push(mainUrl);
+      for (const p of carLib) if (p.ref) picked.push(p.url);
+    } else {
+      for (const r of refs) if (r.on) picked.push(r.url);
+    }
     const out: string[] = [];
-    for (const r of picked) {
+    for (const u of picked.slice(0, 3)) {
       try {
-        if (r.url.startsWith('data:')) { out.push(r.url); continue; }
-        const res = await fetch(r.url);
+        if (u.startsWith('data:')) { out.push(u); continue; }
+        const res = await fetch(u);
         if (!res.ok) continue;
         out.push(await blobToDataUrl(await res.blob()));
       } catch { /* недоступный референс просто пропускаем */ }
@@ -443,6 +496,8 @@ export function ArtEditor() {
   async function uploadImage(file: File) {
     if (!target) return;
     await setOverride(target.key, 'image', file, { prompt: file.name });
+    // загрузка тачке — тоже на склад, сразу одобренной
+    await saveToLib({ blob: file, url: '' }, { on: true });
     setApplied(true);
   }
 
@@ -558,35 +613,44 @@ export function ArtEditor() {
             </button>
           </div>
 
-          {multi && (
+          {(results.length > 0 || pendingLabels.length > 0) && (
+            /* копилка результатов: живёт до ручной очистки; клик — предпросмотр,
+               ✓ — одобрить (на склад объекта), ✕ — отклонить */
             <div className="artedit-multi">
               <div className="tech-label artedit-multi-head">
-                {t('art.all.pick')}
-                <button className="artedit-x" onClick={closeMulti} aria-label={t('common.cancel')}>✕</button>
+                {t('art.results', { n: results.length })}
+                <button className="artedit-x" onClick={clearResults} title={t('art.results.clear')}>
+                  {t('art.results.clear')}
+                </button>
               </div>
               <div className="artedit-multi-grid">
-                {multi.map((m) => (
-                  <button
-                    key={m.id}
-                    type="button"
-                    className={`artedit-multi-cell ${m.status}`}
-                    onClick={() => pickMulti(m)}
-                    disabled={m.status !== 'ok'}
-                    title={m.label}
-                  >
-                    {m.status === 'ok' && m.url ? (
-                      <img
-                        src={m.url}
-                        alt=""
-                        onError={() =>
-                          setMulti((s) => s?.map((x) => (x.id === m.id ? { ...x, status: 'err' as const } : x)) ?? s)
-                        }
-                      />
-                    ) : (
-                      <span className="artedit-multi-state">{m.status === 'busy' ? '…' : '✕'}</span>
-                    )}
-                    <i>{m.label}</i>
-                  </button>
+                {results.map((r) => (
+                  <div key={r.rid} className="artedit-multi-cell ok" title={r.label}>
+                    <img src={r.url} alt="" onClick={() => pickResult(r)} />
+                    <button
+                      type="button"
+                      className="artedit-res-ok"
+                      title={t('art.results.approve')}
+                      onClick={() => void approveResult(r)}
+                    >
+                      ✓
+                    </button>
+                    <button
+                      type="button"
+                      className="artedit-res-no"
+                      title={t('art.results.reject')}
+                      onClick={() => dropResult(r.rid)}
+                    >
+                      ✕
+                    </button>
+                    <i>{r.label}</i>
+                  </div>
+                ))}
+                {pendingLabels.map((l) => (
+                  <div key={`p-${l}`} className="artedit-multi-cell busy">
+                    <span className="artedit-multi-state">…</span>
+                    <i>{l}</i>
+                  </div>
                 ))}
               </div>
             </div>
@@ -636,7 +700,56 @@ export function ArtEditor() {
             {t('art.usestyle')}
           </label>
 
-          {refs.length > 0 && (
+          {carId ? (
+            /* БИБЛИОТЕКА тачки: постоянный склад генераций. Зелёная галочка —
+               референс генерации; красная — «в альбоме» карточки; ✕ — удалить */
+            <div className="artedit-refs">
+              <div className="tech-label">{t('art.lib')}</div>
+              <div className="artedit-refs-grid">
+                {mainUrl && (
+                  <label className={`artedit-ref ${mainRef ? 'on' : ''}`} title={t('art.lib.main')}>
+                    <input
+                      type="checkbox"
+                      className="artedit-ref-green"
+                      checked={mainRef}
+                      onChange={(e) => setMainRef(e.target.checked)}
+                    />
+                    <img src={mainUrl} alt="" loading="lazy" />
+                    <span>{t('art.lib.main')}</span>
+                  </label>
+                )}
+                {carLib.map((p, i) => (
+                  <div key={`${i}-${p.url.slice(-24)}`} className={`artedit-ref ${p.ref ? 'on' : ''}`}>
+                    <input
+                      type="checkbox"
+                      className="artedit-ref-green"
+                      title={t('art.lib.ref')}
+                      checked={!!p.ref}
+                      onChange={(e) => setPhoto(carId, i, { ref: e.target.checked })}
+                    />
+                    <input
+                      type="checkbox"
+                      className="artedit-ref-album"
+                      title={t('art.lib.album')}
+                      checked={p.on}
+                      onChange={(e) => setPhoto(carId, i, { on: e.target.checked })}
+                    />
+                    <button
+                      type="button"
+                      className="artedit-ref-x"
+                      title={t('common.delete')}
+                      onClick={() => removePhoto(carId, i)}
+                    >
+                      ✕
+                    </button>
+                    <img src={p.url} alt="" loading="lazy" />
+                    <span>{p.on ? t('art.lib.inalbum') : t('art.lib.stock')}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="artedit-hint">{t('art.lib.hint')}</div>
+            </div>
+          ) : refs.length > 0 && (
             <div className="artedit-refs">
               <div className="tech-label">{t('art.refs')}</div>
               <div className="artedit-refs-grid">

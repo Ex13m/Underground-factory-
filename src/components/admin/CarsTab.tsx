@@ -59,15 +59,43 @@ export function CarsTab() {
 
   /** заказать видео-заставку тачки: заявка в очередь, исполняет Claude
       (image-to-video СТРОГО от главного фото карточки). redo — перегенерация:
-      старый live.mp4 заменяется новым от актуального главного фото */
-  const orderLive = (carId: string, carName: string, redo = false) => {
+      старый live.mp4 заменяется новым от актуального главного фото.
+      ВАЖНО: фото кастомных тачек живут только в этом браузере, поэтому
+      главное фото прикладываем к заявке через файловый мост /api/track. */
+  const orderLive = async (carId: string, carName: string, redo = false) => {
+    let photoRef = '';
+    try {
+      const src = getOverride(`car-${carId}`)?.url ?? cars.find((c) => c.id === carId)?.img;
+      if (src) {
+        const blob = await fetch(src).then((r) => (r.ok ? r.blob() : null));
+        if (blob && blob.size > 0 && blob.size <= 4.2 * 1048576) {
+          const dataBase64 = await new Promise<string>((res, rej) => {
+            const fr = new FileReader();
+            fr.onload = () => res(String(fr.result).split(',')[1] ?? '');
+            fr.onerror = () => rej(fr.error);
+            fr.readAsDataURL(blob);
+          });
+          const name = `car-${carId}-main.jpg`;
+          const up = await fetch('/api/track', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, dataBase64 }),
+          });
+          if (up.ok) photoRef = name;
+        }
+      }
+    } catch { /* мост недоступен — заявка уйдёт без файла, Claude разберётся */ }
     fetch('/api/queue', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         key: `car-live-${carId}`,
         kind: 'video',
-        prompt: `${redo ? 'ПЕРЕГЕНЕРАЦИЯ видео-заставки (старый ролик заменить)' : 'видео-заставка (оживление)'} тачки ${carName}: image-to-video СТРОГО от главного фото её карточки (референс — текущее фото тачки, консистентность кузова обязательна) — машина стоит, лёгкий кинематографичный облёт камеры, ночной цех, дым, блики; кладётся в /media/cars/${carId}/live.mp4`,
+        prompt:
+          `${redo ? 'ПЕРЕГЕНЕРАЦИЯ видео-заставки (старый ролик заменить)' : 'видео-заставка (оживление)'} тачки ${carName}: ` +
+          `image-to-video СТРОГО от главного фото её карточки (консистентность кузова обязательна) — ` +
+          `машина стоит, лёгкий кинематографичный облёт камеры, ночной цех, дым, блики; кладётся в /media/cars/${carId}/live.mp4` +
+          (photoRef ? `; главное фото приложено: GET /api/track?name=${photoRef}` : ''),
         width: 1280,
         height: 720,
         createdAt: Date.now(),

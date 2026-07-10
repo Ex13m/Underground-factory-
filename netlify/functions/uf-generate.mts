@@ -26,18 +26,20 @@ function pickAspect(w: number, h: number): string {
   return best[0];
 }
 
-/** размер для gpt-image-1: у него фиксированная сетка размеров */
-function gptSize(w: number, h: number): string {
+/** формат для gpt-image-2: он принимает только 1:1 / 3:2 / 2:3 */
+function gptAspect(w: number, h: number): string {
   const r = w / Math.max(1, h);
-  if (r > 1.15) return '1536x1024';
-  if (r < 0.87) return '1024x1536';
-  return '1024x1024';
+  if (r > 1.15) return '3:2';
+  if (r < 0.87) return '2:3';
+  return '1:1';
 }
 
 const MODELS: Record<string, string> = {
   free: 'black-forest-labs/flux-schnell',
   nano: 'google/nano-banana',
-  gpt: 'openai/gpt-image-1',
+  // gpt-image-1 требует СВОЙ ключ OpenAI (BYOK) и с одним r8_ не работает;
+  // gpt-image-2 ходит по обычному биллингу Replicate
+  gpt: 'openai/gpt-image-2',
   recraft: 'recraft-ai/recraft-v3',
   fluxpro: 'black-forest-labs/flux-1.1-pro',
   seedream: 'bytedance/seedream-4',
@@ -95,11 +97,16 @@ export default async (req: Request) => {
       `Write ONE image-generation prompt in English for this exact car: "${cp.car}".\n` +
       `Rules:\n` +
       `1. IDENTIFY the exact generation and describe its body PRECISELY so any image model draws THE SAME car: ` +
-      `body shape, headlights, grille, proportions, stance, wheels, era-correct details. Consistency is the top priority.\n` +
-      `2. The car is a tastefully tuned version with an aftermarket body kit (carbon fiber details), but the body must stay honest and recognizable.\n` +
+      `body shape, headlights, grille, proportions, stance, wheels, era-correct details. Consistency of the car identity is the top priority.\n` +
       (cp.userPrompt?.trim()
-        ? `3. The user's request is LAW — build the scene and mood around it, keep every user detail: "${cp.userPrompt.trim()}".\n`
-        : `3. Pick ONE believable real street location (not a garage), vary it.\n`) +
+        ? `2. The user's request is LAW and OVERRIDES everything except the car identity: "${cp.userPrompt.trim()}". ` +
+          `If it changes the car (body kit, color, materials, parts), the prompt MUST state those changes explicitly and forcefully ` +
+          `(e.g. "the ENTIRE body kit is replaced with exposed RED carbon fiber aero parts") — the modification must be clearly visible, ` +
+          `not a subtle hint. Build the scene and mood around the user's request, keep every user detail.\n`
+        : `2. The car is a tastefully tuned version with an aftermarket carbon fiber body kit, body honest and recognizable. ` +
+          `Pick ONE believable real street location (not a garage), vary it.\n`) +
+      `3. If reference photos are used, add one sentence: requested modifications OVERRIDE the reference appearance; ` +
+      `the reference is only for the car identity and proportions.\n` +
       `4. Always: ultra realistic professional photography, shot on a pro camera, true-to-life paint and reflections, no CGI look, no text.\n` +
       (cp.style
         ? `5. Add a subtle color grade only: deep blacks, slightly desaturated dirty-white highlights, an occasional blood-red (#e01b22) accent. Fine film grain.\n`
@@ -154,16 +161,20 @@ export default async (req: Request) => {
   const aspect = pickAspect(body.width ?? 4, body.height ?? 3);
   // референсы: data URI, максимум 3 (Replicate принимает data URI в файловых полях)
   const refs = (body.references ?? []).filter((r) => typeof r === 'string' && r.startsWith('data:image/')).slice(0, 3);
+  // референс не должен глушить промпт: правки пользователя сильнее фото
+  const prompt2 = refs.length
+    ? `${prompt}\n\nUse the reference image(s) ONLY for the car identity and proportions. Any modifications described above (body kit, color, materials, parts) OVERRIDE the reference appearance and must be clearly visible.`
+    : prompt;
 
   const input: Record<string, unknown> =
     modelKey === 'gpt'
-      ? { prompt, size: gptSize(body.width ?? 4, body.height ?? 3), quality: 'medium', ...(refs.length ? { input_images: refs } : {}) }
+      ? { prompt: prompt2, aspect_ratio: gptAspect(body.width ?? 4, body.height ?? 3), quality: 'high', output_format: 'jpeg', ...(refs.length ? { input_images: refs } : {}) }
       : modelKey === 'nano'
-        ? { prompt, aspect_ratio: aspect, output_format: 'jpg', ...(refs.length ? { image_input: refs } : {}) }
+        ? { prompt: prompt2, aspect_ratio: aspect, output_format: 'jpg', ...(refs.length ? { image_input: refs } : {}) }
         : modelKey === 'seedream'
-          ? { prompt, aspect_ratio: aspect, ...(refs.length ? { image_input: refs } : {}) }
+          ? { prompt: prompt2, aspect_ratio: aspect, ...(refs.length ? { image_input: refs } : {}) }
           : modelKey === 'fluxpro'
-            ? { prompt, aspect_ratio: aspect, output_format: 'jpg', ...(refs.length ? { image_prompt: refs[0] } : {}) }
+            ? { prompt: prompt2, aspect_ratio: aspect, output_format: 'jpg', ...(refs.length ? { image_prompt: refs[0] } : {}) }
             : modelKey === 'recraft'
               ? {
                   prompt,
