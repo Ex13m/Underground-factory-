@@ -21,12 +21,12 @@ export function CarModal({
   car,
   onClose,
   onPickInCatalog,
-  admin = false,
 }: {
   car: CarModel;
   onClose: () => void;
   onPickInCatalog: (carId: string) => void;
-  /** режим админа: в листалке видны ВСЕ фото галереи с галочками включения */
+  /** совместимость со старыми вызовами: карточка всегда показывает только
+      РЕЗУЛЬТАТ (альбом); управление альбомом — в библиотеке арт-редактора */
   admin?: boolean;
 }) {
   const { t, lt } = useI18n();
@@ -68,20 +68,21 @@ export function CarModal({
   const [zoom, setZoom] = useState<number | null>(null);
 
   // ---- листалка шапки: слайд 0 — ВСЕГДА видео (если есть), дальше —
-  // главное фото и отмеченные галочками фото из галереи тачки ----
+  // главное фото и АЛЬБОМ (только одобренные красной галочкой в библиотеке
+  // арт-редактора; никаких пустых слайдов и складских черновиков) ----
   const galleryAll = useCarGallery((s) => s.photos[car.id] ?? []);
-  const togglePhoto = useCarGallery((s) => s.togglePhoto);
   const live = liveClipOf(car.id, car.video);
   const slides = useMemo(() => {
-    const list: Array<{ kind: 'video' | 'image'; url: string; gIdx?: number; on?: boolean }> = [];
+    const list: Array<{ kind: 'video' | 'image'; url: string }> = [];
     if (live) list.push({ kind: 'video', url: live });
-    if (car.img || !live) list.push({ kind: 'image', url: car.img });
-    galleryAll.forEach((p, i) => {
-      // посетителю — только отмеченные; админу — все, с галочкой
-      if (p.on || admin) list.push({ kind: 'image', url: p.url, gIdx: i, on: p.on });
+    if (car.img) list.push({ kind: 'image', url: car.img });
+    galleryAll.forEach((p) => {
+      if (p.on && !list.some((s) => s.url === p.url)) list.push({ kind: 'image', url: p.url });
     });
+    // совсем нет медиа — одинокий слайд с арт-заглушкой по seed
+    if (!list.length) list.push({ kind: 'image', url: '' });
     return list;
-  }, [live, car.img, galleryAll, admin]);
+  }, [live, car.img, galleryAll]);
   const [slide, setSlide] = useState(0); // дефолт — видео
   useEffect(() => setSlide(0), [car.id]);
   const cur = slides[Math.min(slide, slides.length - 1)] ?? slides[0];
@@ -156,17 +157,6 @@ export function CarModal({
                 ))}
               </div>
             </>
-          )}
-          {/* админ: галочка «в галерее» на фото из галереи */}
-          {admin && cur?.gIdx !== undefined && (
-            <label className="carmodal-galcheck" onClick={(e) => e.stopPropagation()}>
-              <input
-                type="checkbox"
-                checked={cur.on ?? true}
-                onChange={(e) => togglePhoto(car.id, cur.gIdx!, e.target.checked)}
-              />
-              {t('catalog.cars.inGallery')}
-            </label>
           )}
           <div className="carmodal-scrim" aria-hidden />
           <div className="carmodal-hero-info">

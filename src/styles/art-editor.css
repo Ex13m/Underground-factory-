@@ -114,9 +114,12 @@ body.art-edit .uf-hero-content { position: relative; z-index: 2; }
   position: relative;
   cursor: pointer;
   border: 1px solid rgba(236, 234, 229, 0.2);
-  opacity: 0.55;
+  /* невыбранные НЕ затемняем (заказ владельца) — выбранные подсвечиваем зелёным */
 }
-.artedit-ref.on { border-color: var(--blood); opacity: 1; }
+.artedit-ref.on {
+  border-color: #46c85a;
+  box-shadow: 0 0 0 1px #46c85a, 0 0 10px rgba(70, 200, 90, 0.35);
+}
 .artedit-ref input { position: absolute; top: 4px; left: 4px; z-index: 1; accent-color: var(--blood); }
 /* библиотека тачки: зелёная галочка — референс, красная — в альбом, ✕ — удалить */
 .artedit-ref-green { accent-color: #46c85a !important; }

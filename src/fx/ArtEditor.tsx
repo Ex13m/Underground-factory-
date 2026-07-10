@@ -20,7 +20,7 @@ import {
   finalPrompt, type GenProvider,
 } from '../lib/imagegen';
 import {
-  getOverride, setOverride, setUrlOverride, removeOverride, type MediaKind,
+  getOverride, setOverride, setUrlOverride, type MediaKind,
 } from '../lib/mediaStore';
 import '../styles/art-editor.css';
 
@@ -130,11 +130,25 @@ export function ArtEditor() {
   const carLib = carId ? allLibs[carId] ?? [] : [];
   const setPhoto = useCarGallery((s) => s.setPhoto);
   const removePhoto = useCarGallery((s) => s.removePhoto);
-  /** главное фото карточки — референс по умолчанию */
-  const [mainRef, setMainRef] = useState(true);
   const mainUrl = carId
     ? getOverride(`car-${carId}`)?.url ?? api.listCars().find((c) => c.id === carId)?.img
     : undefined;
+
+  // главное фото — обычный житель библиотеки (те же две галочки и крестик):
+  // при открытии тачки заносим его на склад (dataURL) с зелёной галочкой
+  useEffect(() => {
+    if (!carId || !mainUrl) return;
+    if (carLib.some((p) => p.url === mainUrl)) return;
+    (async () => {
+      try {
+        const url = mainUrl.startsWith('data:')
+          ? mainUrl
+          : await blobToDataUrl(await (await fetch(mainUrl)).blob());
+        useCarGallery.getState().addPhoto(carId, url, { ref: true });
+      } catch { /* фото недоступно (CORS/сеть) — библиотека живёт без него */ }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [carId, mainUrl]);
 
   /** каждая удачная генерация/загрузка тачки остаётся на складе (dataURL ≤1280) */
   async function saveToLib(res: { blob: Blob | null; url: string }, patch?: { on?: boolean; ref?: boolean }) {
@@ -214,7 +228,6 @@ export function ArtEditor() {
       return next;
     });
     setRefs(cands);
-    setMainRef(true); // главное фото — референс по умолчанию (консистентность)
     setPrompt(ov?.prompt && ov.kind === 'image' ? ov.prompt : '');
     clearPreview();
     setError('');
@@ -441,7 +454,7 @@ export function ArtEditor() {
   async function collectRefs(): Promise<string[]> {
     const picked: string[] = [];
     if (carId) {
-      if (mainRef && mainUrl) picked.push(mainUrl);
+      // только зелёные галочки библиотеки (главное фото — тоже её житель)
       for (const p of carLib) if (p.ref) picked.push(p.url);
     } else {
       for (const r of refs) if (r.on) picked.push(r.url);
@@ -479,12 +492,8 @@ export function ArtEditor() {
     }
   }
 
-  async function reset() {
-    if (!target) return;
-    await removeOverride(target.key);
-    clearPreview();
-    setApplied(false);
-  }
+  // «Вернуть исходник» из панели убран (заказ владельца): сброс замен —
+  // только осознанно, из истории замен в Админке → АРТ (кнопка «Сбросить»)
 
   async function uploadVideo(file: File) {
     if (!target) return;
@@ -526,8 +535,6 @@ export function ArtEditor() {
     setQueued(true);
     window.setTimeout(() => setQueued(false), 2500);
   }
-
-  const hasOverride = target ? !!getOverride(target.key) : false;
 
   return (
     <>
@@ -706,18 +713,6 @@ export function ArtEditor() {
             <div className="artedit-refs">
               <div className="tech-label">{t('art.lib')}</div>
               <div className="artedit-refs-grid">
-                {mainUrl && (
-                  <label className={`artedit-ref ${mainRef ? 'on' : ''}`} title={t('art.lib.main')}>
-                    <input
-                      type="checkbox"
-                      className="artedit-ref-green"
-                      checked={mainRef}
-                      onChange={(e) => setMainRef(e.target.checked)}
-                    />
-                    <img src={mainUrl} alt="" loading="lazy" />
-                    <span>{t('art.lib.main')}</span>
-                  </label>
-                )}
                 {carLib.map((p, i) => (
                   <div key={`${i}-${p.url.slice(-24)}`} className={`artedit-ref ${p.ref ? 'on' : ''}`}>
                     <input
@@ -738,7 +733,10 @@ export function ArtEditor() {
                       type="button"
                       className="artedit-ref-x"
                       title={t('common.delete')}
-                      onClick={() => removePhoto(carId, i)}
+                      onClick={() => {
+                        // защита от случайного удаления: подтверждение обязательно
+                        if (window.confirm(t('art.lib.delConfirm'))) removePhoto(carId, i);
+                      }}
                     >
                       ✕
                     </button>
@@ -788,11 +786,6 @@ export function ArtEditor() {
               // одобренный кадр → в референсы: дальше держим тот же образ
               <button className="btn sm ghost" onClick={() => void previewToRefs()} title={t('art.toRefs.hint')}>
                 {t('art.toRefs')}
-              </button>
-            )}
-            {hasOverride && (
-              <button className="btn ghost" onClick={reset} data-testid="artedit-reset">
-                {t('art.reset')}
               </button>
             )}
           </div>

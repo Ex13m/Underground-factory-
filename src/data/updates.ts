@@ -7,9 +7,8 @@ import type { LocalText } from '../lib/types';
  * что реально поменялось с прошлого релиза (коротко, по-русски и по-английски).
  */
 export const UPDATE_NOTES: LocalText[] = [
-  { ru: 'РИЛС МАСЛ-КАРЫ 1970 ▸ ТЕПЕРЬ С ВАЙБОМ ЭПОХИ', en: 'MUSCLE 1970 REEL ▸ NOW WITH TRUE ERA VIBE' },
-  { ru: 'КАРТОЧКИ ТАЧЕК ▸ ФОТО ЛИСТАЮТСЯ И СМОТРЯТСЯ КРУПНО', en: 'CAR CARDS ▸ PHOTOS FLIP AND ZOOM BIG' },
-  { ru: 'АРТ-РЕДАКТОР ▸ АГЕНТ ЗНАЕТ ТВОЮ ТАЧКУ В ЛИЦО', en: 'ART EDITOR ▸ THE AGENT KNOWS YOUR CAR BY HEART' },
+  { ru: 'КАРТОЧКИ ТАЧЕК ▸ ТОЛЬКО ОДОБРЕННЫЕ КАДРЫ', en: 'CAR CARDS ▸ APPROVED SHOTS ONLY' },
   { ru: 'У КАЖДОЙ ТАЧКИ ▸ СВОЯ БИБЛИОТЕКА ГЕНЕРАЦИЙ', en: 'EVERY CAR ▸ ITS OWN GENERATION LIBRARY' },
+  { ru: 'НЕЙРОСЕТИ ▸ ВЕЗДЕ ПОСЛЕДНИЕ ВЕРСИИ', en: 'AI MODELS ▸ LATEST VERSIONS EVERYWHERE' },
   { ru: 'КОД FIGABOSS2026 ▸ −15% КАЖДОМУ', en: 'CODE FIGABOSS2026 ▸ −15% FOR EVERYONE' },
 ];

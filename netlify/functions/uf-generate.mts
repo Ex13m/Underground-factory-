@@ -34,15 +34,16 @@ function gptAspect(w: number, h: number): string {
   return '1:1';
 }
 
+// ПОСЛЕДНИЕ версии моделей (заказ владельца; слаги сверены с базой 2026-07)
 const MODELS: Record<string, string> = {
   free: 'black-forest-labs/flux-schnell',
-  nano: 'google/nano-banana',
+  nano: 'google/nano-banana-2',
   // gpt-image-1 требует СВОЙ ключ OpenAI (BYOK) и с одним r8_ не работает;
   // gpt-image-2 ходит по обычному биллингу Replicate
   gpt: 'openai/gpt-image-2',
-  recraft: 'recraft-ai/recraft-v3',
-  fluxpro: 'black-forest-labs/flux-1.1-pro',
-  seedream: 'bytedance/seedream-4',
+  recraft: 'recraft-ai/recraft-v4',
+  fluxpro: 'black-forest-labs/flux-2-pro',
+  seedream: 'bytedance/seedream-4.5',
 };
 
 /** vision-модели для «Опознать по фото» (первая доступная на ключе) */
@@ -166,42 +167,59 @@ export default async (req: Request) => {
     ? `${prompt}\n\nUse the reference image(s) ONLY for the car identity and proportions. Any modifications described above (body kit, color, materials, parts) OVERRIDE the reference appearance and must be clearly visible.`
     : prompt;
 
-  const input: Record<string, unknown> =
-    modelKey === 'gpt'
-      ? { prompt: prompt2, aspect_ratio: gptAspect(body.width ?? 4, body.height ?? 3), quality: 'high', output_format: 'jpeg', ...(refs.length ? { input_images: refs } : {}) }
-      : modelKey === 'nano'
-        ? { prompt: prompt2, aspect_ratio: aspect, output_format: 'jpg', ...(refs.length ? { image_input: refs } : {}) }
-        : modelKey === 'seedream'
-          ? { prompt: prompt2, aspect_ratio: aspect, ...(refs.length ? { image_input: refs } : {}) }
-          : modelKey === 'fluxpro'
-            ? { prompt: prompt2, aspect_ratio: aspect, output_format: 'jpg', ...(refs.length ? { image_prompt: refs[0] } : {}) }
-            : modelKey === 'recraft'
-              ? {
-                  prompt,
-                  size:
-                    (body.width ?? 4) / Math.max(1, body.height ?? 3) > 1.15
-                      ? '1820x1024'
-                      : (body.width ?? 4) / Math.max(1, body.height ?? 3) < 0.87
-                        ? '1024x1820'
-                        : '1024x1024',
-                }
-              : { prompt, aspect_ratio: aspect, output_format: 'jpg', output_quality: 85 };
+  // ЛЕСЕНКА вариантов input: имена полей референсов у моделей меняются между
+  // версиями — на 422 (кривое поле) пробуем следующий вариант, последним
+  // всегда идёт чистый text-to-image, чтобы кнопка не «молчала» никогда.
+  const size43 =
+    (body.width ?? 4) / Math.max(1, body.height ?? 3) > 1.15
+      ? '1820x1024'
+      : (body.width ?? 4) / Math.max(1, body.height ?? 3) < 0.87
+        ? '1024x1820'
+        : '1024x1024';
+  const candidates: Array<Record<string, unknown>> = [];
+  if (modelKey === 'gpt') {
+    const base = { prompt: prompt2, aspect_ratio: gptAspect(body.width ?? 4, body.height ?? 3), quality: 'high', output_format: 'jpeg' };
+    if (refs.length) candidates.push({ ...base, input_images: refs }, { ...base, image_input: refs });
+    candidates.push(base);
+  } else if (modelKey === 'nano' || modelKey === 'seedream') {
+    const base = { prompt: prompt2, aspect_ratio: aspect, output_format: 'jpg' };
+    if (refs.length) candidates.push({ ...base, image_input: refs }, { ...base, input_images: refs });
+    candidates.push(base);
+  } else if (modelKey === 'fluxpro') {
+    const base = { prompt: prompt2, aspect_ratio: aspect, output_format: 'jpg' };
+    if (refs.length) candidates.push({ ...base, input_images: refs }, { ...base, image_input: refs }, { ...base, image_prompt: refs[0] });
+    candidates.push(base);
+  } else if (modelKey === 'recraft') {
+    candidates.push({ prompt, size: size43 }, { prompt });
+  } else {
+    candidates.push({ prompt, aspect_ratio: aspect, output_format: 'jpg', output_quality: 85 });
+  }
 
   // Prefer: wait — Replicate держит соединение до готовности
-  const r = await fetch(`https://api.replicate.com/v1/models/${model}/predictions`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      Prefer: 'wait',
-    },
-    body: JSON.stringify({ input }),
-  });
-  const data = await r.json();
-  const url: string | undefined = Array.isArray(data?.output) ? data.output[0] : data?.output;
-  if (!r.ok || !url) {
+  let data: any = null;
+  let status = 0;
+  let url: string | undefined;
+  for (const input of candidates) {
+    const r = await fetch(`https://api.replicate.com/v1/models/${model}/predictions`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        Prefer: 'wait',
+      },
+      body: JSON.stringify({ input }),
+    });
+    data = await r.json().catch(() => ({}));
+    status = r.status;
+    url = Array.isArray(data?.output) ? data.output[0] : data?.output;
+    if (r.ok && url) break;
+    // 422 = модель не приняла форму input — пробуем следующий вариант
+    if (r.status !== 422) break;
+    url = undefined;
+  }
+  if (!url) {
     return Response.json(
-      { error: data?.detail ?? data?.error ?? `replicate ${r.status}` },
+      { error: data?.detail ?? data?.error ?? `replicate ${status}` },
       { status: 502 },
     );
   }
