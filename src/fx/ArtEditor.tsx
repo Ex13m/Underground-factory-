@@ -16,8 +16,8 @@ import { useI18n } from '../lib/i18n';
 import { useUI } from '../store/ui';
 import { useCarGallery } from '../store/cargallery';
 import {
-  readGenKeys, writeGenKeys, PROVIDER_MODELS,
-  pollinationsUrl, finalPrompt, type GenProvider,
+  readGenKeys, writeGenKeys, PROVIDER_MODELS, DEFAULT_PROVIDER,
+  finalPrompt, type GenProvider,
 } from '../lib/imagegen';
 import {
   getOverride, setOverride, setUrlOverride, removeOverride, type MediaKind,
@@ -77,7 +77,9 @@ function autoPrompt(key: string): string {
   return `underground tuning factory scene: ${key.replace(/[-_]+/g, ' ')}, night cyber-industrial garage, red and black palette, dramatic light, cinematic photo, film grain, no text`;
 }
 
-/** Другие фото того же объекта: остальные медиа обвеса / фото других тачек. */
+/** Другие фото ТОГО ЖЕ объекта: остальные медиа обвеса; для тачки — ЕЁ ЖЕ
+    главное фото и её галерея (фото ДРУГИХ тачек в референсы не идут:
+    консистентность — закон, чужой кузов ломает генерацию). */
 function siblingRefs(key: string): Array<{ url: string; label: string }> {
   const out: Array<{ url: string; label: string }> = [];
   const pm = key.match(/^(.+)-(\d+)$/);
@@ -89,16 +91,31 @@ function siblingRefs(key: string): Array<{ url: string; label: string }> {
       if (url) out.push({ url, label: `${product.sku} #${i + 1}` });
     });
   }
-  const cm = key.match(/^car-(.+)$/);
+  const cm = key.match(/^car-(?!draft-|live-)(.+)$/);
   if (cm) {
-    for (const c of api.listCars()) {
-      const k = `car-${c.id}`;
-      if (k === key) continue;
-      const url = getOverride(k)?.url ?? c.img;
-      if (url) out.push({ url, label: `${c.make} ${c.model}` });
+    const c = api.listCars().find((x) => x.id === cm[1]);
+    const main = getOverride(key)?.url ?? c?.img;
+    if (main) out.push({ url: main, label: `${c?.make ?? ''} ${c?.model ?? ''}`.trim() || cm[1] });
+    for (const [i, p] of (useCarGallery.getState().photos[cm[1]] ?? []).entries()) {
+      out.push({ url: p.url, label: `#${i + 1}` });
     }
   }
   return out;
+}
+
+/** имя тачки по ключу медиа: сид/кастомная — из каталога, черновик — из ключа формы */
+function carNameOf(key: string): string | undefined {
+  const cm = key.match(/^car(?:-live)?-(?!draft-)(.+)$/);
+  if (cm) {
+    const c = api.listCars().find((x) => x.id === cm[1]);
+    if (c) return `${c.make} ${c.model} (${c.years})`;
+  }
+  const dm = key.match(/^car-draft-(.+)$/);
+  if (dm) {
+    const name = dm[1].replace(/[-_]+/g, ' ').trim();
+    if (name && name !== '') return name;
+  }
+  return undefined;
 }
 
 export function ArtEditor() {
@@ -107,7 +124,11 @@ export function ArtEditor() {
   const [target, setTarget] = useState<ArtTarget | null>(null);
   const [refs, setRefs] = useState<RefCand[]>([]);
   const [prompt, setPrompt] = useState('');
-  const [provider, setProvider] = useState<GenProvider>(readGenKeys().provider ?? 'pollinations');
+  const [provider, setProvider] = useState<GenProvider>(() => {
+    const p = readGenKeys().provider;
+    // бесплатного больше нет: сохранённый pollinations переводим на дефолт
+    return p && PROVIDER_MODELS.some((m) => m.id === p) ? p : DEFAULT_PROVIDER;
+  });
   /** единый ключ Replicate (r8_…) для NANO BANANA и GPT IMAGE; живёт в localStorage */
   const [keyDraft, setKeyDraft] = useState(() => readGenKeys().replicate ?? '');
   const [keyStatus, setKeyStatus] = useState<'idle' | 'testing' | 'ok' | 'bad'>('idle');
@@ -169,6 +190,7 @@ export function ArtEditor() {
     setRefs(cands);
     setPrompt(ov?.prompt && ov.kind === 'image' ? ov.prompt : '');
     clearPreview();
+    closeMulti();
     setError('');
     setApplied(false);
   }
@@ -220,61 +242,122 @@ export function ArtEditor() {
     writeGenKeys({ provider: p });
   }
 
+  /** одна генерация конкретной моделью: все провайдеры ходят через нашу
+      функцию /api/generate (Replicate), ключ — из поля на сайте (заголовком)
+      или из Netlify env. Ошибка — throw с текстом. */
+  async function genOne(p: GenProvider, fp: string, references: string[]): Promise<{ blob: Blob | null; url: string }> {
+    const tgt = target!;
+    const rKey = readGenKeys().replicate?.trim();
+    const model = PROVIDER_MODELS.find((m) => m.id === p)?.model ?? 'nano';
+    const r = await fetch('/api/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(rKey ? { 'x-replicate-key': rKey } : {}),
+      },
+      body: JSON.stringify({
+        prompt: fp, width: tgt.width, height: tgt.height, model,
+        ...(references.length ? { references } : {}),
+      }),
+    });
+    if (r.ok && (r.headers.get('content-type') ?? '').startsWith('image/')) {
+      const blob = await r.blob();
+      return { blob, url: URL.createObjectURL(blob) };
+    }
+    const data = await r.json().catch(() => ({} as { error?: string }));
+    throw new Error(data?.error === 'NO_SERVER_KEY' ? t('art.err.norepl') : String(data?.error ?? `HTTP ${r.status}`));
+  }
+
+  /** арт-агент промптов: для тачки строит детальный промпт на сервере
+      (точное поколение и кузов дословно → консистентность; мой промпт — закон,
+      стилизация — только палитрой). Для не-тачек и при сбое — локальная сборка. */
+  async function buildPrompt(): Promise<string> {
+    const tgt = target!;
+    const userPrompt = prompt.trim();
+    const car = carNameOf(tgt.key);
+    if (car) {
+      const rKey = readGenKeys().replicate?.trim();
+      try {
+        const r = await fetch('/api/generate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(rKey ? { 'x-replicate-key': rKey } : {}),
+          },
+          body: JSON.stringify({ carPrompt: { car, userPrompt, style: useStyle } }),
+        });
+        const d = await r.json().catch(() => ({} as { prompt?: string }));
+        if (r.ok && d?.prompt) return String(d.prompt);
+      } catch { /* агент недоступен — соберём промпт локально ниже */ }
+    }
+    return finalPrompt(userPrompt || autoPrompt(tgt.key), useStyle);
+  }
+
   async function generate() {
     if (!target || busy) return;
-    // пустое поле — авто-промпт по объекту (тачка/деталь/любой ключ)
-    const effPrompt = prompt.trim() || autoPrompt(target.key);
     setError('');
     setApplied(false);
-
-    const fp = finalPrompt(effPrompt, useStyle);
-    const rKey = readGenKeys().replicate?.trim();
-
-    // все провайдеры ходят через нашу функцию /api/generate (Replicate):
-    // модель берётся из справочника PROVIDER_MODELS по выбранной кнопке.
-    // Ключ — из поля на сайте (заголовком) или из Netlify env.
-    const model = PROVIDER_MODELS.find((m) => m.id === provider)?.model ?? 'free';
     setBusy(true);
-    // отмеченные референсы → data-URI в тело запроса (бесплатный их не умеет)
-    const references = provider === 'pollinations' ? [] : await collectRefs();
     try {
-      const r = await fetch('/api/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(rKey ? { 'x-replicate-key': rKey } : {}),
-        },
-        body: JSON.stringify({
-          prompt: fp, width: target.width, height: target.height, model,
-          ...(references.length ? { references } : {}),
-        }),
-      });
-      if (r.ok && (r.headers.get('content-type') ?? '').startsWith('image/')) {
-        const blob = await r.blob();
-        clearPreview();
-        setPreview({ blob, url: URL.createObjectURL(blob) });
-        setBusy(false);
-        return;
-      }
-      // платная модель без ключа/с ошибкой — говорим прямо, а не молчим
-      if (provider !== 'pollinations') {
-        const data = await r.json().catch(() => ({} as { error?: string }));
-        setError(data?.error === 'NO_SERVER_KEY' ? t('art.err.norepl') : String(data?.error ?? `HTTP ${r.status}`));
-        setBusy(false);
-        return;
-      }
-    } catch {
-      // функции нет (локальный dev) или сеть — для БЕСПЛАТНО падаем на Pollinations
-      if (provider !== 'pollinations') {
-        setError(t('art.err.norepl'));
-        setBusy(false);
-        return;
-      }
+      // тачка → детальный промпт от арт-агента; референсы — фото ЭТОЙ тачки
+      const fp = await buildPrompt();
+      const references = await collectRefs();
+      const res = await genOne(provider, fp, references);
+      clearPreview();
+      setPreview(res);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
     }
     setBusy(false);
-    clearPreview();
-    setPreview({ blob: null, url: pollinationsUrl(fp, target.width, target.height) });
   }
+
+  // ---- «во всех моделях сразу»: один промпт → все шесть параллельно ----
+  interface MultiItem {
+    id: GenProvider;
+    label: string;
+    status: 'busy' | 'ok' | 'err';
+    blob?: Blob | null;
+    url?: string;
+  }
+  const [multi, setMulti] = useState<MultiItem[] | null>(null);
+  const closeMulti = () => {
+    setMulti((m) => {
+      m?.forEach((x) => { if (x.blob && x.url) URL.revokeObjectURL(x.url); });
+      return null;
+    });
+  };
+
+  async function generateAll() {
+    if (!target || busy) return;
+    setError('');
+    setApplied(false);
+    setBusy(true);
+    closeMulti();
+    // один детальный промпт (агент) и одни референсы — на все модели сразу
+    const fp = await buildPrompt();
+    const references = await collectRefs();
+    setMulti(PROVIDER_MODELS.map((m) => ({ id: m.id, label: m.label, status: 'busy' as const })));
+    await Promise.all(
+      PROVIDER_MODELS.map(async (m) => {
+        try {
+          const res = await genOne(m.id, fp, references);
+          setMulti((s) => s?.map((x) => (x.id === m.id ? { ...x, status: 'ok' as const, ...res } : x)) ?? s);
+        } catch {
+          setMulti((s) => s?.map((x) => (x.id === m.id ? { ...x, status: 'err' as const } : x)) ?? s);
+        }
+      }),
+    );
+    setBusy(false);
+  }
+
+  /** выбранный из сетки результат — в предпросмотр (дальше обычное «Применить») */
+  const pickMulti = (it: MultiItem) => {
+    if (it.status !== 'ok' || !it.url) return;
+    pickProvider(it.id); // метаданные и подпись — от реально выбранной модели
+    clearPreview();
+    // свой object URL: сетка живёт отдельно, её URL не трогаем
+    setPreview({ blob: it.blob ?? null, url: it.blob ? URL.createObjectURL(it.blob) : it.url });
+  };
 
   async function apply() {
     if (!target || !preview) return;
@@ -294,6 +377,17 @@ export function ArtEditor() {
     }
     clearPreview();
     setApplied(true);
+  }
+
+  /** одобренную картинку — в референсы: следующие генерации держат тот же образ */
+  async function previewToRefs() {
+    if (!preview) return;
+    try {
+      const url = preview.blob ? await blobToDataUrl(preview.blob) : preview.url;
+      setRefs((rs) =>
+        rs.some((r) => r.url === url) ? rs : [...rs, { url, label: t('art.ref.approved'), on: true }],
+      );
+    } catch { /* не вышло сжать — просто не добавляем */ }
   }
 
   /** выбранные галочками референсы → компактные data-URI (сервер берёт до 3) */
@@ -447,16 +541,60 @@ export function ArtEditor() {
                 key={m.id}
                 className={`btn sm ${provider === m.id ? '' : 'ghost'}`}
                 onClick={() => pickProvider(m.id)}
-                title={m.id === 'pollinations' ? t('art.free.hint') : 'Replicate'}
+                title="Replicate"
               >
                 {m.label}
               </button>
             ))}
+            {/* один промпт — все шесть моделей параллельно */}
+            <button
+              className="btn sm dark"
+              onClick={generateAll}
+              disabled={busy}
+              title={t('art.all.hint')}
+              data-testid="artedit-all"
+            >
+              ⚡ {t('art.all')}
+            </button>
           </div>
 
-          {/* единый ключ Replicate для платных моделей: хранится ТОЛЬКО в этом
+          {multi && (
+            <div className="artedit-multi">
+              <div className="tech-label artedit-multi-head">
+                {t('art.all.pick')}
+                <button className="artedit-x" onClick={closeMulti} aria-label={t('common.cancel')}>✕</button>
+              </div>
+              <div className="artedit-multi-grid">
+                {multi.map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    className={`artedit-multi-cell ${m.status}`}
+                    onClick={() => pickMulti(m)}
+                    disabled={m.status !== 'ok'}
+                    title={m.label}
+                  >
+                    {m.status === 'ok' && m.url ? (
+                      <img
+                        src={m.url}
+                        alt=""
+                        onError={() =>
+                          setMulti((s) => s?.map((x) => (x.id === m.id ? { ...x, status: 'err' as const } : x)) ?? s)
+                        }
+                      />
+                    ) : (
+                      <span className="artedit-multi-state">{m.status === 'busy' ? '…' : '✕'}</span>
+                    )}
+                    <i>{m.label}</i>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* единый ключ Replicate для всех моделей: хранится ТОЛЬКО в этом
               браузере, уходит заголовком в нашу же функцию /api/generate */}
-          {provider !== 'pollinations' && (
+          {(
             <div className="artedit-keyrow">
               <input
                 className="field"
@@ -531,6 +669,12 @@ export function ArtEditor() {
             {preview && (
               <button className="btn primary" onClick={apply} data-testid="artedit-apply">
                 {t('art.apply')}
+              </button>
+            )}
+            {preview && (
+              // одобренный кадр → в референсы: дальше держим тот же образ
+              <button className="btn sm ghost" onClick={() => void previewToRefs()} title={t('art.toRefs.hint')}>
+                {t('art.toRefs')}
               </button>
             )}
             {hasOverride && (

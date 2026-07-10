@@ -58,15 +58,16 @@ export function CarsTab() {
   }, []);
 
   /** заказать видео-заставку тачки: заявка в очередь, исполняет Claude
-      (image-to-video от текущего фото тачки) */
-  const orderLive = (carId: string, carName: string) => {
+      (image-to-video СТРОГО от главного фото карточки). redo — перегенерация:
+      старый live.mp4 заменяется новым от актуального главного фото */
+  const orderLive = (carId: string, carName: string, redo = false) => {
     fetch('/api/queue', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         key: `car-live-${carId}`,
         kind: 'video',
-        prompt: `видео-заставка (оживление) тачки ${carName}: image-to-video от её текущего фото — машина стоит, лёгкий кинематографичный облёт камеры, ночной цех, дым, блики; кладётся в /media/cars/${carId}/live.mp4`,
+        prompt: `${redo ? 'ПЕРЕГЕНЕРАЦИЯ видео-заставки (старый ролик заменить)' : 'видео-заставка (оживление)'} тачки ${carName}: image-to-video СТРОГО от главного фото её карточки (референс — текущее фото тачки, консистентность кузова обязательна) — машина стоит, лёгкий кинематографичный облёт камеры, ночной цех, дым, блики; кладётся в /media/cars/${carId}/live.mp4`,
         width: 1280,
         height: 720,
         createdAt: Date.now(),
@@ -163,12 +164,22 @@ export function CarsTab() {
                       <button className="adm-mini-btn" onClick={() => setViewCar(c)}>
                         {t('admin.cars.open')}
                       </button>
-                      {hasLive ? (
+                      {hasLive && (
                         <span className="adm-badge hit" title={c.video ?? ''}>{t('admin.cars.liveHave')}</span>
-                      ) : liveQueued[c.id] ? (
+                      )}
+                      {liveQueued[c.id] ? (
                         <span className="adm-badge" style={{ color: 'var(--hazard, #e0a51b)', borderColor: 'var(--hazard, #e0a51b)' }}>
                           {t('admin.cars.liveQueued')}
                         </span>
+                      ) : hasLive ? (
+                        // перегенерация: заявка заново, референс — главное фото карточки
+                        <button
+                          className="adm-mini-btn"
+                          title={t('admin.cars.liveRedoHint')}
+                          onClick={() => orderLive(c.id, `${c.make} ${c.model}`, true)}
+                        >
+                          {t('admin.cars.liveRedo')}
+                        </button>
                       ) : (
                         <button className="adm-mini-btn" onClick={() => orderLive(c.id, `${c.make} ${c.model}`)}>
                           {t('admin.cars.live')}

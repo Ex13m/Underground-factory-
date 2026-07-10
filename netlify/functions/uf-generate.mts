@@ -76,11 +76,53 @@ export default async (req: Request) => {
     references?: string[];
     /** режим «Опознать по фото»: вернуть JSON {name, passport} по картинке */
     describe?: string;
+    /** арт-агент: собрать детальный промпт под КОНКРЕТНУЮ тачку (консистентность) */
+    carPrompt?: { car: string; userPrompt?: string; style?: boolean };
   };
   try {
     body = await req.json();
   } catch {
     return Response.json({ error: 'bad json' }, { status: 400 });
+  }
+
+  // ---- арт-агент промптов: имя тачки → детальный фото-промпт ----
+  // Агент знает конкретное поколение (кузов, оптика, решётка, пропорции) и
+  // расписывает его дословно, чтобы ЛЮБАЯ модель нарисовала ту же машину.
+  if (body.carPrompt?.car) {
+    const cp = body.carPrompt;
+    const ask =
+      `You are the art director of an underground tuning shop website. ` +
+      `Write ONE image-generation prompt in English for this exact car: "${cp.car}".\n` +
+      `Rules:\n` +
+      `1. IDENTIFY the exact generation and describe its body PRECISELY so any image model draws THE SAME car: ` +
+      `body shape, headlights, grille, proportions, stance, wheels, era-correct details. Consistency is the top priority.\n` +
+      `2. The car is a tastefully tuned version with an aftermarket body kit (carbon fiber details), but the body must stay honest and recognizable.\n` +
+      (cp.userPrompt?.trim()
+        ? `3. The user's request is LAW — build the scene and mood around it, keep every user detail: "${cp.userPrompt.trim()}".\n`
+        : `3. Pick ONE believable real street location (not a garage), vary it.\n`) +
+      `4. Always: ultra realistic professional photography, shot on a pro camera, true-to-life paint and reflections, no CGI look, no text.\n` +
+      (cp.style
+        ? `5. Add a subtle color grade only: deep blacks, slightly desaturated dirty-white highlights, an occasional blood-red (#e01b22) accent. Fine film grain.\n`
+        : '') +
+      `Reply STRICTLY with one JSON object: {"prompt":"..."}`;
+    for (const m of DESCRIBE_MODELS) {
+      const ar = await fetch(`https://api.replicate.com/v1/models/${m}/predictions`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Prefer: 'wait' },
+        body: JSON.stringify({ input: { prompt: ask } }),
+      });
+      const ad = await ar.json().catch(() => ({}));
+      if (ar.status === 404 || ar.status === 422) continue; // модель недоступна — следующая
+      const text = Array.isArray(ad?.output) ? ad.output.join('') : String(ad?.output ?? '');
+      const jm = text.match(/\{[\s\S]*\}/);
+      if (ar.ok && jm) {
+        try {
+          return Response.json(JSON.parse(jm[0]));
+        } catch { /* кривой JSON — отдаём ошибку ниже */ }
+      }
+      return Response.json({ error: ad?.detail ?? ad?.error ?? `replicate ${ar.status}` }, { status: 502 });
+    }
+    return Response.json({ error: 'no text model available on this key' }, { status: 502 });
   }
 
   // ---- «Опознать по фото»: vision-модель описывает тачку ----

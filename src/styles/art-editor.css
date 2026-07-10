@@ -153,3 +153,50 @@ body.art-edit .uf-hero-content { position: relative; z-index: 2; }
 /* поле API-ключа провайдера */
 .artedit-keyrow { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
 .artedit-keyrow .field { flex: 1; min-width: 0; font-size: 12px; }
+
+/* «во всех сразу»: сетка результатов всех моделей, клик — в предпросмотр */
+.artedit-multi { border: 1px solid rgba(236, 234, 229, 0.2); padding: 8px; }
+.artedit-multi-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--blood);
+  margin-bottom: 6px;
+}
+.artedit-multi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.artedit-multi-cell {
+  position: relative;
+  padding: 0;
+  border: 1px solid rgba(236, 234, 229, 0.25);
+  background: rgba(10, 10, 9, 0.6);
+  cursor: pointer;
+  overflow: hidden;
+}
+.artedit-multi-cell img { width: 100%; height: 64px; object-fit: cover; display: block; }
+.artedit-multi-cell:hover:not(:disabled) { border-color: var(--blood); }
+.artedit-multi-cell:disabled { cursor: default; opacity: 0.6; }
+.artedit-multi-state {
+  display: grid;
+  place-items: center;
+  height: 64px;
+  font-family: var(--font-mono);
+  font-size: 16px;
+  color: var(--paper-dim);
+}
+.artedit-multi-cell.busy .artedit-multi-state { animation: artedit-busy 1s steps(3) infinite; }
+@keyframes artedit-busy { 50% { opacity: 0.3; } }
+.artedit-multi-cell.err .artedit-multi-state { color: var(--blood); }
+.artedit-multi-cell i {
+  display: block;
+  font-family: var(--font-mono);
+  font-style: normal;
+  font-size: 9px;
+  padding: 2px 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

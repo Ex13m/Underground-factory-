@@ -7,8 +7,9 @@ import { useEffect, useState } from 'react';
 import { api, onDataChanged } from '../../lib/api';
 import { useI18n } from '../../lib/i18n';
 import { useUI } from '../../store/ui';
-import { readGenKeys, writeGenKeys, type GenProvider } from '../../lib/imagegen';
+import { readGenKeys, writeGenKeys } from '../../lib/imagegen';
 import { listOverrides, removeOverride, clearOverrides, onMediaChanged } from '../../lib/mediaStore';
+import { openArtEditor } from '../../fx/ArtEditor';
 
 export function ArtTab() {
   const { t } = useI18n();
@@ -105,30 +106,6 @@ export function ArtTab() {
           </span>
         </div>
 
-        <label className="tech-label" style={{ marginTop: 12, display: 'block' }}>
-          {t('admin.art.defProvider')}
-        </label>
-        <div className="adm-form-actions">
-          <button
-            className={`btn ${(keys.provider ?? 'pollinations') === 'pollinations' ? '' : 'ghost'}`}
-            onClick={() => saveKey({ provider: 'pollinations' as GenProvider })}
-          >
-            {t('art.free')}
-          </button>
-          <button
-            className={`btn ${keys.provider === 'openai' ? '' : 'ghost'}`}
-            onClick={() => saveKey({ provider: 'openai' as GenProvider })}
-          >
-            GPT IMAGE
-          </button>
-          <button
-            className={`btn ${keys.provider === 'gemini' ? '' : 'ghost'}`}
-            onClick={() => saveKey({ provider: 'gemini' as GenProvider })}
-          >
-            NANO BANANA
-          </button>
-        </div>
-
       </div>
 
       <div className="panel rivets">
@@ -177,9 +154,29 @@ export function ArtTab() {
                     <td><code>{o.key}</code></td>
                     <td className="adm-note">{o.prompt}</td>
                     <td>
-                      <button className="adm-mini-btn" onClick={() => removeOverride(o.key)}>
-                        {t('admin.art.resetOne')}
-                      </button>
+                      <div className="adm-actions">
+                        {/* перегенерация прямо из истории: открывает арт-редактор
+                            с этим ключом; текущая замена — референсом */}
+                        {o.kind === 'image' && (
+                          <button
+                            className="adm-mini-btn"
+                            onClick={() =>
+                              openArtEditor({
+                                key: o.key,
+                                kind: 'image',
+                                src: o.url,
+                                width: 800,
+                                height: 500,
+                              })
+                            }
+                          >
+                            {t('admin.media.gen')}
+                          </button>
+                        )}
+                        <button className="adm-mini-btn" onClick={() => removeOverride(o.key)}>
+                          {t('admin.art.resetOne')}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
