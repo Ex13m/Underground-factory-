@@ -13,6 +13,7 @@ import { useCatalog } from '../../store/catalog';
 import { useCart } from '../../store/cart';
 import { Img, VideoBg } from '../../lib/media';
 import { liveClipOf } from '../../data/livemap';
+import { useCarGallery } from '../../store/cargallery';
 import type { CarModel, MaterialGrade } from '../../lib/types';
 import { GRADE_ORDER, GRADE_META } from '../../lib/types';
 
@@ -20,10 +21,13 @@ export function CarModal({
   car,
   onClose,
   onPickInCatalog,
+  admin = false,
 }: {
   car: CarModel;
   onClose: () => void;
   onPickInCatalog: (carId: string) => void;
+  /** режим админа: в листалке видны ВСЕ фото галереи с галочками включения */
+  admin?: boolean;
 }) {
   const { t, lt } = useI18n();
   const products = useCatalog((s) => s.products);
@@ -60,12 +64,50 @@ export function CarModal({
     flashTimer.current = window.setTimeout(() => setKitFlash(null), 2000);
   };
 
-  // Esc закрывает
+  // приближённый просмотр фото поверх всего (лайтбокс): индекс в imgSlides
+  const [zoom, setZoom] = useState<number | null>(null);
+
+  // ---- листалка шапки: слайд 0 — ВСЕГДА видео (если есть), дальше —
+  // главное фото и отмеченные галочками фото из галереи тачки ----
+  const galleryAll = useCarGallery((s) => s.photos[car.id] ?? []);
+  const togglePhoto = useCarGallery((s) => s.togglePhoto);
+  const live = liveClipOf(car.id, car.video);
+  const slides = useMemo(() => {
+    const list: Array<{ kind: 'video' | 'image'; url: string; gIdx?: number; on?: boolean }> = [];
+    if (live) list.push({ kind: 'video', url: live });
+    if (car.img || !live) list.push({ kind: 'image', url: car.img });
+    galleryAll.forEach((p, i) => {
+      // посетителю — только отмеченные; админу — все, с галочкой
+      if (p.on || admin) list.push({ kind: 'image', url: p.url, gIdx: i, on: p.on });
+    });
+    return list;
+  }, [live, car.img, galleryAll, admin]);
+  const [slide, setSlide] = useState(0); // дефолт — видео
+  useEffect(() => setSlide(0), [car.id]);
+  const cur = slides[Math.min(slide, slides.length - 1)] ?? slides[0];
+  const flip = (dir: 1 | -1) => setSlide((i) => (i + dir + slides.length) % slides.length);
+
+  // лайтбокс листает только фото (видео остаётся в шапке)
+  const imgSlides = useMemo(() => slides.filter((s) => s.kind === 'image'), [slides]);
+  const zoomFlip = (dir: 1 | -1) =>
+    setZoom((i) => (i === null || !imgSlides.length ? i : (i + dir + imgSlides.length) % imgSlides.length));
+
+  // Esc: сначала закрывает лайтбокс, потом модалку; ←/→ листают лайтбокс
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (zoom !== null) setZoom(null);
+        else onClose();
+      }
+      if (zoom !== null && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+        e.preventDefault();
+        zoomFlip(e.key === 'ArrowLeft' ? -1 : 1);
+      }
+    };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onClose, zoom, imgSlides.length]);
 
   return (
     <div className="uf-auth-overlay" onClick={onClose} data-testid="car-modal">
@@ -75,11 +117,56 @@ export function CarModal({
         </button>
 
         <div className="carmodal-hero">
-          {liveClipOf(car.id, car.video) ? (
+          {cur?.kind === 'video' ? (
             // «оживающая» тачка: сид-поле video или карта заставок кастомных (livemap)
-            <VideoBg sources={[liveClipOf(car.id, car.video)!]} seed={`car-live-${car.id}`} />
+            <VideoBg sources={[cur.url]} seed={`car-live-${car.id}`} />
           ) : (
-            <Img src={car.img} seed={`car-${car.id}`} alt={`${car.make} ${car.model}`} />
+            // клик по фото — приближённый просмотр поверх всего
+            <button
+              type="button"
+              className="carmodal-zoom-open"
+              onClick={() => cur && setZoom(Math.max(0, imgSlides.indexOf(cur)))}
+              aria-label="zoom"
+            >
+              <Img src={cur?.url || car.img} seed={`car-${car.id}`} alt={`${car.make} ${car.model}`} />
+            </button>
+          )}
+          {/* висящие стрелки листания — только когда есть что листать */}
+          {slides.length > 1 && (
+            <>
+              <button
+                type="button"
+                className="carmodal-flip left"
+                onClick={(e) => { e.stopPropagation(); flip(-1); }}
+                aria-label="prev"
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                className="carmodal-flip right"
+                onClick={(e) => { e.stopPropagation(); flip(1); }}
+                aria-label="next"
+              >
+                ›
+              </button>
+              <div className="carmodal-dots" aria-hidden>
+                {slides.map((s, i) => (
+                  <i key={i} className={i === slide ? 'on' : ''} title={s.kind} />
+                ))}
+              </div>
+            </>
+          )}
+          {/* админ: галочка «в галерее» на фото из галереи */}
+          {admin && cur?.gIdx !== undefined && (
+            <label className="carmodal-galcheck" onClick={(e) => e.stopPropagation()}>
+              <input
+                type="checkbox"
+                checked={cur.on ?? true}
+                onChange={(e) => togglePhoto(car.id, cur.gIdx!, e.target.checked)}
+              />
+              {t('catalog.cars.inGallery')}
+            </label>
           )}
           <div className="carmodal-scrim" aria-hidden />
           <div className="carmodal-hero-info">
@@ -179,6 +266,52 @@ export function CarModal({
           </button>
         </div>
       </div>
+
+      {/* лайтбокс: фото крупно поверх всего, ‹ › и ←/→ листают, Esc/клик закрывает */}
+      {zoom !== null && imgSlides[zoom] && (
+        <div
+          className="carmodal-zoom"
+          onClick={(e) => {
+            e.stopPropagation();
+            setZoom(null);
+          }}
+          data-testid="car-zoom"
+        >
+          <img src={imgSlides[zoom].url} alt={`${car.make} ${car.model}`} onClick={(e) => e.stopPropagation()} />
+          {imgSlides.length > 1 && (
+            <>
+              <button
+                type="button"
+                className="carmodal-flip left"
+                onClick={(e) => { e.stopPropagation(); zoomFlip(-1); }}
+                aria-label="prev"
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                className="carmodal-flip right"
+                onClick={(e) => { e.stopPropagation(); zoomFlip(1); }}
+                aria-label="next"
+              >
+                ›
+              </button>
+              <div className="carmodal-dots" aria-hidden>
+                {imgSlides.map((_, i) => (
+                  <i key={i} className={i === zoom ? 'on' : ''} />
+                ))}
+              </div>
+            </>
+          )}
+          <button
+            className="artedit-x carmodal-zoom-x"
+            onClick={(e) => { e.stopPropagation(); setZoom(null); }}
+            aria-label={t('common.cancel')}
+          >
+            ✕
+          </button>
+        </div>
+      )}
     </div>
   );
 }

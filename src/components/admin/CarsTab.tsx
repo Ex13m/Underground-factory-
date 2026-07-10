@@ -114,6 +114,7 @@ export function CarsTab() {
       {viewCar && (
         <CarModal
           car={viewCar}
+          admin
           onClose={() => setViewCar(null)}
           onPickInCatalog={(carId) => {
             setViewCar(null);

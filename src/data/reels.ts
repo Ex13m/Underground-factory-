@@ -16,6 +16,15 @@ export interface Reel {
 
 export const REELS: Reel[] = [
   {
+    // Масл-кары 1970: канон от реального 1970 Dodge Challenger R/T (Wikimedia),
+    // Kodachrome-вайб золотого часа: бёрнаут у драйв-ина, круиз по бульвару,
+    // драг на грунтовой полосе, хромовый V8, занос в каньоне, финал у заправки.
+    // Музыка: Surf Shimmy — Kevin MacLeod (incompetech.com), CC-BY 4.0.
+    file: '/media/reels/reel-muscle-1970.mp4',
+    title: { ru: 'МАСЛ-КАРЫ ▸ 1970 ▸ ЗОЛОТОЙ ВЕК', en: 'MUSCLE CARS ▸ 1970 ▸ THE GOLDEN AGE' },
+    createdAt: '2026-07-10',
+  },
+  {
     // Лада 2107 на полном обвесе — рилс по закону консистентности: канонический
     // кадр (soul 9:16) → 4 клипа image-to-video от него + 2 макро по паспорту.
     // Старт с толпой и файером, неон, мотор в такт басам, дрифт, арка макро,

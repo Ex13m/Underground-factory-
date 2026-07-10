@@ -649,3 +649,101 @@ section.inverse .shop-section-sub { color: #55524b; }
 }
 
 .pp-similar { margin-top: 70px; }
+
+/* листалка шапки карточки тачки: висящие стрелки + точки-индикатор */
+.carmodal-flip {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 4;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(236, 234, 229, 0.35);
+  background: rgba(10, 10, 9, 0.55);
+  color: var(--paper);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  backdrop-filter: blur(2px);
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.carmodal-flip:hover { border-color: var(--blood); color: var(--blood); background: rgba(10, 10, 9, 0.8); }
+.carmodal-flip.left { left: 12px; }
+.carmodal-flip.right { right: 12px; }
+.carmodal-dots {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 10px;
+  z-index: 4;
+  display: flex;
+  gap: 6px;
+}
+.carmodal-dots i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(236, 234, 229, 0.35);
+}
+.carmodal-dots i.on { background: var(--blood); }
+
+/* клик по фото шапки открывает приближённый просмотр */
+.carmodal-zoom-open {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+}
+.carmodal-zoom-open img { width: 100%; height: 100%; object-fit: cover; }
+
+/* лайтбокс: фото крупно поверх всего, тёмный фон, стрелки как в шапке */
+.carmodal-zoom {
+  position: fixed;
+  inset: 0;
+  z-index: 9500; /* поверх модалки тачки */
+  display: grid;
+  place-items: center;
+  background: rgba(5, 5, 4, 0.92);
+  backdrop-filter: blur(4px);
+  cursor: zoom-out;
+}
+.carmodal-zoom > img {
+  max-width: 94vw;
+  max-height: 92vh;
+  object-fit: contain;
+  border: 1px solid rgba(236, 234, 229, 0.25);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.7);
+  cursor: default;
+}
+.carmodal-zoom .carmodal-flip { position: fixed; }
+.carmodal-zoom .carmodal-dots { position: fixed; bottom: 18px; }
+.carmodal-zoom-x {
+  position: fixed;
+  top: 16px;
+  right: 18px;
+  z-index: 2;
+}
+
+/* админ-галочка «в галерее» на фото-слайде карточки */
+.carmodal-galcheck {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--paper);
+  background: rgba(10, 10, 9, 0.65);
+  border: 1px solid rgba(236, 234, 229, 0.3);
+  padding: 4px 8px;
+  cursor: pointer;
+}

@@ -46,14 +46,16 @@ export function writeGenKeys(patch: Partial<GenKeys>) {
 }
 
 /**
- * Стилевой референс: собран из дизайн-токенов сайта (global.css / design_tokens
- * Stitch) — подмешивается к промпту, чтобы новые картинки не выбивались из стиля.
+ * Стилевой суффикс сайта — МЯГКИЙ: качество и реализм всегда главные,
+ * от сайта — только лёгкая цветовая гамма. НИКАКОГО навязывания гаража,
+ * HUD-пластин и прочего окружения: промпт пользователя — закон, суффикс
+ * лишь слегка красит. Галочка «стиль сайта» включает/выключает его.
  */
 export const STYLE_SUFFIX =
-  'Style: cyber-industrial techwear, underground JDM tuning workshop at night. ' +
-  'Palette: blood red #e01b22, deep black, dirty paper-white. Carbon fibre texture, ' +
-  'HUD plates with cut corners, japanese stencil glyphs, warning tape decals, ' +
-  'film grain, harsh rim light, high-contrast editorial product photography.';
+  'Ultra realistic professional photography, shot on a pro camera, true-to-life ' +
+  'detail and materials, natural light behavior, NO cgi look. Subtle color grade ' +
+  'only: deep blacks, slightly desaturated dirty-white highlights, an occasional ' +
+  'blood-red (#e01b22) accent somewhere in the scene. Fine film grain.';
 
 /** Автоподбор размера под пропорции элемента на странице. */
 function openaiSize(w: number, h: number): '1024x1024' | '1536x1024' | '1024x1536' {

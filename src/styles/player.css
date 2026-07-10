@@ -8,13 +8,36 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 7px 10px;
+  padding: 8px 11px;
+}
+/* пластина — отдельным слоем: clip-path режет только её, а не свечение
+   (box-shadow на элементе с clip-path обрезался прямоугольником — некрасиво) */
+.ufplayer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
   background: rgba(17, 17, 16, 0.92);
   border: 1px solid var(--surface-var);
   clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
   backdrop-filter: blur(6px);
 }
-.ufplayer.on { border-color: var(--blood); box-shadow: 0 0 14px rgba(224, 27, 34, 0.25); }
+.ufplayer.on::before { border-color: var(--blood); }
+/* мягкий ореол при игре: радиальный градиент в полную прозрачность — без граней */
+.ufplayer.on::after {
+  content: '';
+  position: absolute;
+  inset: -34px;
+  z-index: -2;
+  pointer-events: none;
+  background: radial-gradient(
+    closest-side,
+    rgba(224, 27, 34, 0.26),
+    rgba(224, 27, 34, 0.1) 55%,
+    transparent 80%
+  );
+}
+body.calm .ufplayer.on::after { display: none; }
 
 .ufplayer-btn {
   font-family: var(--font-mono);

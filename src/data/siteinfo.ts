@@ -7,10 +7,10 @@ import type { LocalText } from '../lib/types';
  */
 
 export const HF_CREDITS = {
-  value: '≈1225',
-  /** реально израсходовано на проект с 2026-07-08 (сумма spend из биллинга Higgsfield) */
-  spent: '≈815',
-  measuredAt: '2026-07-09',
+  value: '≈210',
+  /** реально израсходовано на проект с 2026-07-08 (замер balance MCP при релизе) */
+  spent: '≈1830',
+  measuredAt: '2026-07-10',
   plan: 'Ultimate',
 };
 
@@ -21,9 +21,9 @@ export const HF_CREDITS = {
  * кэша за все сессии разработки с 2026-07-08. Обновляется с релизами.
  */
 export const SPEND_METERS = [
-  { id: 'hf', label: 'HIGGSFIELD', spent: '≈815', unit: { ru: 'кредитов', en: 'credits' }, exact: true },
+  { id: 'hf', label: 'HIGGSFIELD', spent: '≈1830', unit: { ru: 'кредитов', en: 'credits' }, exact: true },
   { id: 'heygen', label: 'HEYGEN', spent: '0', unit: { ru: 'кредитов', en: 'credits' }, exact: true },
-  { id: 'claude', label: 'CLAUDE CODE', spent: '≈25M', unit: { ru: 'токенов (оценка)', en: 'tokens (estimate)' }, exact: false },
+  { id: 'claude', label: 'CLAUDE CODE', spent: '≈30M', unit: { ru: 'токенов (оценка)', en: 'tokens (estimate)' }, exact: false },
 ] as const;
 
 export interface InfoSection {

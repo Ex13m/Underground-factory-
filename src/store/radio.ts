@@ -44,6 +44,14 @@ export interface TrimRange {
 /** с этого трека радио стартует, если админ не выбрал другой */
 export const DEFAULT_FIRST = 'boost.mp3';
 
+/** заказ владельца (2026-07-10): эфир ВСЕГДА открывает nagano-track-1
+    (загруженный трек; расширение и разделители — любые). Нет в эфире —
+    падаем на выбранный админом first / DEFAULT_FIRST. */
+const OPENER = /^nagano[\s_-]*track[\s_-]*1(\.|$)/i;
+export function resolveFirst(first: string | null, ids: string[]): string {
+  return ids.find((id) => OPENER.test(id)) ?? first ?? DEFAULT_FIRST;
+}
+
 /** пресеты мастеринга (без enabled/preset/targetLufs — цель LUFS пресетами не трогаем) */
 export const MASTER_PRESETS: Record<Exclude<MasterPreset, 'manual'>, Omit<MasterSettings, 'enabled' | 'preset' | 'targetLufs'>> = {
   // единый стандарт эфира: больше эха и объёма, лимитер, срез гула

@@ -23,7 +23,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { onAirTracks, type RadioTrack } from '../lib/radioTracks';
 import { onMediaChanged } from '../lib/mediaStore';
-import { useRadio, DEFAULT_FIRST } from '../store/radio';
+import { useRadio, resolveFirst } from '../store/radio';
 import '../styles/player.css';
 
 const dbToLin = (db: number) => Math.pow(10, db / 20);
@@ -74,7 +74,8 @@ function buildOrder(placeFirst: boolean): RadioTrack[] {
   const st = useRadio.getState();
   const s = shuffle(onAirTracks(st.onAir));
   if (placeFirst) {
-    const fid = st.first ?? DEFAULT_FIRST;
+    // эфир всегда открывает nagano-track-1 (если он в каталоге), дальше — рандом
+    const fid = resolveFirst(st.first, s.map((t) => t.id));
     const i = s.findIndex((t) => t.id === fid);
     if (i > 0) s.unshift(s.splice(i, 1)[0]);
   }

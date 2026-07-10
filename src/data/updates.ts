@@ -7,7 +7,8 @@ import type { LocalText } from '../lib/types';
  * что реально поменялось с прошлого релиза (коротко, по-русски и по-английски).
  */
 export const UPDATE_NOTES: LocalText[] = [
-  { ru: 'САЙТ ОБНОВЛЯЕТСЯ САМ ▸ ВСЕГДА СВЕЖАЯ СБОРКА', en: 'THE SITE UPDATES ITSELF ▸ ALWAYS THE FRESH BUILD' },
-  { ru: 'ВЕРСИЯ ЖИВЁТ В ШАПКЕ ▸ С ХАРАКТЕРОМ', en: 'THE VERSION LIVES IN THE HEADER ▸ WITH ATTITUDE' },
+  { ru: 'НОВЫЙ РИЛС ▸ МАСЛ-КАРЫ 1970 ▸ ЗОЛОТОЙ ВЕК V8', en: 'NEW REEL ▸ MUSCLE CARS 1970 ▸ THE GOLDEN AGE OF V8' },
+  { ru: 'КАРТОЧКИ ТАЧЕК ▸ ФОТО ЛИСТАЮТСЯ И СМОТРЯТСЯ КРУПНО', en: 'CAR CARDS ▸ PHOTOS FLIP AND ZOOM BIG' },
+  { ru: 'АРТ-РЕДАКТОР ▸ ШЕСТЬ НЕЙРОСЕТЕЙ НА ОДНОМ КЛЮЧЕ', en: 'ART EDITOR ▸ SIX MODELS ON A SINGLE KEY' },
   { ru: 'КОД FIGABOSS2026 ▸ −15% КАЖДОМУ', en: 'CODE FIGABOSS2026 ▸ −15% FOR EVERYONE' },
 ];

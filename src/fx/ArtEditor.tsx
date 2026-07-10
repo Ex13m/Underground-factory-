@@ -14,8 +14,9 @@ import { api } from '../lib/api';
 import { bus } from '../lib/bus';
 import { useI18n } from '../lib/i18n';
 import { useUI } from '../store/ui';
+import { useCarGallery } from '../store/cargallery';
 import {
-  readGenKeys, writeGenKeys,
+  readGenKeys, writeGenKeys, PROVIDER_MODELS,
   pollinationsUrl, finalPrompt, type GenProvider,
 } from '../lib/imagegen';
 import {
@@ -41,12 +42,16 @@ export interface ArtTarget {
 }
 
 /** Случайные сцены для авто-промпта тачек. */
+// реальные уличные локации (НЕ один и тот же гараж): ультрареализм — главное,
+// стилизация под сайт — только лёгкой палитрой (см. STYLE_SUFFIX)
 const CAR_SCENES = [
-  'night industrial dock, wet asphalt reflections',
-  'underground parking garage, blood-red neon rim light',
-  'night street with japanese neon signs, light rain',
-  'airfield apron at dusk, dramatic sky',
-  'mountain road at night, fog in the headlights',
+  'parked on a real city street at golden hour, everyday surroundings',
+  'street-parked on wet asphalt after rain, overcast daylight',
+  'rolling shot on a highway at dusk, natural motion blur',
+  'parked by a roadside diner in the evening, practical lights',
+  'quiet residential street at night, sodium street lamps',
+  'industrial district street by day, honest documentary look',
+  'mountain road pull-off at sunrise, soft haze',
 ];
 
 /**
@@ -60,7 +65,7 @@ function autoPrompt(key: string): string {
     const c = api.listCars().find((x) => x.id === cm[1]);
     if (c) {
       const scene = CAR_SCENES[Math.floor(Math.random() * CAR_SCENES.length)];
-      return `${c.make} ${c.model} (${c.years}), tastefully tuned custom version with aftermarket body kit, ${scene}, cinematic photo, film grain, no text`;
+      return `Ultra realistic professional automotive photo, pro camera: ${c.make} ${c.model} (${c.years}), tastefully tuned custom version with aftermarket body kit, ${scene}, true-to-life paint and reflections, no text`;
     }
   }
   const p = api.listProducts().find((x) => key.startsWith(x.id));
@@ -226,10 +231,12 @@ export function ArtEditor() {
     const rKey = readGenKeys().replicate?.trim();
 
     // все провайдеры ходят через нашу функцию /api/generate (Replicate):
-    // БЕСПЛАТНО ▸ flux-schnell, NANO BANANA ▸ google/nano-banana, GPT IMAGE ▸ gpt-image-1.
+    // модель берётся из справочника PROVIDER_MODELS по выбранной кнопке.
     // Ключ — из поля на сайте (заголовком) или из Netlify env.
-    const model = provider === 'gemini' ? 'nano' : provider === 'openai' ? 'gpt' : 'free';
+    const model = PROVIDER_MODELS.find((m) => m.id === provider)?.model ?? 'free';
     setBusy(true);
+    // отмеченные референсы → data-URI в тело запроса (бесплатный их не умеет)
+    const references = provider === 'pollinations' ? [] : await collectRefs();
     try {
       const r = await fetch('/api/generate', {
         method: 'POST',
@@ -237,7 +244,10 @@ export function ArtEditor() {
           'Content-Type': 'application/json',
           ...(rKey ? { 'x-replicate-key': rKey } : {}),
         },
-        body: JSON.stringify({ prompt: fp, width: target.width, height: target.height, model }),
+        body: JSON.stringify({
+          prompt: fp, width: target.width, height: target.height, model,
+          ...(references.length ? { references } : {}),
+        }),
       });
       if (r.ok && (r.headers.get('content-type') ?? '').startsWith('image/')) {
         const blob = await r.blob();
@@ -274,8 +284,52 @@ export function ArtEditor() {
       // URL-режим: сохраняем саму ссылку — легко, автономно, переживает перезагрузку
       setUrlOverride(target.key, preview.url, prompt.trim());
     }
+    // фото тачки — в галерею её карточки (листалка в CarModal, галочки в админке)
+    const carMatch = target.key.match(/^car-(?!draft-|live-)(.+)$/);
+    if (carMatch) {
+      try {
+        const url = preview.blob ? await blobToDataUrl(preview.blob) : preview.url;
+        useCarGallery.getState().addPhoto(carMatch[1], url);
+      } catch { /* галерея — бонус, не роняем применение */ }
+    }
     clearPreview();
     setApplied(true);
+  }
+
+  /** выбранные галочками референсы → компактные data-URI (сервер берёт до 3) */
+  async function collectRefs(): Promise<string[]> {
+    const picked = refs.filter((r) => r.on).slice(0, 3);
+    const out: string[] = [];
+    for (const r of picked) {
+      try {
+        if (r.url.startsWith('data:')) { out.push(r.url); continue; }
+        const res = await fetch(r.url);
+        if (!res.ok) continue;
+        out.push(await blobToDataUrl(await res.blob()));
+      } catch { /* недоступный референс просто пропускаем */ }
+    }
+    return out;
+  }
+
+  /** blob → компактный dataURL (jpeg ≤1280px) для галереи тачки */
+  async function blobToDataUrl(blob: Blob): Promise<string> {
+    const url = URL.createObjectURL(blob);
+    try {
+      const img = await new Promise<HTMLImageElement>((res, rej) => {
+        const i = new Image();
+        i.onload = () => res(i);
+        i.onerror = rej;
+        i.src = url;
+      });
+      const k = Math.min(1, 1280 / Math.max(img.width, img.height));
+      const cv = document.createElement('canvas');
+      cv.width = Math.round(img.width * k);
+      cv.height = Math.round(img.height * k);
+      cv.getContext('2d')!.drawImage(img, 0, 0, cv.width, cv.height);
+      return cv.toDataURL('image/jpeg', 0.82);
+    } finally {
+      URL.revokeObjectURL(url);
+    }
   }
 
   async function reset() {
@@ -387,25 +441,17 @@ export function ArtEditor() {
           />
 
           <div className="artedit-row artedit-provider">
-            <button
-              className={`btn sm ${provider === 'pollinations' ? '' : 'ghost'}`}
-              onClick={() => pickProvider('pollinations')}
-              title={t('art.free.hint')}
-            >
-              {t('art.free')}
-            </button>
-            <button
-              className={`btn sm ${provider === 'openai' ? '' : 'ghost'}`}
-              onClick={() => pickProvider('openai')}
-            >
-              GPT IMAGE
-            </button>
-            <button
-              className={`btn sm ${provider === 'gemini' ? '' : 'ghost'}`}
-              onClick={() => pickProvider('gemini')}
-            >
-              NANO BANANA
-            </button>
+            {/* все модели — через Replicate (один ключ r8_); БЕСПЛАТНО — flux-schnell */}
+            {PROVIDER_MODELS.map((m) => (
+              <button
+                key={m.id}
+                className={`btn sm ${provider === m.id ? '' : 'ghost'}`}
+                onClick={() => pickProvider(m.id)}
+                title={m.id === 'pollinations' ? t('art.free.hint') : 'Replicate'}
+              >
+                {m.label}
+              </button>
+            ))}
           </div>
 
           {/* единый ключ Replicate для платных моделей: хранится ТОЛЬКО в этом

@@ -177,8 +177,8 @@
 }
 .cnt-queue-x:hover { color: var(--blood); }
 
-/* счётчик токенов в шапке */
-.uf-nav-tokens { font-size: 11px; letter-spacing: 0.06em; }
+/* счётчик токенов в шапке: строго одна строка, без переносов */
+.uf-nav-tokens { font-size: 11px; letter-spacing: 0.06em; white-space: nowrap; }
 
 /* своя тачка: превью фото-референса */
 .cnt-photo-preview {
