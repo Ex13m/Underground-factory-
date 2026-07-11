@@ -18,7 +18,7 @@ import { useCarGallery } from '../store/cargallery';
 import { PromptBoost } from './PromptBoost';
 import {
   readGenKeys, writeGenKeys, PROVIDER_MODELS, DEFAULT_PROVIDER,
-  finalPrompt, type GenProvider,
+  finalPrompt, blobToBudgetDataUrl, type GenProvider,
 } from '../lib/imagegen';
 import {
   getOverride, setOverride, setUrlOverride, type MediaKind,
@@ -497,10 +497,11 @@ export function ArtEditor() {
     const out: string[] = [];
     for (const u of picked.slice(0, 3)) {
       try {
-        if (u.startsWith('data:')) { out.push(u); continue; }
+        // ВСЕГДА ужимаем под лимит Replicate на data-URI (~256КБ):
+        // тяжёлый референс молча отбрасывался моделью
         const res = await fetch(u);
         if (!res.ok) continue;
-        out.push(await blobToDataUrl(await res.blob()));
+        out.push(await blobToBudgetDataUrl(await res.blob()));
       } catch { /* недоступный референс просто пропускаем */ }
     }
     return out;

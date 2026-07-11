@@ -292,6 +292,40 @@ export async function geminiIdentifyCar(
   return { name: parsed.name, passport: parsed.passport ?? '' };
 }
 
+/**
+ * Блоб → data-URI, ГАРАНТИРОВАННО влезающий в лимит Replicate на inline-файлы
+ * (~256КБ): перебираем размер и качество, пока строка не уложится в бюджет.
+ * Слишком тяжёлые data-URI Replicate отклоняет — референсы и фото для
+ * image-to-video молча пропадали именно из-за этого.
+ */
+export async function blobToBudgetDataUrl(blob: Blob, maxChars = 240_000): Promise<string> {
+  const url = URL.createObjectURL(blob);
+  try {
+    const img = await new Promise<HTMLImageElement>((res, rej) => {
+      const i = new Image();
+      i.onload = () => res(i);
+      i.onerror = rej;
+      i.src = url;
+    });
+    const cv = document.createElement('canvas');
+    for (const px of [1024, 896, 768, 640, 512]) {
+      const k = Math.min(1, px / Math.max(img.width, img.height));
+      cv.width = Math.max(64, Math.round(img.width * k));
+      cv.height = Math.max(64, Math.round(img.height * k));
+      const ctx = cv.getContext('2d')!;
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      ctx.drawImage(img, 0, 0, cv.width, cv.height);
+      for (const q of [0.8, 0.7, 0.6]) {
+        const out = cv.toDataURL('image/jpeg', q);
+        if (out.length <= maxChars) return out;
+      }
+    }
+    return cv.toDataURL('image/jpeg', 0.5); // крайний случай — минимально возможное
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
 /** Достать текущую картинку как блоб для референса (best-effort: CORS может не пустить). */
 export async function fetchAsBlob(src: string): Promise<Blob | undefined> {
   try {

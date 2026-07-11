@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { useI18n } from '../../lib/i18n';
 import { Img } from '../../lib/media';
-import { readGenKeys } from '../../lib/imagegen';
+import { readGenKeys, blobToBudgetDataUrl } from '../../lib/imagegen';
 import { getOverride, moveOverride, setOverride } from '../../lib/mediaStore';
 import { openArtEditor } from '../../fx/ArtEditor';
 import { useCatalog } from '../../store/catalog';
@@ -47,26 +47,10 @@ export function CarsTab() {
   const [liveBusy, setLiveBusy] = useState<Record<string, boolean>>({});
   const [liveErr, setLiveErr] = useState<Record<string, string>>({});
 
-  /** фото → компактный dataURL (jpeg ≤1280) для image-to-video */
+  /** фото → data-URI под лимит Replicate (~256КБ) для image-to-video */
   const shrinkPhoto = async (src: string): Promise<string> => {
     const blob = await fetch(src).then((r) => (r.ok ? r.blob() : Promise.reject(new Error('фото недоступно'))));
-    const url = URL.createObjectURL(blob);
-    try {
-      const img = await new Promise<HTMLImageElement>((res, rej) => {
-        const i = new Image();
-        i.onload = () => res(i);
-        i.onerror = rej;
-        i.src = url;
-      });
-      const k = Math.min(1, 1280 / Math.max(img.width, img.height));
-      const cv = document.createElement('canvas');
-      cv.width = Math.round(img.width * k);
-      cv.height = Math.round(img.height * k);
-      cv.getContext('2d')!.drawImage(img, 0, 0, cv.width, cv.height);
-      return cv.toDataURL('image/jpeg', 0.85);
-    } finally {
-      URL.revokeObjectURL(url);
-    }
+    return blobToBudgetDataUrl(blob);
   };
 
   /** АВТО-перегенерация заставки через Replicate: кнопка мерцает до готовности,
@@ -323,6 +307,8 @@ export function CarsTab() {
                         <span className="adm-badge dim">{t('admin.badge.seed')}</span>
                       )}
                     </div>
+                    {/* ошибка авто-генерации — видимой строкой, не только в title */}
+                    {liveErr[c.id] && <div className="adm-err">🎬 {liveErr[c.id]}</div>}
                   </td>
                 </tr>
                 );
